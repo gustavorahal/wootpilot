@@ -2,7 +2,7 @@
 
 ## Unit Tests
 
-- Chatwoot webhook normalization.
+- Chatwoot webhook DTO to `NormalizedMessage` translation.
 - Chatwoot signature verification.
 - Shared-secret webhook fallback verification.
 - Replay-window rejection.
@@ -24,7 +24,7 @@
   signals.
 - Mock WooCommerce product search.
 - WooCommerce Store API product mapping.
-- Connector registry capability resolution.
+- Connector registry capability resolution to configured adapters.
 - Connector installation effective capability calculation.
 - Catalog context building.
 - Policy gates.
@@ -64,7 +64,11 @@
 - Price snapshots persist the exact policy-aware price context used by the agent
   run.
 - Database migrations apply cleanly to an empty database and preserve required
-  uniqueness constraints.
+  uniqueness constraints on both SQLite and Postgres.
+- SQLite profile enables WAL mode, foreign keys, and busy timeout.
+- Postgres profile uses row-level queue locking for outbound action workers.
+- LangGraph memory, SQLite, and Postgres checkpointer factories select the
+  expected backend.
 
 ## Evaluation Tests
 

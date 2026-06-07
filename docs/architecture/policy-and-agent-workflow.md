@@ -59,7 +59,7 @@ pipeline should:
   available, or a configured shared-secret fallback.
 - Reject stale or replayed requests using provider event ids, timestamps, and a
   short replay window.
-- Persist the raw event before normalization.
+- Persist the raw event before channel translation.
 - Deduplicate provider events with database uniqueness constraints.
 - Normalize Chatwoot payloads into internal message models.
 - Mark ignored events without invoking the LLM.

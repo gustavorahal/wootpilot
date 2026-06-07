@@ -1,5 +1,21 @@
 # Persistence Model
 
+WootPilot should support two persistence profiles:
+
+```text
+sqlite
+  Local development, tests, demos, shadow mode, and early single-worker copilot
+  deployments.
+
+postgres
+  Production, multiple workers, high webhook volume, and any production limited
+  auto-reply deployment.
+```
+
+The application should use SQLAlchemy 2 and Alembic so the domain repositories
+can target both backends. SQLite support is a product choice for approachability;
+Postgres remains the production target for concurrency and operational safety.
+
 Initial tables:
 
 ```text
@@ -152,6 +168,77 @@ connector_installations
 Chatwoot-facing table where they affect uniqueness, routing, or auditability.
 Conversation ids must not be treated as globally unique.
 
+## Database Profiles
+
+### SQLite
+
+SQLite is acceptable when WootPilot runs as a single process or with one outbound
+executor worker.
+
+SQLite requirements:
+
+- Use `sqlite+aiosqlite` for the async app runtime.
+- Enable WAL mode.
+- Set a `busy_timeout`.
+- Use foreign keys explicitly.
+- Keep the outbound executor single-worker.
+- Avoid relying on row-level locking.
+- Treat limited auto replies on SQLite as local/demo only unless explicitly
+  accepted by the operator.
+
+Suggested local URLs:
+
+```text
+WOOTPILOT_DB_URL=sqlite+aiosqlite:///./data/wootpilot.db
+WOOTPILOT_CHECKPOINTER=sqlite
+WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED=false
+```
+
+### Postgres
+
+Postgres is required when WootPilot needs production-grade concurrent webhook
+processing, multiple outbound workers, or production limited auto replies.
+
+Postgres requirements:
+
+- Use `postgresql+psycopg` with SQLAlchemy 2 async sessions.
+- Use `jsonb` for payload snapshots and policy decision records.
+- Use row-level locking for queue workers.
+- Use production backups, monitoring, and migration discipline.
+- Add `pgvector` later only when semantic retrieval is needed.
+
+Suggested production URLs:
+
+```text
+WOOTPILOT_DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
+WOOTPILOT_CHECKPOINTER=postgres
+WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED=true
+```
+
+## LangGraph Checkpoints
+
+LangGraph checkpoint persistence should be configured independently from
+WootPilot's application tables, even if both use the same database backend.
+
+Supported checkpointer profiles:
+
+```text
+memory
+  Tests and short-lived experiments only.
+
+sqlite
+  Local development and single-worker alpha workflows using
+  langgraph-checkpoint-sqlite.
+
+postgres
+  Production workflows using langgraph-checkpoint-postgres.
+```
+
+Human-in-the-loop graph interrupts, thread memory, time travel debugging, and
+fault-tolerant graph resumes depend on checkpointers. SQLite is enough to start,
+but production graph state should move to Postgres with the rest of production
+persistence.
+
 ## Idempotent Action Execution
 
 Outbound writes should use an outbox-style flow:
@@ -178,10 +265,11 @@ failed_permanent
 cancelled
 ```
 
-The executor must update rows transactionally and use a locking strategy such as
-`SELECT ... FOR UPDATE SKIP LOCKED` when PostgreSQL is available. Every retry
-should increment `attempt_count`, set `next_attempt_at`, and preserve the last
-`error_code`.
+The executor must update rows transactionally. On Postgres, use row-level locking
+such as `SELECT ... FOR UPDATE SKIP LOCKED`. On SQLite, run a single executor
+worker and claim queued actions with short transactions guarded by status updates.
+Every retry should increment `attempt_count`, set `next_attempt_at`, and preserve
+the last `error_code`.
 
 Build `idempotency_key` from stable inputs such as tenant id, provider account
 id, provider message id, action kind, and a content hash. Do not include retry
@@ -200,11 +288,21 @@ policy path than public messages.
 
 ## Data Types
 
-- Use PostgreSQL `jsonb` for payload snapshots and policy decision records.
+- Use portable SQLAlchemy JSON columns for payload snapshots and policy decision
+  records. They should map to SQLite JSON text/JSON support locally and Postgres
+  `jsonb` in production.
 - Store product price context as serialized `PriceSnapshot` domain models.
   `Money` inside those snapshots must use integer minor units, never floats.
 - Use timezone-aware timestamps.
-- Use SQLAlchemy 2 async sessions with psycopg 3 if the application runtime is
-  async end to end.
+- Use SQLAlchemy 2 async sessions for both supported backends.
 - Keep Pydantic model validation outside SQLAlchemy ORM constructors when doing
   bulk persistence. Validate at service boundaries and persist plain values.
+
+## Migration Discipline
+
+- Every schema change should be represented as an Alembic migration.
+- Migrations must run against both SQLite and Postgres in CI.
+- Avoid Postgres-only schema features in shared tables unless the SQLite fallback
+  is explicitly documented.
+- Postgres-only operational behavior, such as `SKIP LOCKED`, should live in
+  repository or outbox implementations selected by database profile.

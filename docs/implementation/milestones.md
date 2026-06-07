@@ -10,6 +10,8 @@
 - Add health route.
 - Add lint/test tooling.
 - Add Dockerfile.
+- Add SQLAlchemy/Alembic persistence configured for SQLite and Postgres profiles.
+- Add LangGraph checkpointer factory for memory, SQLite, and Postgres profiles.
 - Set Python 3.14 as the primary runtime and configure CI for the supported
   Python versions.
 - Add shared domain models for tenant boundaries, normalized messages, `Money`,
@@ -23,7 +25,7 @@
 - Require authenticated webhook ingress through Chatwoot signature verification
   when available, or a configured shared-secret fallback.
 - Add replay protection.
-- Normalize message events.
+- Translate Chatwoot message DTOs into `NormalizedMessage` domain objects.
 - Deduplicate events with database uniqueness constraints.
 - Store raw events and normalized messages.
 - Preserve Chatwoot account, inbox, conversation, message, and contact ids.
@@ -36,7 +38,8 @@
 - Add first-class `Money` and `PriceSnapshot` models to product pricing data.
 - Add connector capability enums and `ProductCatalogConnector` protocol using
   `product_catalog_read`.
-- Add connector installation config model and registry.
+- Add connector installation config model and registry for selecting configured
+  connector adapters.
 - Add WooCommerce connector with `mock` mode.
 - Load and validate `data/mock-woocommerce/catalog.demo-car-parts.json`.
 - Add search by name, SKU, category, tags, and fitment hints.
@@ -63,7 +66,8 @@
 
 - Add outbound policy guard.
 - Add idempotent outbound action outbox.
-- Add worker or service for queued Chatwoot writes.
+- Add worker or service for queued Chatwoot writes with SQLite single-worker and
+  Postgres multi-worker execution strategies.
 - Add low-risk public reply path.
 - Add no-leak public message checks.
 - Add human-active suppression.
@@ -85,6 +89,8 @@
 - Add golden conversation evals.
 - Add cost and latency tracking.
 - Add production deployment docs.
+- Document that Postgres is required for production limited auto replies and
+  multi-worker execution.
 
 ## Open Questions
 

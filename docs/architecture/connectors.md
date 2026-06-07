@@ -28,6 +28,11 @@ Raw connector API payloads should stay inside connector packages. Application
 services should consume only normalized snapshots, and agent context should
 receive only compact, policy-aware context.
 
+Connector adapters own connector boundaries. Connector clients perform raw API
+calls, connector translators convert provider DTOs into domain snapshots, and the
+connector registry selects configured adapters/installations. Registries should
+not translate provider payloads.
+
 Connector packages should expose resource-oriented capability protocols. Workflow
 services compose those resources into support-specific context.
 
@@ -203,24 +208,25 @@ being committed.
 
 The agent graph should depend on `CatalogContextService`, not directly on
 WooCommerce or connector discovery. `CatalogContextService` should use the
-connector registry to resolve the tenant's configured product catalog connector.
+connector registry to resolve the tenant's configured product catalog adapter.
 
 ```python
-catalog_connector = registry.require_capability(
+catalog_adapter = registry.require_capability(
     tenant_id=tenant_id,
     connector_installation_id=workflow_config.catalog_connector_installation_id,
     capability=ConnectorCapability.product_catalog_read,
 )
 ```
 
-The WooCommerce connector should map raw WooCommerce payloads into shared domain
-resource snapshots such as [ProductSnapshot](domain-models/product-snapshots.md)
-and `ProductCategory`. Services must not receive raw WooCommerce API responses.
+The WooCommerce connector adapter should use translators to convert raw
+WooCommerce payloads into shared domain resource snapshots such as
+[ProductSnapshot](domain-models/product-snapshots.md) and `ProductCategory`.
+Services must not receive raw WooCommerce API responses.
 
 ### Product Context Shape
 
 The LLM should not receive raw WooCommerce API responses. A
-`CatalogContextService` should convert repository results into compact,
+`CatalogContextService` should convert adapter results into compact,
 policy-aware structured context.
 
 ```json

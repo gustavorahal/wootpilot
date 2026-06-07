@@ -14,7 +14,8 @@ back to Chatwoot.
 
 This repository is in the initial planning and architecture phase. The first
 implementation is planned as a Python 3.14 service using FastAPI, Pydantic v2,
-LangGraph, and PostgreSQL.
+LangGraph, SQLAlchemy/Alembic, SQLite for local alpha workflows, and PostgreSQL
+for production.
 
 ## Planned Capabilities
 
@@ -58,6 +59,7 @@ Customer message
 
 - [WootPilot Initial Plan](docs/wootpilot-initial-plan.md)
 - [Architecture Overview](docs/architecture/overview.md)
+- [Architecture Vocabulary](docs/architecture/vocabulary.md)
 - [Chatwoot Channel Model](docs/architecture/channels.md)
 - [Connector Model](docs/architecture/connectors.md)
 - [Domain Models](docs/architecture/domain-models/overview.md)

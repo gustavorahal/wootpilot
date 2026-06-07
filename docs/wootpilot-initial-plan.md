@@ -89,7 +89,7 @@ Customer message
   -> authenticated ingress verification
   -> replay protection
   -> deduplication
-  -> message normalization
+  -> channel translation into NormalizedMessage
   -> deterministic triage
   -> WooCommerce product context loading
   -> policy gate
@@ -108,13 +108,13 @@ FastAPI
 
 Ingress
   Authenticates webhook requests, rejects replays, persists raw events,
-  deduplicates provider events, and normalizes channel payloads before any agent
-  workflow starts.
+  deduplicates provider events, and uses channel translators to convert payloads
+  into domain messages before any agent workflow starts.
 
 Channels
   Integrate with the conversation platform WootPilot is centered around.
   Chatwoot is the first channel and should not be mixed with external business
-  connectors.
+  connectors. Channel adapters coordinate channel clients and translators.
 
 Domain services
   Normalize Chatwoot events, classify intent, apply support policy, load context,
@@ -129,7 +129,8 @@ Connectors
   Integrate with external small-business systems that provide business context
   or, later, business actions. WooCommerce is the first connector. Later
   connectors may include billing, CRM, docs, inventory, order management, or
-  custom HTTP APIs.
+  custom HTTP APIs. Connector adapters coordinate connector clients and
+  translators.
 
 Persistence
   Stores raw events, normalized messages, decisions, outbound actions, human
@@ -145,6 +146,7 @@ Observability
 Detailed architecture:
 
 - [Architecture Overview](architecture/overview.md)
+- [Architecture Vocabulary](architecture/vocabulary.md)
 - [Chatwoot Channel Model](architecture/channels.md)
 - [Connector Model](architecture/connectors.md)
 - [Domain Models](architecture/domain-models/overview.md)
@@ -182,8 +184,12 @@ Persistence:
 
 - SQLAlchemy 2
 - Alembic
-- PostgreSQL
-- psycopg
+- SQLite through `aiosqlite` for local development, tests, demos, shadow mode,
+  and early single-worker copilot workflows
+- PostgreSQL through `psycopg` for production, multiple workers, and production
+  limited auto replies
+- `langgraph-checkpoint-sqlite` for local and alpha workflows
+- `langgraph-checkpoint-postgres` for production workflows
 - pgvector, later, only when semantic retrieval is needed
 
 Developer experience:
@@ -203,7 +209,8 @@ Build the first release as an API-only service with:
 - FastAPI.
 - LangGraph.
 - Pydantic.
-- PostgreSQL.
+- SQLAlchemy/Alembic persistence with SQLite first and Postgres as the production
+  target.
 - Chatwoot API client.
 - Connector registry with tenant-scoped WooCommerce `mock` and `store_api`
   product catalog modes.
@@ -214,7 +221,8 @@ Build the first release as an API-only service with:
 - Idempotent outbound action execution with final policy and human-active
   rechecks.
 - Shadow and copilot modes first.
-- Limited auto replies behind an explicit configuration flag.
+- Limited auto replies behind an explicit configuration flag, with Postgres
+  required before production public auto-send.
 
 This keeps WootPilot focused: a reliable agent runtime for Chatwoot, not a new
 helpdesk and not an uncontrolled chatbot.

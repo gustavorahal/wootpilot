@@ -9,6 +9,7 @@ wootpilot/
     wootpilot-initial-plan.md
     architecture/
       overview.md
+      vocabulary.md
       channels.md
       connectors.md
       domain-models/
@@ -53,6 +54,7 @@ wootpilot/
         webhook_pipeline.py
       agents/
         chatwoot_support_graph.py
+        checkpoints.py
         prompts.py
         schemas.py
         state.py
@@ -80,24 +82,26 @@ wootpilot/
         outbound_action_service.py
       channels/
         chatwoot/
+          adapter.py
           client.py
           schemas.py
-          webhook_normalizer.py
+          translators.py
       connectors/
         base.py
         capabilities.py
         registry.py
         woocommerce/
-          connector.py
+          adapter.py
           client.py
-          mappers.py
+          translators.py
           raw_schemas.py
-          repositories.py
         http_client.py
       persistence/
         database.py
+        profiles.py
         models.py
         repositories.py
+        translators.py
         outbox.py
       observability/
         tracing.py
@@ -116,7 +120,7 @@ Chatwoot webhook
   -> authenticated ingress pipeline
   -> raw event store
   -> dedupe and replay checks
-  -> channel normalizer
+  -> channel translator
   -> application service
   -> LangGraph support workflow
   -> connector registry
@@ -136,8 +140,8 @@ compact structured context into the graph.
 
 Ingress should finish before agent reasoning starts. FastAPI handlers should
 authenticate requests, reject replays, persist raw events, deduplicate provider
-events, and normalize channel payloads into internal message models. LangGraph
-should receive a trusted, normalized input plus service dependencies.
+events, and call channel translators to produce `NormalizedMessage` domain
+objects. LangGraph should receive trusted domain input plus service dependencies.
 
 The agent graph should produce action proposals. It should not directly mark a
 message as sent or call Chatwoot APIs. Outbound execution should happen through a
@@ -150,6 +154,11 @@ Services and graph nodes should not depend on raw WooCommerce Store API fields.
 The domain model docs are the source of truth for shared vocabulary. If a concept
 appears in persistence, policy, connectors, and agent prompts, define it in
 `docs/architecture/domain-models/` before implementing it.
+
+Use [Architecture Vocabulary](vocabulary.md) for code role names. Adapters own
+boundaries, translators convert representations, clients perform low-level API
+calls, repositories persist domain objects, registries select configured adapters
+or installations, and services orchestrate workflows.
 
 ## Python Baseline
 

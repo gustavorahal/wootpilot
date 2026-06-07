@@ -21,11 +21,17 @@ Required Chatwoot inputs:
 - Conversation status.
 - Conversation replyability or lock state when available.
 
-Inbound webhooks must be authenticated before normalization. Use Chatwoot
+Inbound webhooks must be authenticated before translation. Use Chatwoot
 signature verification when available. If a Chatwoot deployment does not provide
 a signature, require a configured shared-secret fallback such as a header token
 or unguessable webhook URL secret. Do not run the agent for unauthenticated
 production webhooks.
+
+The Chatwoot channel adapter should use translators to convert raw Chatwoot
+webhook DTOs into `NormalizedMessage` domain objects and outbound
+`OutboundAction` domain objects into Chatwoot create-message DTOs. Translators
+are the only channel code that should understand both Chatwoot payload shape and
+WootPilot domain shape.
 
 Required Chatwoot outputs:
 
@@ -38,7 +44,7 @@ Required Chatwoot outputs:
 The first version should support one Chatwoot account cleanly, but the data model
 should include tenant/account boundaries from the start.
 
-Every normalized Chatwoot message should preserve:
+Every translated `NormalizedMessage` should preserve:
 
 - `tenant_id`
 - `provider`
