@@ -80,6 +80,15 @@ agent_runs
   created_at
   completed_at
 
+policy_decisions
+  id
+  tenant_id
+  agent_run_id
+  stage
+  outcome
+  decision_json
+  created_at
+
 outbound_actions
   id
   agent_run_id
@@ -87,6 +96,7 @@ outbound_actions
   provider
   provider_account_id
   provider_conversation_id
+  source_provider_message_id
   kind
   content
   idempotency_key
@@ -100,6 +110,19 @@ outbound_actions
   error_code
   created_at
   updated_at
+
+audit_records
+  id
+  tenant_id
+  event_type
+  raw_event_id
+  normalized_message_id
+  agent_run_id
+  outbound_action_id
+  policy_decision_id
+  context_snapshot_ids_json
+  summary
+  created_at
 
 connector_installations
   id
@@ -159,6 +182,13 @@ outbound_actions
   unique (idempotency_key)
   index (status, next_attempt_at)
 
+audit_records
+  index (tenant_id, agent_run_id, created_at)
+  index (tenant_id, raw_event_id, created_at)
+
+policy_decisions
+  index (tenant_id, agent_run_id, stage, created_at)
+
 connector_installations
   primary key (id)
   index (tenant_id, connector_key, enabled)
@@ -167,6 +197,39 @@ connector_installations
 `provider_account_id` and `provider_inbox_id` should be carried through every
 Chatwoot-facing table where they affect uniqueness, routing, or auditability.
 Conversation ids must not be treated as globally unique.
+
+## Transaction Boundaries
+
+Use application-level units of work for correctness-sensitive flows. The goal is
+not to abstract every query, but to make duplicate delivery and action execution
+predictable.
+
+Recommended boundaries:
+
+```text
+webhook ingress transaction
+  insert raw_event or load existing duplicate
+  insert normalized message when the event is new and translatable
+  update conversation_state when the event carries human/replyability signals
+  commit before model calls
+
+support workflow transaction
+  create/update agent_run
+  persist context snapshots used by the proposal
+  persist policy decisions that affect execution
+  persist audit record
+  queue outbound action when allowed
+
+outbound execution transaction
+  claim queued action
+  record executing status
+  commit before external channel call
+  re-open transaction to record sent, blocked, or failed result
+```
+
+Do not keep a database transaction open across an LLM call, connector HTTP call,
+or Chatwoot write. Persist enough state to resume or explain the workflow, then
+perform the external effect through the relevant port.
 
 ## Database Profiles
 
@@ -272,15 +335,16 @@ Every retry should increment `attempt_count`, set `next_attempt_at`, and preserv
 the last `error_code`.
 
 Build `idempotency_key` from stable inputs such as tenant id, provider account
-id, provider message id, action kind, and a content hash. Do not include retry
-attempt number or timestamps in the key.
+id, source provider message id, action kind, and a content hash. Do not include
+retry attempt number or timestamps in the key.
 
 Public-message actions require a final pre-send check:
 
 - Target conversation id still matches the normalized event.
 - Conversation is still replyable.
 - Bot mode still allows public replies.
-- Human operator is not currently active.
+- Human operator is not currently active according to local state and, when
+  available, fresh channel state.
 - The policy decision still permits the exact public content.
 
 Private notes should also be idempotent, but they can use a less restrictive

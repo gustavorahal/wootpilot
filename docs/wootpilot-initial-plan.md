@@ -117,13 +117,16 @@ Channels
   connectors. Channel adapters coordinate channel clients and translators.
 
 Domain services
-  Normalize Chatwoot events, classify intent, apply support policy, load context,
-  and validate outbound actions.
+  Implement a small set of use cases around webhook handling, support workflow
+  execution, catalog context loading, policy, and outbound action execution.
+  They depend on narrow ports for persistence, model calls, channel writes,
+  channel safety reads, time, and id generation.
 
 LangGraph
   Orchestrates support reasoning as explicit stateful nodes. It receives
   normalized messages and compact context; it should not own raw webhook
-  authentication, replay protection, or low-level connector payload mapping.
+  authentication, replay protection, transaction boundaries, outbound execution,
+  or low-level connector payload mapping.
 
 Connectors
   Integrate with external small-business systems that provide business context

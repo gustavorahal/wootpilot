@@ -67,6 +67,23 @@ pipeline should:
 LangGraph should receive a trusted normalized message plus service dependencies.
 It should not know how to verify signatures or parse raw webhook envelopes.
 
+## Application Use Cases
+
+Keep the workflow centered on a few application use cases:
+
+```text
+HandleWebhookEvent
+RunSupportWorkflow
+BuildCatalogContext
+ExecuteOutboundAction
+```
+
+The graph is allowed to orchestrate state and call injected ports, but it should
+not become the only place where system behavior exists. In particular, durable
+state transitions such as raw-event dedupe, audit persistence, and outbound
+action execution should be owned by application use cases so they can be tested
+without replaying the whole graph.
+
 ## LangGraph Workflow
 
 The first graph should be explicit and boring in the best way.
@@ -78,13 +95,11 @@ normalized_message
 conversation_context
 human_operator_state
 triage_result
-business_context
 catalog_context
 bot_mode
 agent_proposal
 outbound_action_candidate
-outbound_result
-audit_record
+workflow_decision
 ```
 
 Agent nodes:
@@ -97,28 +112,36 @@ load_catalog_context
 policy_gate
 llm_proposal
 validate_outbound_action
-queue_outbound_action
-persist_audit
+build_workflow_decision
 ```
 
-Outbound execution should be a separate application service or worker, not an
-LLM node. That service should load the queued action, re-check policy, re-read
-human operator state, send through the Chatwoot channel client, and update the
-action status idempotently.
+`RunSupportWorkflow` should persist the audit record and queue an outbound action
+after the graph returns a decision. This keeps the graph focused on reasoning and
+branching while the application layer owns transaction boundaries.
+
+Outbound execution should be a separate application use case or worker, not an
+LLM node. That use case should load the queued action, re-check policy, re-read
+human operator and replyability state through the channel safety port, send
+through the channel writer, and update the action status idempotently.
 
 Branching:
 
 ```text
-ignored event -> persist audit -> done
-shadow mode -> llm proposal -> persist audit -> done
-copilot mode -> private note candidate -> guard -> queue note action -> audit
-limited auto safe -> public message candidate -> guard -> queue public action -> audit
-risky or uncertain -> private note -> guard -> queue note action -> audit
+ignored event -> audit decision -> done
+shadow mode -> llm proposal -> audit decision -> done
+copilot mode -> private note candidate -> guard -> queue note action
+limited auto safe -> public message candidate -> guard -> queue public action
+risky or uncertain -> private note -> guard -> queue note action
 ```
 
 Before a public send, the outbound executor must re-check the conversation id,
-conversation replyability, bot mode, and human-active state. A case that was safe
-at proposal time can become unsafe while waiting in the queue.
+conversation replyability, bot mode, human-active state, and the exact content
+being sent. A case that was safe at proposal time can become unsafe while waiting
+in the queue.
+
+Snapshot fields such as `price.canMention` and `availability.canMention` are
+inputs to policy, not final authorization. The final policy decision must inspect
+the exact public content and current tenant/channel state before execution.
 
 ## Structured Outputs
 

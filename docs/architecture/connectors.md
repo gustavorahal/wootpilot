@@ -36,6 +36,11 @@ not translate provider payloads.
 Connector packages should expose resource-oriented capability protocols. Workflow
 services compose those resources into support-specific context.
 
+Adapters should present capability protocols to the application layer. Clients
+and raw DTOs remain internal to the connector package, and translators are used
+inside the adapter to turn provider responses into domain snapshots before
+anything crosses into services.
+
 ## Capabilities
 
 Initial capability names:

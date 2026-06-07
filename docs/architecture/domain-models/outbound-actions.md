@@ -49,6 +49,7 @@ class OutboundAction(BaseModel):
 
     id: str
     agent_run_id: str
+    source_provider_message_id: str
     target: OutboundTarget
     kind: OutboundActionKind
     content: str
@@ -66,6 +67,8 @@ class OutboundAction(BaseModel):
 ## Rules
 
 - Build `idempotency_key` from stable inputs, not timestamps or retry attempts.
+- Keep the source customer message id separate from the provider message id that
+  may be returned after a successful channel write.
 - Re-check policy and human-active state immediately before public sends.
 - Keep status transitions explicit and persisted.
 - Retry only actions that are safe to retry idempotently.

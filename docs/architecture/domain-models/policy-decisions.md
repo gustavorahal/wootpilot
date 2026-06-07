@@ -26,6 +26,13 @@ class PolicyRuleSeverity(StrEnum):
     blocking = "blocking"
 
 
+class PolicyEvaluationStage(StrEnum):
+    pre_model = "pre_model"
+    post_model = "post_model"
+    pre_send = "pre_send"
+    connector_action = "connector_action"
+
+
 class PolicyRuleResult(BaseModel):
     model_config = ConfigDict(frozen=True, strict=True)
 
@@ -49,6 +56,8 @@ class PolicyDecision(BaseModel):
 ## Rules
 
 - Policy decisions should be deterministic and reproducible from their inputs.
+- Persist the evaluation stage so audits can distinguish invocation gating,
+  proposal validation, and final pre-send checks.
 - Include stable `rule_id` values so tests can assert exact behavior.
 - Do not use free-form model reasoning as policy.
 - Persist decisions that affect agent invocation, outbound execution, or connector

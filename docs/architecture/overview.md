@@ -73,13 +73,19 @@ wootpilot/
           products.py
           orders.py
           customers.py
+      ports/
+        clock.py
+        ids.py
+        model_proposals.py
+        unit_of_work.py
+        channels.py
+        repositories.py
       services/
-        conversation_service.py
-        conversation_state_service.py
-        triage_service.py
+        handle_webhook_event.py
+        run_support_workflow.py
         catalog_context_service.py
-        outbound_guard_service.py
-        outbound_action_service.py
+        execute_outbound_action.py
+        policy_service.py
       channels/
         chatwoot/
           adapter.py
@@ -121,7 +127,7 @@ Chatwoot webhook
   -> raw event store
   -> dedupe and replay checks
   -> channel translator
-  -> application service
+  -> handle-webhook use case
   -> LangGraph support workflow
   -> connector registry
   -> connector capability protocol
@@ -136,17 +142,77 @@ discover WooCommerce, parse connector payloads, or decide which tenant
 installation to use. Application services should handle those details and pass
 compact structured context into the graph.
 
+Application services should be organized around a few durable use cases, not one
+service per tiny operation. Version 1 should start with these use-case modules:
+
+```text
+HandleWebhookEvent
+  Authenticates and deduplicates a channel event, stores the raw event, stores
+  normalized message data when present, and starts the support workflow only for
+  eligible customer messages.
+
+RunSupportWorkflow
+  Loads conversation and business context, applies policy, invokes the graph or
+  model proposal port, and produces an audited decision or queued outbound
+  action.
+
+BuildCatalogContext
+  Resolves the configured product catalog connector, reads product snapshots,
+  and returns compact policy-aware context for the workflow.
+
+ExecuteOutboundAction
+  Claims queued actions, re-checks channel safety and policy, writes through the
+  channel port, and updates action status idempotently.
+```
+
+These modules may call small helper functions, but the use cases should remain
+the main test boundaries. Avoid creating many shallow services whose public API
+is just one line of another module.
+
+## Application Ports
+
+The core workflow should depend on narrow protocols for external effects. This
+keeps adapters replaceable without requiring a large abstraction framework.
+
+Initial ports:
+
+```text
+RawEventStore
+ConversationMessageRepository
+ConversationStateRepository
+AgentRunRepository
+ContextSnapshotRepository
+AuditRecordRepository
+PolicyDecisionRepository
+OutboundActionQueue
+ConnectorInstallationRepository
+ChannelWriter
+ConversationSafetyReader
+ModelProposalPort
+UnitOfWork
+Clock
+IdGenerator
+```
+
+Use concrete implementations directly when no boundary exists yet. Add a port
+when the dependency crosses process, provider, database, model, or time/id
+generation boundaries, or when tests need to assert behavior at a meaningful
+workflow boundary.
+
 ## Boundary Rules
 
-Ingress should finish before agent reasoning starts. FastAPI handlers should
-authenticate requests, reject replays, persist raw events, deduplicate provider
-events, and call channel translators to produce `NormalizedMessage` domain
-objects. LangGraph should receive trusted domain input plus service dependencies.
+Ingress should finish before agent reasoning starts. FastAPI handlers should stay
+thin: parse transport details, call `HandleWebhookEvent`, and translate returned
+application errors into HTTP responses. The ingress use case should authenticate
+requests, reject replays, persist raw events, deduplicate provider events, and
+call channel translators to produce domain event/message objects. LangGraph
+should receive trusted domain input plus service dependencies.
 
 The agent graph should produce action proposals. It should not directly mark a
 message as sent or call Chatwoot APIs. Outbound execution should happen through a
-small action service that performs final policy checks, re-reads human operator
-state, sends through the channel client, and records the result idempotently.
+small use case that performs final policy checks, re-reads human operator and
+replyability state through a channel-facing safety port, sends through the
+channel writer, and records the result idempotently.
 
 Connector packages should map raw external payloads into domain snapshots.
 Services and graph nodes should not depend on raw WooCommerce Store API fields.

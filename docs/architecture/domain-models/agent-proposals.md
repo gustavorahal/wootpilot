@@ -26,6 +26,7 @@ class AgentProposal(BaseModel):
     risk_reasons: list[str] = Field(default_factory=list)
     context_snapshot_ids: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
+    error_code: str | None = None
 
 
 class AgentRunStatus(StrEnum):
@@ -47,6 +48,8 @@ API results.
 - Treat model output as a proposal, not as a fact about what happened.
 - Keep action kinds small and explicit.
 - Include context snapshot ids so reviewers can trace why the proposal was made.
+- Use `error_code` only for structured model/proposal failures, not for final
+  channel execution failures.
 - Use deterministic policy to transform a proposal into a queued action,
   blocked action, or audit-only shadow result.
 - Assign final run status only after guard checks and channel API calls.

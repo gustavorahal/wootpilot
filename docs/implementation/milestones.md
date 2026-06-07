@@ -14,6 +14,8 @@
 - Add LangGraph checkpointer factory for memory, SQLite, and Postgres profiles.
 - Set Python 3.14 as the primary runtime and configure CI for the supported
   Python versions.
+- Add minimal application ports for repositories/unit of work, model proposals,
+  channel writes, channel safety reads, time, and id generation.
 - Add shared domain models for tenant boundaries, normalized messages, `Money`,
   `PriceSnapshot`, availability snapshots, product snapshots, triage, risk
   signals, policy decisions, agent proposals, outbound actions, connector
@@ -24,8 +26,12 @@
 - Receive webhooks.
 - Require authenticated webhook ingress through Chatwoot signature verification
   when available, or a configured shared-secret fallback.
+- Add `HandleWebhookEvent` as the use case that owns authentication, raw event
+  persistence, dedupe, translation, and eligibility decisions.
 - Add replay protection.
 - Translate Chatwoot message DTOs into `NormalizedMessage` domain objects.
+- Handle conversation or assignment events as state updates that do not invoke
+  the LLM.
 - Deduplicate events with database uniqueness constraints.
 - Store raw events and normalized messages.
 - Preserve Chatwoot account, inbox, conversation, message, and contact ids.
@@ -57,6 +63,8 @@
 ### Milestone 3: Copilot Notes
 
 - Add deterministic triage.
+- Add `RunSupportWorkflow` as the main use case for policy, context, model
+  proposal, audit, and action-queue decisions.
 - Add LangGraph workflow.
 - Add structured model proposal schema.
 - Write private notes to Chatwoot.
@@ -66,13 +74,13 @@
 
 - Add outbound policy guard.
 - Add idempotent outbound action outbox.
-- Add worker or service for queued Chatwoot writes with SQLite single-worker and
-  Postgres multi-worker execution strategies.
+- Add `ExecuteOutboundAction` worker/use case for queued Chatwoot writes with
+  SQLite single-worker and Postgres multi-worker execution strategies.
 - Add low-risk public reply path.
 - Add no-leak public message checks.
 - Add human-active suppression.
-- Add final pre-send recheck for conversation id, replyability, bot mode, policy,
-  and human-active state.
+- Add final pre-send recheck for conversation id, replyability, bot mode, exact
+  content policy, local human-active state, and fresh channel safety state.
 - Add integration tests.
 
 ### Milestone 5: Additional Context Connectors

@@ -3,6 +3,8 @@
 ## Unit Tests
 
 - Chatwoot webhook DTO to `NormalizedMessage` translation.
+- Chatwoot conversation or assignment event translation to non-LLM
+  `ChannelEvent` handling.
 - Chatwoot signature verification.
 - Shared-secret webhook fallback verification.
 - Replay-window rejection.
@@ -29,8 +31,12 @@
 - Catalog context building.
 - Policy gates.
 - Policy decision rule ids and outcomes.
+- Application port contracts for channel writes, channel safety reads,
+  repositories, model proposals, time, and id generation.
 - Context snapshot redaction and snapshot id propagation.
 - Outbound action idempotency key construction and status transitions.
+- Outbound action source message id and provider-created message id stay
+  separate.
 - Conversation state human-active suppression windows.
 - Audit record correlation ids and redaction.
 - Public-message leakage guard.
@@ -54,10 +60,14 @@
   outbound action.
 - Concurrent duplicate webhook deliveries do not create duplicate public
   messages.
+- Webhook ingress commits raw-event and dedupe state before model or connector
+  calls.
 - Public action queued while safe is blocked if a human becomes active before
   execution.
 - Public action queued while safe is blocked if the conversation is no longer
   replyable before execution.
+- Public action queued while safe is blocked if fresh channel safety state
+  disagrees with local conversation state.
 - Product lookup conversation against the mock WooCommerce catalog.
 - Product lookup persists context snapshots used by the agent run.
 - Ambiguous product match produces a clarifying question or private note.
@@ -69,6 +79,8 @@
 - Postgres profile uses row-level queue locking for outbound action workers.
 - LangGraph memory, SQLite, and Postgres checkpointer factories select the
   expected backend.
+- Architecture import boundaries prevent domain models from importing API,
+  persistence, channel, connector, or provider SDK modules.
 
 ## Evaluation Tests
 
