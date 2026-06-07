@@ -18,6 +18,8 @@ reasoning summaries, relevant context, and risk reasons.
 Use this mode when humans should remain fully in control of customer-facing
 messages.
 
+Copilot private notes are the default write mode for the MVP.
+
 Copilot mode does not use LangGraph interrupts in the MVP. The graph produces a
 proposal, WootPilot queues or writes the private note, and the run completes.
 Human review happens in Chatwoot.
@@ -26,6 +28,9 @@ Human review happens in Chatwoot.
 
 The agent may send public messages only when deterministic policy says the case
 is low risk.
+
+Limited auto mode must require explicit configuration. Do not make public sends
+the default behavior for a new tenant or local development setup.
 
 Examples:
 

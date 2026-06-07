@@ -78,6 +78,11 @@ it.
 The first version should support one Chatwoot account cleanly, but the data model
 should include tenant/account boundaries from the start.
 
+The channel adapter should target Chatwoot-compatible webhooks and APIs rather
+than a Cloud-only or self-hosted-only integration. MVP slices should validate
+against the local self-hosted Chatwoot stack first, with Chatwoot Cloud treated
+as a compatibility target for production readiness.
+
 Every translated `NormalizedMessage` should preserve:
 
 - `tenant_id`

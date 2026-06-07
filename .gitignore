@@ -1,2 +1,4 @@
-data/
+data/*
+!data/mock-woocommerce/
+!data/mock-woocommerce/catalog.demo-car-parts.json
 infra/chatwoot-dev/.env

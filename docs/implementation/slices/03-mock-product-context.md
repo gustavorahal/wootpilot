@@ -16,6 +16,9 @@
   connector adapters.
 - Add WooCommerce connector `mock` mode.
 - Load and validate `data/mock-woocommerce/catalog.demo-car-parts.json`.
+- Use the committed mock catalog as the canonical fixture for products,
+  categories, tags, stock status, prices, kits, and WooCommerce Store API
+  response fields needed by translators.
 - Add search by name, SKU, category, tags, and fitment hints.
 - Add `CatalogContextService`.
 - Persist compact context snapshots before invoking the graph.
@@ -30,6 +33,8 @@
 - Money and price snapshots reject floats and preserve integer minor units.
 - Price snapshot validates quote-required semantics, hidden prices, display text,
   and mention permissions.
+- Exact public WooCommerce prices are mentionable by default when fresh and not
+  hidden, quote-required, unavailable, or ambiguous.
 - Availability snapshot validates hidden quantities, mention permissions, and
   uncertainty reasons.
 - Product snapshot composes price, availability, fitment hints, and risk signals.

@@ -10,6 +10,8 @@
 - Add public-message outbound action support.
 - Add outbound policy guard for public messages.
 - Add no-leak public message checks.
+- Allow exact WooCommerce price mentions by default when `price.canMention=true`
+  and the final public content passes policy.
 - Add human-active suppression.
 - Add final pre-send recheck for conversation id, replyability, bot mode, exact
   content policy, local human-active state, and fresh channel safety state.
@@ -27,6 +29,10 @@
   disagrees with local conversation state.
 - Conversation id mismatch guard blocks public execution.
 - Public-message leakage guard blocks internal reasoning and unsafe claims.
+- Public replies may include exact product prices by default when the selected
+  product has a fresh mentionable price snapshot.
+- Public replies do not present quote-required, hidden, unavailable, stale, or
+  ambiguous prices as exact prices.
 - Human-active suppression blocks public sends.
 - System status is assigned after policy and action execution.
 - Duplicate or concurrent webhook deliveries do not create duplicate public

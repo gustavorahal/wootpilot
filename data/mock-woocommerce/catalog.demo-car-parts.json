@@ -1,0 +1,4659 @@
+{
+  "metadata": {
+    "source": "Demo Car Parts WooCommerce Store API mock/testing catalog",
+    "fetchedAt": "2026-05-26T21:39:47.681Z",
+    "website": "https://demo-car-parts.test",
+    "site": {
+      "name": "Demo Car Parts",
+      "description": "Demo automotive parts store",
+      "url": "https://demo-car-parts.test",
+      "home": "https://demo-car-parts.test"
+    },
+    "api": {
+      "root": "https://demo-car-parts.test/wp-json",
+      "productsEndpoint": "https://demo-car-parts.test/wp-json/wc/store/v1/products",
+      "categoriesEndpoint": "https://demo-car-parts.test/wp-json/wc/store/v1/products/categories",
+      "tagsEndpoint": "https://demo-car-parts.test/wp-json/wc/store/v1/products/tags",
+      "attributesEndpoint": "https://demo-car-parts.test/wp-json/wc/store/v1/products/attributes",
+      "totalStoreProductPagesFetched": 1
+    },
+    "counts": {
+      "products": 39,
+      "categories": 3,
+      "tags": 5,
+      "attributes": 0,
+      "kits": 3,
+      "catalogItems": 27,
+      "tbiProducts": 9,
+      "inStock": 36,
+      "outOfStock": 3,
+      "purchasable": 39,
+      "kitsWithExtractedComponents": 1
+    },
+    "fixture": {
+      "name": "Demo Car Parts WooCommerce Catalog",
+      "purpose": "Mock catalog for WootPilot local development and tests",
+      "sanitized": true
+    }
+  },
+  "categories": [
+    {
+      "id": 91,
+      "name": "Itens_KIT",
+      "slug": "itens_kit",
+      "description": "",
+      "parent": 0,
+      "count": 27,
+      "image": null,
+      "reviewCount": 0,
+      "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+    },
+    {
+      "id": 53,
+      "name": "KITS",
+      "slug": "kits",
+      "description": "",
+      "parent": 0,
+      "count": 3,
+      "image": null,
+      "reviewCount": 0,
+      "permalink": "https://demo-car-parts.test/categoria-produto/kits/"
+    },
+    {
+      "id": 15,
+      "name": "TBI’s",
+      "slug": "tbi",
+      "description": "Corpo de borboleta",
+      "parent": 0,
+      "count": 8,
+      "image": null,
+      "reviewCount": 0,
+      "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+    }
+  ],
+  "tags": [
+    {
+      "id": 67,
+      "name": "60",
+      "slug": "60",
+      "count": 1
+    },
+    {
+      "id": 68,
+      "name": "60mm",
+      "slug": "60mm",
+      "count": 1
+    },
+    {
+      "id": 66,
+      "name": "dfv",
+      "slug": "dfv",
+      "count": 1
+    },
+    {
+      "id": 58,
+      "name": "ford",
+      "slug": "ford",
+      "count": 1
+    },
+    {
+      "id": 33,
+      "name": "tbi",
+      "slug": "tbi",
+      "count": 2
+    }
+  ],
+  "attributes": [],
+  "products": [
+    {
+      "id": 3800,
+      "name": "Chicote Aircooled Simples",
+      "slug": "chicote-aircooled-simples",
+      "type": "simple",
+      "sku": "DCP-100-0104",
+      "permalink": "https://demo-car-parts.test/produto/chicote-aircooled-simples/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:15Z",
+        "modifiedAt": "2026-05-24T23:39:50Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 3500,
+        "regularPrice": 3500,
+        "salePrice": 3500,
+        "raw": {
+          "price": "350000",
+          "regularPrice": "350000",
+          "salePrice": "350000"
+        }
+      },
+      "priceHtml": "R$ 3.500,00\nR$ 3.325,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Chicote Aircooled Simples&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3800",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Chicote Aircooled Simples – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 3.500,00",
+            "Ou 6x de R$ 583,33 sem juros R$ 3.325,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 3.500,00 sem juros",
+            "2x de R$ 1.750,00 sem juros",
+            "3x de R$ 1.166,67 sem juros",
+            "R$ 3.500,01",
+            "4x de R$ 875,00 sem juros",
+            "5x de R$ 700,00 sem juros",
+            "6x de R$ 583,33 sem juros",
+            "R$ 3.499,98",
+            "7x de R$ 520,00 com juros",
+            "R$ 3.640,00",
+            "8x de R$ 455,00 com juros",
+            "9x de R$ 404,44 com juros",
+            "R$ 3.639,96",
+            "10x de R$ 364,00 com juros",
+            "11x de R$ 330,91 com juros",
+            "R$ 3.640,01",
+            "12x de R$ 303,33 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3799,
+      "name": "Chicote V8 Quadrijet",
+      "slug": "chicote-v8-quadrijet",
+      "type": "simple",
+      "sku": "DCP-100-0105",
+      "permalink": "https://demo-car-parts.test/produto/chicote-v8-quadrijet/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:13Z",
+        "modifiedAt": "2026-05-24T23:39:57Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 4200,
+        "regularPrice": 4200,
+        "salePrice": 4200,
+        "raw": {
+          "price": "420000",
+          "regularPrice": "420000",
+          "salePrice": "420000"
+        }
+      },
+      "priceHtml": "R$ 4.200,00\nR$ 3.990,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Chicote V8 Quadrijet&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3799",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Chicote V8 Quadrijet – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 4.200,00",
+            "Ou 6x de R$ 700,00 sem juros R$ 3.990,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 4.200,00 sem juros",
+            "2x de R$ 2.100,00 sem juros",
+            "3x de R$ 1.400,00 sem juros",
+            "4x de R$ 1.050,00 sem juros",
+            "5x de R$ 840,00 sem juros",
+            "6x de R$ 700,00 sem juros",
+            "7x de R$ 624,00 com juros",
+            "R$ 4.368,00",
+            "8x de R$ 546,00 com juros",
+            "9x de R$ 485,33 com juros",
+            "R$ 4.367,97",
+            "10x de R$ 436,80 com juros",
+            "11x de R$ 397,09 com juros",
+            "R$ 4.367,99",
+            "12x de R$ 364,00 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3798,
+      "name": "Adicional Chicote Eletroventilador",
+      "slug": "adicional-chicote-eletroventilador",
+      "type": "simple",
+      "sku": "DCP-100-0107",
+      "permalink": "https://demo-car-parts.test/produto/adicional-chicote-eletroventilador/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:12Z",
+        "modifiedAt": "2026-05-24T23:40:04Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 100,
+        "regularPrice": 100,
+        "salePrice": 100,
+        "raw": {
+          "price": "10000",
+          "regularPrice": "10000",
+          "salePrice": "10000"
+        }
+      },
+      "priceHtml": "R$ 100,00\nR$ 95,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Adicional Chicote Eletroventilador&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3798",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Adicional Chicote Eletroventilador – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 100,00",
+            "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 100,00 sem juros",
+            "2x de R$ 50,00 sem juros",
+            "3x de R$ 33,33 sem juros",
+            "R$ 99,99",
+            "4x de R$ 25,00 sem juros",
+            "5x de R$ 20,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3797,
+      "name": "Adicional Chicote Sensor de Pressão de Combustivel",
+      "slug": "adicional-chicote-sensor-de-pressao-de-combustivel",
+      "type": "simple",
+      "sku": "DCP-100-0108",
+      "permalink": "https://demo-car-parts.test/produto/adicional-chicote-sensor-de-pressao-de-combustivel/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:11Z",
+        "modifiedAt": "2026-05-24T23:40:10Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 100,
+        "regularPrice": 100,
+        "salePrice": 100,
+        "raw": {
+          "price": "10000",
+          "regularPrice": "10000",
+          "salePrice": "10000"
+        }
+      },
+      "priceHtml": "R$ 100,00\nR$ 95,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Adicional Chicote Sensor de Pressão de Combustivel&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3797",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Adicional Chicote Sensor de Pressão de Combustivel – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 100,00",
+            "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 100,00 sem juros",
+            "2x de R$ 50,00 sem juros",
+            "3x de R$ 33,33 sem juros",
+            "R$ 99,99",
+            "4x de R$ 25,00 sem juros",
+            "5x de R$ 20,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3796,
+      "name": "Adicional Chicote Sensor de Pressão de Óleo",
+      "slug": "adicional-chicote-sensor-de-pressao-de-oleo",
+      "type": "simple",
+      "sku": "DCP-100-0109",
+      "permalink": "https://demo-car-parts.test/produto/adicional-chicote-sensor-de-pressao-de-oleo/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:10Z",
+        "modifiedAt": "2026-05-24T23:40:17Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 100,
+        "regularPrice": 100,
+        "salePrice": 100,
+        "raw": {
+          "price": "10000",
+          "regularPrice": "10000",
+          "salePrice": "10000"
+        }
+      },
+      "priceHtml": "R$ 100,00\nR$ 95,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Adicional Chicote Sensor de Pressão de Óleo&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3796",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Adicional Chicote Sensor de Pressão de Óleo – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 100,00",
+            "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 100,00 sem juros",
+            "2x de R$ 50,00 sem juros",
+            "3x de R$ 33,33 sem juros",
+            "R$ 99,99",
+            "4x de R$ 25,00 sem juros",
+            "5x de R$ 20,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3795,
+      "name": "Adicional Chicote Espera para Tacometro",
+      "slug": "adicional-chicote-espera-para-tacometro",
+      "type": "simple",
+      "sku": "DCP-100-0110",
+      "permalink": "https://demo-car-parts.test/produto/adicional-chicote-espera-para-tacometro/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:09Z",
+        "modifiedAt": "2026-05-24T23:40:24Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 100,
+        "regularPrice": 100,
+        "salePrice": 100,
+        "raw": {
+          "price": "10000",
+          "regularPrice": "10000",
+          "salePrice": "10000"
+        }
+      },
+      "priceHtml": "R$ 100,00\nR$ 95,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Adicional Chicote Espera para Tacometro&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3795",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Adicional Chicote Espera para Tacometro – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 100,00",
+            "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 100,00 sem juros",
+            "2x de R$ 50,00 sem juros",
+            "3x de R$ 33,33 sem juros",
+            "R$ 99,99",
+            "4x de R$ 25,00 sem juros",
+            "5x de R$ 20,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3794,
+      "name": "Adicional Chicote Espera para TW Step",
+      "slug": "adicional-chicote-espera-para-tw-step",
+      "type": "simple",
+      "sku": "DCP-100-0111",
+      "permalink": "https://demo-car-parts.test/produto/adicional-chicote-espera-para-tw-step/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:08Z",
+        "modifiedAt": "2026-05-24T23:40:31Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 100,
+        "regularPrice": 100,
+        "salePrice": 100,
+        "raw": {
+          "price": "10000",
+          "regularPrice": "10000",
+          "salePrice": "10000"
+        }
+      },
+      "priceHtml": "R$ 100,00\nR$ 95,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Adicional Chicote Espera para TW Step&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3794",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Adicional Chicote Espera para TW Step – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 100,00",
+            "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 100,00 sem juros",
+            "2x de R$ 50,00 sem juros",
+            "3x de R$ 33,33 sem juros",
+            "R$ 99,99",
+            "4x de R$ 25,00 sem juros",
+            "5x de R$ 20,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3793,
+      "name": "Módulo InjePro T5000",
+      "slug": "modulo-injepro-t5000",
+      "type": "simple",
+      "sku": "DCP-100-0116",
+      "permalink": "https://demo-car-parts.test/produto/modulo-injepro-t5000/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:07Z",
+        "modifiedAt": "2026-05-24T23:40:37Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 4420,
+        "regularPrice": 4420,
+        "salePrice": 4420,
+        "raw": {
+          "price": "442000",
+          "regularPrice": "442000",
+          "salePrice": "442000"
+        }
+      },
+      "priceHtml": "R$ 4.420,00\nR$ 4.199,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Módulo InjePro T5000&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3793",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Módulo InjePro T5000 – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 4.420,00",
+            "Ou 6x de R$ 736,67 sem juros R$ 4.199,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 4.420,00 sem juros",
+            "2x de R$ 2.210,00 sem juros",
+            "3x de R$ 1.473,33 sem juros",
+            "R$ 4.419,99",
+            "4x de R$ 1.105,00 sem juros",
+            "5x de R$ 884,00 sem juros",
+            "6x de R$ 736,67 sem juros",
+            "R$ 4.420,02",
+            "7x de R$ 656,69 com juros",
+            "R$ 4.596,83",
+            "8x de R$ 574,60 com juros",
+            "R$ 4.596,80",
+            "9x de R$ 510,76 com juros",
+            "R$ 4.596,84",
+            "10x de R$ 459,68 com juros",
+            "11x de R$ 417,89 com juros",
+            "R$ 4.596,79",
+            "12x de R$ 383,07 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3792,
+      "name": "Módulo FuelTech FT550",
+      "slug": "modulo-fueltech-ft550",
+      "type": "simple",
+      "sku": "DCP-100-0121",
+      "permalink": "https://demo-car-parts.test/produto/modulo-fueltech-ft550/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:18:06Z",
+        "modifiedAt": "2026-05-24T23:40:58Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 8350,
+        "regularPrice": 8350,
+        "salePrice": 8350,
+        "raw": {
+          "price": "835000",
+          "regularPrice": "835000",
+          "salePrice": "835000"
+        }
+      },
+      "priceHtml": "R$ 8.350,00\nR$ 7.932,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Módulo FuelTech FT550&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3792",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Módulo FuelTech FT550 – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 8.350,00",
+            "Ou 6x de R$ 1.391,67 sem juros R$ 7.932,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 8.350,00 sem juros",
+            "2x de R$ 4.175,00 sem juros",
+            "3x de R$ 2.783,33 sem juros",
+            "R$ 8.349,99",
+            "4x de R$ 2.087,50 sem juros",
+            "5x de R$ 1.670,00 sem juros",
+            "6x de R$ 1.391,67 sem juros",
+            "R$ 8.350,02",
+            "7x de R$ 1.240,57 com juros",
+            "R$ 8.683,99",
+            "8x de R$ 1.085,50 com juros",
+            "R$ 8.684,00",
+            "9x de R$ 964,89 com juros",
+            "R$ 8.684,01",
+            "10x de R$ 868,40 com juros",
+            "11x de R$ 789,45 com juros",
+            "R$ 8.683,95",
+            "12x de R$ 723,67 com juros",
+            "R$ 8.684,04",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3791,
+      "name": "Kit  para V8 TBI 60mm",
+      "slug": "kit-para-v8-tbi-60mm",
+      "type": "simple",
+      "sku": "DCP-100-0005",
+      "permalink": "https://demo-car-parts.test/produto/kit-para-v8-tbi-60mm/",
+      "categories": [
+        {
+          "id": 53,
+          "name": "KITS",
+          "slug": "kits",
+          "description": "",
+          "parent": 0,
+          "count": 3,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/kits/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:19Z",
+        "modifiedAt": "2026-05-15T17:18:05Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 0,
+        "regularPrice": 0,
+        "salePrice": 0,
+        "raw": {
+          "price": "0",
+          "regularPrice": "0",
+          "salePrice": "0"
+        }
+      },
+      "priceHtml": "R$ 0,00",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": false,
+      "stockAvailability": "Fora de estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 0,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Leia mais",
+        "description": "Leia mais sobre &ldquo;Kit  para V8 TBI 60mm&rdquo;",
+        "url": "https://demo-car-parts.test/produto/kit-para-v8-tbi-60mm/",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 9999,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Kit para V8 TBI 60mm – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "ITENS INCLUSOS",
+            "KIT PERSONALIZADO",
+            "A partir de",
+            "Fora de estoque",
+            "Formas de Envio",
+            "Este Kit para V8 TBI 60mm pode ser seu por apenas R$0,00 !"
+          ]
+        },
+        "kit": {
+          "markers": [
+            "ITENS INCLUSOS",
+            "KIT PERSONALIZADO"
+          ],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3790,
+      "name": "Kit  para V8 QUADRIJET",
+      "slug": "kit-para-v8-quadrijet",
+      "type": "composite",
+      "sku": "DCP-100-0006",
+      "permalink": "https://demo-car-parts.test/produto/kit-para-v8-quadrijet/",
+      "categories": [
+        {
+          "id": 53,
+          "name": "KITS",
+          "slug": "kits",
+          "description": "",
+          "parent": 0,
+          "count": 3,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/kits/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:18Z",
+        "modifiedAt": "2026-05-25T03:35:12Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 0,
+        "regularPrice": 0,
+        "salePrice": 0,
+        "raw": {
+          "price": "0",
+          "regularPrice": "0",
+          "salePrice": "0"
+        }
+      },
+      "priceHtml": "R$ 0,00",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "texto",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Selecione as opções",
+        "description": "Leia mais sobre &ldquo;Kit  para V8 QUADRIJET&rdquo;",
+        "url": "https://demo-car-parts.test/produto/kit-para-v8-quadrijet/",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Kit para V8 QUADRIJET – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "ITENS INCLUSOS",
+            "KIT PERSONALIZADO",
+            "A partir de",
+            "R$ 8.350,00",
+            "Ou 6x de R$ 1.391,67 sem juros R$ 7.932,50 no Pix",
+            "1 em estoque",
+            "R$ 4.420,00",
+            "Ou 6x de R$ 736,67 sem juros R$ 4.199,00 no Pix",
+            "R$ 100,00",
+            "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix",
+            "R$ 4.200,00",
+            "Ou 6x de R$ 700,00 sem juros R$ 3.990,00 no Pix",
+            "R$ 180,00",
+            "Ou 6x de R$ 30,00 sem juros R$ 171,00 no Pix",
+            "R$ 150,00",
+            "Ou 6x de R$ 25,00 sem juros R$ 142,50 no Pix",
+            "R$ 70,00",
+            "Ou 3x de R$ 23,33 sem juros R$ 66,50 no Pix",
+            "R$ 80,00",
+            "Ou 4x de R$ 20,00 sem juros R$ 76,00 no Pix",
+            "R$ 800,00",
+            "Ou 6x de R$ 133,33 sem juros R$ 760,00 no Pix",
+            "R$ 6.580,00",
+            "Ou 6x de R$ 1.096,67 sem juros R$ 6.251,00 no Pix",
+            "Detalhes do parcelamento",
+            "Adicionar ao carrinho",
+            "Formas de Envio",
+            "Este Kit para V8 QUADRIJET pode ser seu por apenas R$0,00 !"
+          ]
+        },
+        "kit": {
+          "markers": [
+            "ITENS INCLUSOS",
+            "KIT PERSONALIZADO",
+            "Módulos",
+            "Adicionais",
+            "1 x Adicional Chicote Eletroventilador",
+            "1 x Adicional Chicote Sensor de Pressão de Combustivel",
+            "1 x Adicional Chicote Sensor de Pressão de Óleo",
+            "1 x Adicional Chicote Espera para Tacometro",
+            "1 x Adicional Chicote Espera para TW Step",
+            "Chicote",
+            "1 x Chicote V8 Quadrijet",
+            "Alimentação"
+          ],
+          "componentCandidates": [
+            {
+              "quantity": 1,
+              "productId": 3792,
+              "sku": "DCP-100-0121",
+              "name": "Módulo FuelTech FT550",
+              "section": "Módulos",
+              "price": 8350,
+              "installments": "6x de R$ 1.391,67 sem juros",
+              "pixPrice": 7932.5,
+              "sourceLines": [
+                "1 x Módulo FuelTech FT550",
+                "Ou 6x de R$ 1.391,67 sem juros R$ 7.932,50 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3793,
+              "sku": "DCP-100-0116",
+              "name": "Módulo InjePro T5000",
+              "section": "Módulos",
+              "price": 4420,
+              "installments": "6x de R$ 736,67 sem juros",
+              "pixPrice": 4199,
+              "sourceLines": [
+                "1 x Módulo InjePro T5000",
+                "Ou 6x de R$ 736,67 sem juros R$ 4.199,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3798,
+              "sku": "DCP-100-0107",
+              "name": "Adicional Chicote Eletroventilador",
+              "section": "Adicionais",
+              "price": 100,
+              "installments": "5x de R$ 20,00 sem juros",
+              "pixPrice": 95,
+              "sourceLines": [
+                "1 x Adicional Chicote Eletroventilador",
+                "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3797,
+              "sku": "DCP-100-0108",
+              "name": "Adicional Chicote Sensor de Pressão de Combustivel",
+              "section": "Adicionais",
+              "price": 100,
+              "installments": "5x de R$ 20,00 sem juros",
+              "pixPrice": 95,
+              "sourceLines": [
+                "1 x Adicional Chicote Sensor de Pressão de Combustivel",
+                "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3796,
+              "sku": "DCP-100-0109",
+              "name": "Adicional Chicote Sensor de Pressão de Óleo",
+              "section": "Adicionais",
+              "price": 100,
+              "installments": "5x de R$ 20,00 sem juros",
+              "pixPrice": 95,
+              "sourceLines": [
+                "1 x Adicional Chicote Sensor de Pressão de Óleo",
+                "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3795,
+              "sku": "DCP-100-0110",
+              "name": "Adicional Chicote Espera para Tacometro",
+              "section": "Adicionais",
+              "price": 100,
+              "installments": "5x de R$ 20,00 sem juros",
+              "pixPrice": 95,
+              "sourceLines": [
+                "1 x Adicional Chicote Espera para Tacometro",
+                "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3794,
+              "sku": "DCP-100-0111",
+              "name": "Adicional Chicote Espera para TW Step",
+              "section": "Adicionais",
+              "price": 100,
+              "installments": "5x de R$ 20,00 sem juros",
+              "pixPrice": 95,
+              "sourceLines": [
+                "1 x Adicional Chicote Espera para TW Step",
+                "Ou 5x de R$ 20,00 sem juros R$ 95,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3799,
+              "sku": "DCP-100-0105",
+              "name": "Chicote V8 Quadrijet",
+              "section": "Chicote",
+              "price": 4200,
+              "installments": "6x de R$ 700,00 sem juros",
+              "pixPrice": 3990,
+              "sourceLines": [
+                "1 x Chicote V8 Quadrijet",
+                "Ou 6x de R$ 700,00 sem juros R$ 3.990,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3775,
+              "sku": "DCP-100-0025",
+              "name": "Sonda Lambda Banda Estreita c/ Porca",
+              "section": "Chicote",
+              "price": 180,
+              "installments": "6x de R$ 30,00 sem juros",
+              "pixPrice": 171,
+              "sourceLines": [
+                "1 x Sonda Lambda Banda Estreita c/ Porca",
+                "Ou 6x de R$ 30,00 sem juros R$ 171,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3773,
+              "sku": "DCP-100-0028",
+              "name": "Sensor Rotação c/ Suporte",
+              "section": "Chicote",
+              "price": 150,
+              "installments": "6x de R$ 25,00 sem juros",
+              "pixPrice": 142.5,
+              "sourceLines": [
+                "1 x Sensor Rotação c/ Suporte",
+                "Ou 6x de R$ 25,00 sem juros R$ 142,50 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3772,
+              "sku": "DCP-100-0029",
+              "name": "Sensor Temperatura Água",
+              "section": "Chicote",
+              "price": 70,
+              "installments": "3x de R$ 23,33 sem juros",
+              "pixPrice": 66.5,
+              "sourceLines": [
+                "1 x Sensor Temperatura Água",
+                "Ou 3x de R$ 23,33 sem juros R$ 66,50 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3771,
+              "sku": "DCP-100-0030",
+              "name": "Sensor Temperatura Ar",
+              "section": "Chicote",
+              "price": 80,
+              "installments": "4x de R$ 20,00 sem juros",
+              "pixPrice": 76,
+              "sourceLines": [
+                "1 x Sensor Temperatura Ar",
+                "Ou 4x de R$ 20,00 sem juros R$ 76,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3777,
+              "sku": "DCP-100-0023",
+              "name": "Roda Fônica com Adaptação a polia",
+              "section": "Chicote",
+              "price": 800,
+              "installments": "6x de R$ 133,33 sem juros",
+              "pixPrice": 760,
+              "sourceLines": [
+                "1 x Roda Fônica com Adaptação a polia",
+                "Ou 6x de R$ 133,33 sem juros R$ 760,00 no Pix"
+              ]
+            },
+            {
+              "quantity": 1,
+              "productId": 3359,
+              "sku": "QUADRIAL",
+              "name": "Quadrijet Demo Car Parts Alumínio",
+              "section": "Alimentação",
+              "price": 6580,
+              "installments": "6x de R$ 1.096,67 sem juros",
+              "pixPrice": 6251,
+              "sourceLines": [
+                "1 x Quadrijet Demo Car Parts Alumínio",
+                "Ou 6x de R$ 1.096,67 sem juros R$ 6.251,00 no Pix"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 3789,
+      "name": "Kit  PARA VW Aircooled Simples Kombi",
+      "slug": "kit-para-vw-aircooled-simples-kombi",
+      "type": "simple",
+      "sku": "DCP-100-0010",
+      "permalink": "https://demo-car-parts.test/produto/kit-para-vw-aircooled-simples-kombi/",
+      "categories": [
+        {
+          "id": 53,
+          "name": "KITS",
+          "slug": "kits",
+          "description": "",
+          "parent": 0,
+          "count": 3,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/kits/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:17Z",
+        "modifiedAt": "2026-05-15T17:18:02Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 0,
+        "regularPrice": 0,
+        "salePrice": 0,
+        "raw": {
+          "price": "0",
+          "regularPrice": "0",
+          "salePrice": "0"
+        }
+      },
+      "priceHtml": "R$ 0,00",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": false,
+      "stockAvailability": "Fora de estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 0,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Leia mais",
+        "description": "Leia mais sobre &ldquo;Kit  PARA VW Aircooled Simples Kombi&rdquo;",
+        "url": "https://demo-car-parts.test/produto/kit-para-vw-aircooled-simples-kombi/",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 9999,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Kit PARA VW Aircooled Simples Kombi – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "ITENS INCLUSOS",
+            "KIT PERSONALIZADO",
+            "A partir de",
+            "Fora de estoque",
+            "Formas de Envio",
+            "Este Kit PARA VW Aircooled Simples Kombi pode ser seu por apenas R$0,00 !"
+          ]
+        },
+        "kit": {
+          "markers": [
+            "ITENS INCLUSOS",
+            "KIT PERSONALIZADO"
+          ],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3788,
+      "name": "Bomba Combustivel 12 bar",
+      "slug": "bomba-combustivel-12-bar",
+      "type": "simple",
+      "sku": "DCP-100-0012",
+      "permalink": "https://demo-car-parts.test/produto/bomba-combustivel-12-bar/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:16Z",
+        "modifiedAt": "2026-05-24T23:41:09Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 250,
+        "regularPrice": 250,
+        "salePrice": 250,
+        "raw": {
+          "price": "25000",
+          "regularPrice": "25000",
+          "salePrice": "25000"
+        }
+      },
+      "priceHtml": "R$ 250,00\nR$ 237,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Bomba Combustivel 12 bar&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3788",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Bomba Combustivel 12 bar – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 250,00",
+            "Ou 6x de R$ 41,67 sem juros R$ 237,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 250,00 sem juros",
+            "2x de R$ 125,00 sem juros",
+            "3x de R$ 83,33 sem juros",
+            "R$ 249,99",
+            "4x de R$ 62,50 sem juros",
+            "5x de R$ 50,00 sem juros",
+            "6x de R$ 41,67 sem juros",
+            "R$ 250,02",
+            "7x de R$ 37,14 com juros",
+            "R$ 259,98",
+            "8x de R$ 32,50 com juros",
+            "R$ 260,00",
+            "9x de R$ 28,89 com juros",
+            "R$ 260,01",
+            "10x de R$ 26,00 com juros",
+            "11x de R$ 23,64 com juros",
+            "R$ 260,04",
+            "12x de R$ 21,67 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3787,
+      "name": "Regulador de Pressão Combustivel",
+      "slug": "regulador-de-pressao-combustivel",
+      "type": "simple",
+      "sku": "DCP-100-0013",
+      "permalink": "https://demo-car-parts.test/produto/regulador-de-pressao-combustivel/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:15Z",
+        "modifiedAt": "2026-05-24T23:41:15Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 200,
+        "regularPrice": 200,
+        "salePrice": 200,
+        "raw": {
+          "price": "20000",
+          "regularPrice": "20000",
+          "salePrice": "20000"
+        }
+      },
+      "priceHtml": "R$ 200,00\nR$ 190,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Regulador de Pressão Combustivel&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3787",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Regulador de Pressão Combustivel – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 200,00",
+            "Ou 6x de R$ 33,33 sem juros R$ 190,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 200,00 sem juros",
+            "2x de R$ 100,00 sem juros",
+            "3x de R$ 66,67 sem juros",
+            "R$ 200,01",
+            "4x de R$ 50,00 sem juros",
+            "5x de R$ 40,00 sem juros",
+            "6x de R$ 33,33 sem juros",
+            "R$ 199,98",
+            "7x de R$ 29,71 com juros",
+            "R$ 207,97",
+            "8x de R$ 26,00 com juros",
+            "R$ 208,00",
+            "9x de R$ 23,11 com juros",
+            "R$ 207,99",
+            "10x de R$ 20,80 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3786,
+      "name": "Abraçadeiras 10",
+      "slug": "abracadeiras-10",
+      "type": "simple",
+      "sku": "DCP-100-0014",
+      "permalink": "https://demo-car-parts.test/produto/abracadeiras-10/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:14Z",
+        "modifiedAt": "2026-05-18T16:20:31Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 10,
+        "regularPrice": 10,
+        "salePrice": 10,
+        "raw": {
+          "price": "1000",
+          "regularPrice": "1000",
+          "salePrice": "1000"
+        }
+      },
+      "priceHtml": "R$ 10,00\nR$ 9,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "3 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": null,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Abraçadeiras 10&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3786",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 3,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Abraçadeiras 10 – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 10,00",
+            "Ou 1x de R$ 10,00 sem juros R$ 9,50 no Pix",
+            "3 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 10,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3785,
+      "name": "Conector TBI/Bomba",
+      "slug": "conector-tbi-bomba",
+      "type": "simple",
+      "sku": "DCP-100-0015",
+      "permalink": "https://demo-car-parts.test/produto/conector-tbi-bomba/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:13Z",
+        "modifiedAt": "2026-05-24T23:41:30Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 150,
+        "regularPrice": 150,
+        "salePrice": 150,
+        "raw": {
+          "price": "15000",
+          "regularPrice": "15000",
+          "salePrice": "15000"
+        }
+      },
+      "priceHtml": "R$ 150,00\nR$ 142,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Conector TBI/Bomba&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3785",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Conector TBI/Bomba – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 150,00",
+            "Ou 6x de R$ 25,00 sem juros R$ 142,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 150,00 sem juros",
+            "2x de R$ 75,00 sem juros",
+            "3x de R$ 50,00 sem juros",
+            "4x de R$ 37,50 sem juros",
+            "5x de R$ 30,00 sem juros",
+            "6x de R$ 25,00 sem juros",
+            "7x de R$ 22,29 com juros",
+            "R$ 156,03",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3784,
+      "name": "Mangueira Alta Pressão 5",
+      "slug": "mangueira-alta-pressao-5",
+      "type": "simple",
+      "sku": "DCP-100-0016",
+      "permalink": "https://demo-car-parts.test/produto/mangueira-alta-pressao-5/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:12Z",
+        "modifiedAt": "2026-05-24T23:41:37Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 125,
+        "regularPrice": 125,
+        "salePrice": 125,
+        "raw": {
+          "price": "12500",
+          "regularPrice": "12500",
+          "salePrice": "12500"
+        }
+      },
+      "priceHtml": "R$ 125,00\nR$ 118,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Mangueira Alta Pressão 5&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3784",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Mangueira Alta Pressão 5 – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 125,00",
+            "Ou 6x de R$ 20,83 sem juros R$ 118,75 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 125,00 sem juros",
+            "2x de R$ 62,50 sem juros",
+            "3x de R$ 41,67 sem juros",
+            "R$ 125,01",
+            "4x de R$ 31,25 sem juros",
+            "5x de R$ 25,00 sem juros",
+            "6x de R$ 20,83 sem juros",
+            "R$ 124,98",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3783,
+      "name": "Mangueira Retorno 3",
+      "slug": "mangueira-retorno-3",
+      "type": "simple",
+      "sku": "DCP-100-0017",
+      "permalink": "https://demo-car-parts.test/produto/mangueira-retorno-3/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:11Z",
+        "modifiedAt": "2026-05-24T23:41:50Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 70,
+        "regularPrice": 70,
+        "salePrice": 70,
+        "raw": {
+          "price": "7000",
+          "regularPrice": "7000",
+          "salePrice": "7000"
+        }
+      },
+      "priceHtml": "R$ 70,00\nR$ 66,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Mangueira Retorno 3&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3783",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Mangueira Retorno 3 – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 70,00",
+            "Ou 3x de R$ 23,33 sem juros R$ 66,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 70,00 sem juros",
+            "2x de R$ 35,00 sem juros",
+            "3x de R$ 23,33 sem juros",
+            "R$ 69,99",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3782,
+      "name": "Bobina de Ignição Individual",
+      "slug": "bobina-de-ignicao-individual",
+      "type": "simple",
+      "sku": "DCP-100-0018",
+      "permalink": "https://demo-car-parts.test/produto/bobina-de-ignicao-individual/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:09Z",
+        "modifiedAt": "2026-05-24T23:41:57Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 425,
+        "regularPrice": 425,
+        "salePrice": 425,
+        "raw": {
+          "price": "42500",
+          "regularPrice": "42500",
+          "salePrice": "42500"
+        }
+      },
+      "priceHtml": "R$ 425,00\nR$ 403,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Bobina de Ignição Individual&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3782",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Bobina de Ignição Individual – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 425,00",
+            "Ou 6x de R$ 70,83 sem juros R$ 403,75 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 425,00 sem juros",
+            "2x de R$ 212,50 sem juros",
+            "3x de R$ 141,67 sem juros",
+            "R$ 425,01",
+            "4x de R$ 106,25 sem juros",
+            "5x de R$ 85,00 sem juros",
+            "6x de R$ 70,83 sem juros",
+            "R$ 424,98",
+            "7x de R$ 63,14 com juros",
+            "R$ 441,98",
+            "8x de R$ 55,25 com juros",
+            "R$ 442,00",
+            "9x de R$ 49,11 com juros",
+            "R$ 441,99",
+            "10x de R$ 44,20 com juros",
+            "11x de R$ 40,18 com juros",
+            "12x de R$ 36,83 com juros",
+            "R$ 441,96",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3781,
+      "name": "Bobina de Ignição p/ 6 cilindros",
+      "slug": "bobina-de-ignicao-p-6-cilindros",
+      "type": "simple",
+      "sku": "DCP-100-0019",
+      "permalink": "https://demo-car-parts.test/produto/bobina-de-ignicao-p-6-cilindros/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:08Z",
+        "modifiedAt": "2026-05-24T23:42:04Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 425,
+        "regularPrice": 425,
+        "salePrice": 425,
+        "raw": {
+          "price": "42500",
+          "regularPrice": "42500",
+          "salePrice": "42500"
+        }
+      },
+      "priceHtml": "R$ 425,00\nR$ 403,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Bobina de Ignição p/ 6 cilindros&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3781",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Bobina de Ignição p/ 6 cilindros – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 425,00",
+            "Ou 6x de R$ 70,83 sem juros R$ 403,75 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 425,00 sem juros",
+            "2x de R$ 212,50 sem juros",
+            "3x de R$ 141,67 sem juros",
+            "R$ 425,01",
+            "4x de R$ 106,25 sem juros",
+            "5x de R$ 85,00 sem juros",
+            "6x de R$ 70,83 sem juros",
+            "R$ 424,98",
+            "7x de R$ 63,14 com juros",
+            "R$ 441,98",
+            "8x de R$ 55,25 com juros",
+            "R$ 442,00",
+            "9x de R$ 49,11 com juros",
+            "R$ 441,99",
+            "10x de R$ 44,20 com juros",
+            "11x de R$ 40,18 com juros",
+            "12x de R$ 36,83 com juros",
+            "R$ 441,96",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3780,
+      "name": "Bobina de Ignição p/ 8 cilindros",
+      "slug": "bobina-de-ignicao-p-8-cilindros",
+      "type": "simple",
+      "sku": "DCP-100-0020",
+      "permalink": "https://demo-car-parts.test/produto/bobina-de-ignicao-p-8-cilindros/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:07Z",
+        "modifiedAt": "2026-05-24T23:42:19Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 425,
+        "regularPrice": 425,
+        "salePrice": 425,
+        "raw": {
+          "price": "42500",
+          "regularPrice": "42500",
+          "salePrice": "42500"
+        }
+      },
+      "priceHtml": "R$ 425,00\nR$ 403,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Bobina de Ignição p/ 8 cilindros&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3780",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Bobina de Ignição p/ 8 cilindros – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 425,00",
+            "Ou 6x de R$ 70,83 sem juros R$ 403,75 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 425,00 sem juros",
+            "2x de R$ 212,50 sem juros",
+            "3x de R$ 141,67 sem juros",
+            "R$ 425,01",
+            "4x de R$ 106,25 sem juros",
+            "5x de R$ 85,00 sem juros",
+            "6x de R$ 70,83 sem juros",
+            "R$ 424,98",
+            "7x de R$ 63,14 com juros",
+            "R$ 441,98",
+            "8x de R$ 55,25 com juros",
+            "R$ 442,00",
+            "9x de R$ 49,11 com juros",
+            "R$ 441,99",
+            "10x de R$ 44,20 com juros",
+            "11x de R$ 40,18 com juros",
+            "12x de R$ 36,83 com juros",
+            "R$ 441,96",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3779,
+      "name": "Vela Resistíva",
+      "slug": "vela-resistiva",
+      "type": "simple",
+      "sku": "DCP-100-0021",
+      "permalink": "https://demo-car-parts.test/produto/vela-resistiva/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:06Z",
+        "modifiedAt": "2026-05-24T23:42:25Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 39.5,
+        "regularPrice": 39.5,
+        "salePrice": 39.5,
+        "raw": {
+          "price": "3950",
+          "regularPrice": "3950",
+          "salePrice": "3950"
+        }
+      },
+      "priceHtml": "R$ 39,50\nR$ 37,53 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Vela Resistíva&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3779",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Vela Resistíva – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 39,50",
+            "Ou 1x de R$ 39,50 sem juros R$ 37,53 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 39,50 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3778,
+      "name": "Cabo de Vela (Resistivos)",
+      "slug": "cabo-de-vela-resistivos",
+      "type": "simple",
+      "sku": "DCP-100-0022",
+      "permalink": "https://demo-car-parts.test/produto/cabo-de-vela-resistivos/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:05Z",
+        "modifiedAt": "2026-05-24T23:42:31Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 650,
+        "regularPrice": 650,
+        "salePrice": 650,
+        "raw": {
+          "price": "65000",
+          "regularPrice": "65000",
+          "salePrice": "65000"
+        }
+      },
+      "priceHtml": "R$ 650,00\nR$ 617,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Cabo de Vela (Resistivos)&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3778",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Cabo de Vela (Resistivos) – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 650,00",
+            "Ou 6x de R$ 108,33 sem juros R$ 617,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 650,00 sem juros",
+            "2x de R$ 325,00 sem juros",
+            "3x de R$ 216,67 sem juros",
+            "R$ 650,01",
+            "4x de R$ 162,50 sem juros",
+            "5x de R$ 130,00 sem juros",
+            "6x de R$ 108,33 sem juros",
+            "R$ 649,98",
+            "7x de R$ 96,57 com juros",
+            "R$ 675,99",
+            "8x de R$ 84,50 com juros",
+            "R$ 676,00",
+            "9x de R$ 75,11 com juros",
+            "10x de R$ 67,60 com juros",
+            "11x de R$ 61,45 com juros",
+            "R$ 675,95",
+            "12x de R$ 56,33 com juros",
+            "R$ 675,96",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3777,
+      "name": "Roda Fônica com Adaptação a polia",
+      "slug": "roda-fonica-com-adaptacao-a-polia",
+      "type": "simple",
+      "sku": "DCP-100-0023",
+      "permalink": "https://demo-car-parts.test/produto/roda-fonica-com-adaptacao-a-polia/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:04Z",
+        "modifiedAt": "2026-05-24T23:42:41Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 800,
+        "regularPrice": 800,
+        "salePrice": 800,
+        "raw": {
+          "price": "80000",
+          "regularPrice": "80000",
+          "salePrice": "80000"
+        }
+      },
+      "priceHtml": "R$ 800,00\nR$ 760,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Roda Fônica com Adaptação a polia&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3777",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Roda Fônica com Adaptação a polia – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 800,00",
+            "Ou 6x de R$ 133,33 sem juros R$ 760,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 800,00 sem juros",
+            "2x de R$ 400,00 sem juros",
+            "3x de R$ 266,67 sem juros",
+            "R$ 800,01",
+            "4x de R$ 200,00 sem juros",
+            "5x de R$ 160,00 sem juros",
+            "6x de R$ 133,33 sem juros",
+            "R$ 799,98",
+            "7x de R$ 118,86 com juros",
+            "R$ 832,02",
+            "8x de R$ 104,00 com juros",
+            "R$ 832,00",
+            "9x de R$ 92,44 com juros",
+            "R$ 831,96",
+            "10x de R$ 83,20 com juros",
+            "11x de R$ 75,64 com juros",
+            "R$ 832,04",
+            "12x de R$ 69,33 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3776,
+      "name": "Roda Fônica sem Adaptação a polia",
+      "slug": "roda-fonica-sem-adaptacao-a-polia",
+      "type": "simple",
+      "sku": "DCP-100-0024",
+      "permalink": "https://demo-car-parts.test/produto/roda-fonica-sem-adaptacao-a-polia/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:03Z",
+        "modifiedAt": "2026-05-24T23:42:47Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 200,
+        "regularPrice": 200,
+        "salePrice": 200,
+        "raw": {
+          "price": "20000",
+          "regularPrice": "20000",
+          "salePrice": "20000"
+        }
+      },
+      "priceHtml": "R$ 200,00\nR$ 190,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Roda Fônica sem Adaptação a polia&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3776",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Roda Fônica sem Adaptação a polia – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 200,00",
+            "Ou 6x de R$ 33,33 sem juros R$ 190,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 200,00 sem juros",
+            "2x de R$ 100,00 sem juros",
+            "3x de R$ 66,67 sem juros",
+            "R$ 200,01",
+            "4x de R$ 50,00 sem juros",
+            "5x de R$ 40,00 sem juros",
+            "6x de R$ 33,33 sem juros",
+            "R$ 199,98",
+            "7x de R$ 29,71 com juros",
+            "R$ 207,97",
+            "8x de R$ 26,00 com juros",
+            "R$ 208,00",
+            "9x de R$ 23,11 com juros",
+            "R$ 207,99",
+            "10x de R$ 20,80 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3775,
+      "name": "Sonda Lambda Banda Estreita c/ Porca",
+      "slug": "sonda-lambda-banda-estreita-c-porca",
+      "type": "simple",
+      "sku": "DCP-100-0025",
+      "permalink": "https://demo-car-parts.test/produto/sonda-lambda-banda-estreita-c-porca/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:02Z",
+        "modifiedAt": "2026-05-24T23:42:53Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 180,
+        "regularPrice": 180,
+        "salePrice": 180,
+        "raw": {
+          "price": "18000",
+          "regularPrice": "18000",
+          "salePrice": "18000"
+        }
+      },
+      "priceHtml": "R$ 180,00\nR$ 171,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Sonda Lambda Banda Estreita c/ Porca&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3775",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Sonda Lambda Banda Estreita c/ Porca – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 180,00",
+            "Ou 6x de R$ 30,00 sem juros R$ 171,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 180,00 sem juros",
+            "2x de R$ 90,00 sem juros",
+            "3x de R$ 60,00 sem juros",
+            "4x de R$ 45,00 sem juros",
+            "5x de R$ 36,00 sem juros",
+            "6x de R$ 30,00 sem juros",
+            "7x de R$ 26,74 com juros",
+            "R$ 187,18",
+            "8x de R$ 23,40 com juros",
+            "R$ 187,20",
+            "9x de R$ 20,80 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3774,
+      "name": "Sonda Lambda Banda Larga c/ Porca",
+      "slug": "sonda-lambda-banda-larga-c-porca",
+      "type": "simple",
+      "sku": "DCP-100-0026",
+      "permalink": "https://demo-car-parts.test/produto/sonda-lambda-banda-larga-c-porca/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:01Z",
+        "modifiedAt": "2026-05-24T23:43:01Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 650,
+        "regularPrice": 650,
+        "salePrice": 650,
+        "raw": {
+          "price": "65000",
+          "regularPrice": "65000",
+          "salePrice": "65000"
+        }
+      },
+      "priceHtml": "R$ 650,00\nR$ 617,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Sonda Lambda Banda Larga c/ Porca&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3774",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Sonda Lambda Banda Larga c/ Porca – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 650,00",
+            "Ou 6x de R$ 108,33 sem juros R$ 617,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 650,00 sem juros",
+            "2x de R$ 325,00 sem juros",
+            "3x de R$ 216,67 sem juros",
+            "R$ 650,01",
+            "4x de R$ 162,50 sem juros",
+            "5x de R$ 130,00 sem juros",
+            "6x de R$ 108,33 sem juros",
+            "R$ 649,98",
+            "7x de R$ 96,57 com juros",
+            "R$ 675,99",
+            "8x de R$ 84,50 com juros",
+            "R$ 676,00",
+            "9x de R$ 75,11 com juros",
+            "10x de R$ 67,60 com juros",
+            "11x de R$ 61,45 com juros",
+            "R$ 675,95",
+            "12x de R$ 56,33 com juros",
+            "R$ 675,96",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3773,
+      "name": "Sensor Rotação c/ Suporte",
+      "slug": "sensor-rotacao-c-suporte",
+      "type": "simple",
+      "sku": "DCP-100-0028",
+      "permalink": "https://demo-car-parts.test/produto/sensor-rotacao-c-suporte/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:14:00Z",
+        "modifiedAt": "2026-05-24T23:43:07Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 150,
+        "regularPrice": 150,
+        "salePrice": 150,
+        "raw": {
+          "price": "15000",
+          "regularPrice": "15000",
+          "salePrice": "15000"
+        }
+      },
+      "priceHtml": "R$ 150,00\nR$ 142,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Sensor Rotação c/ Suporte&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3773",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Sensor Rotação c/ Suporte – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 150,00",
+            "Ou 6x de R$ 25,00 sem juros R$ 142,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 150,00 sem juros",
+            "2x de R$ 75,00 sem juros",
+            "3x de R$ 50,00 sem juros",
+            "4x de R$ 37,50 sem juros",
+            "5x de R$ 30,00 sem juros",
+            "6x de R$ 25,00 sem juros",
+            "7x de R$ 22,29 com juros",
+            "R$ 156,03",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3772,
+      "name": "Sensor Temperatura Água",
+      "slug": "sensor-temperatura-agua",
+      "type": "simple",
+      "sku": "DCP-100-0029",
+      "permalink": "https://demo-car-parts.test/produto/sensor-temperatura-agua/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:13:59Z",
+        "modifiedAt": "2026-05-24T23:43:14Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 70,
+        "regularPrice": 70,
+        "salePrice": 70,
+        "raw": {
+          "price": "7000",
+          "regularPrice": "7000",
+          "salePrice": "7000"
+        }
+      },
+      "priceHtml": "R$ 70,00\nR$ 66,50 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Sensor Temperatura Água&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3772",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Sensor Temperatura Água – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 70,00",
+            "Ou 3x de R$ 23,33 sem juros R$ 66,50 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 70,00 sem juros",
+            "2x de R$ 35,00 sem juros",
+            "3x de R$ 23,33 sem juros",
+            "R$ 69,99",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3771,
+      "name": "Sensor Temperatura Ar",
+      "slug": "sensor-temperatura-ar",
+      "type": "simple",
+      "sku": "DCP-100-0030",
+      "permalink": "https://demo-car-parts.test/produto/sensor-temperatura-ar/",
+      "categories": [
+        {
+          "id": 91,
+          "name": "Itens_KIT",
+          "slug": "itens_kit",
+          "description": "",
+          "parent": 0,
+          "count": 27,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/itens_kit/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2026-05-15T17:13:57Z",
+        "modifiedAt": "2026-05-24T23:43:19Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 80,
+        "regularPrice": 80,
+        "salePrice": 80,
+        "raw": {
+          "price": "8000",
+          "regularPrice": "8000",
+          "salePrice": "8000"
+        }
+      },
+      "priceHtml": "R$ 80,00\nR$ 76,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "",
+      "descriptionText": "",
+      "images": [],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Sensor Temperatura Ar&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3771",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Sensor Temperatura Ar – Demo Car Parts",
+          "description": null,
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 80,00",
+            "Ou 4x de R$ 20,00 sem juros R$ 76,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 80,00 sem juros",
+            "2x de R$ 40,00 sem juros",
+            "3x de R$ 26,67 sem juros",
+            "R$ 80,01",
+            "4x de R$ 20,00 sem juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3359,
+      "name": "Quadrijet Demo Car Parts Alumínio",
+      "slug": "quadrijet-demo-car-parts-aluminio",
+      "type": "simple",
+      "sku": "QUADRIAL",
+      "permalink": "https://demo-car-parts.test/produto/quadrijet-demo-car-parts-aluminio/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2025-12-01T10:35:10Z",
+        "modifiedAt": "2026-05-24T15:17:49Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 6580,
+        "regularPrice": 6580,
+        "salePrice": 6580,
+        "raw": {
+          "price": "658000",
+          "regularPrice": "658000",
+          "salePrice": "658000"
+        }
+      },
+      "priceHtml": "R$ 6.580,00\nR$ 6.251,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "A TBI Quadrijet da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\nTBI PARA BASE Quadrijet .\nV8",
+      "descriptionText": "TBI Quadrijet.\nA TBI acompanha:\nCorpo em alumínio anodizado preto ou cor natural alumínio\n4 Bicos injetores 80 Libras Longo\nTPS\nAtuador de lenta eletrônico\nFlautas interligadas com conexões especiais em alumínio\nConexão para linha de combustível\nEquipamento de fácil instalação.",
+      "images": [
+        {
+          "id": 3353,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553685-quadriject-1-scaled-2.webp",
+          "name": "15281553685-quadriject-1-scaled-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3354,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553693-quadriject-6-scaled-2.webp",
+          "name": "15281553693-quadriject-6-scaled-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3355,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553704-quadriject-2-scaled-2.webp",
+          "name": "15281553704-quadriject-2-scaled-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3356,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553712-quadriject-3-scaled-2.webp",
+          "name": "15281553712-quadriject-3-scaled-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3357,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553720-quadriject-5-scaled-2.webp",
+          "name": "15281553720-quadriject-5-scaled-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3358,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553727-quadriject-4-1-scaled-2.webp",
+          "name": "15281553727-quadriject-4-1-scaled-2.webp",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;Quadrijet Demo Car Parts Alumínio&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3359",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "Quadrijet Demo Car Parts Alumínio – Demo Car Parts",
+          "description": "A TBI Quadrijet da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\r\nTBI PARA BASE Quadrijet .\r\n\r\nV8",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 6.580,00",
+            "Ou 6x de R$ 1.096,67 sem juros R$ 6.251,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 6.580,00 sem juros",
+            "2x de R$ 3.290,00 sem juros",
+            "3x de R$ 2.193,33 sem juros",
+            "R$ 6.579,99",
+            "4x de R$ 1.645,00 sem juros",
+            "5x de R$ 1.316,00 sem juros",
+            "6x de R$ 1.096,67 sem juros",
+            "R$ 6.580,02",
+            "7x de R$ 977,60 com juros",
+            "R$ 6.843,20",
+            "8x de R$ 855,40 com juros",
+            "9x de R$ 760,36 com juros",
+            "R$ 6.843,24",
+            "10x de R$ 684,32 com juros",
+            "11x de R$ 622,11 com juros",
+            "R$ 6.843,21",
+            "12x de R$ 570,27 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3339,
+      "name": "TBI 42mm – 1 bico 40 lbs",
+      "slug": "tbi-42mm-1-bico-40-lbs",
+      "type": "simple",
+      "sku": "TBI42-1-40",
+      "permalink": "https://demo-car-parts.test/produto/tbi-42mm-1-bico-40-lbs/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2025-12-01T10:27:46Z",
+        "modifiedAt": "2025-12-01T10:30:48Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 1725,
+        "regularPrice": 1725,
+        "salePrice": 1725,
+        "raw": {
+          "price": "172500",
+          "regularPrice": "172500",
+          "salePrice": "172500"
+        }
+      },
+      "priceHtml": "R$ 1.725,00\nR$ 1.638,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "2 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 2,
+      "shortDescriptionText": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\nTBI PARA BASE COLETOR:\nVW AIR COOLED\nCHEVETTE\nOPALA\nPUMA\nWYLLIS\nF-75\nGURGEL\nFORD/GM Carburação Simples",
+      "descriptionText": "Imagem meramente ilustrativa, a TBI desse anuncio é de apenas 1 bico injetor.\nTBI com borboleta de 42mm.\nA TBI acompanha:\nCorpo em alumínio\nBico injetor\nTPS\nSensor de temperatura.\nConexão para combustível\nEquipamento de fácil instalação.\nA TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\nA TBI 42mm da Demo Car Parts possui o corpo interno que aumenta a fluidez, velocidade e volume do fluxo de ar.\nEsqueça os problemas provenientes do carburador, assuma o controle do seu motor.\nGarantia de aumento de torque e potência, além de redução do consumo.\nSeu carro agora Flex. (Programando diferentes mapas no módulo)\nVerifique as medidas da base do seu coletor com as especificadas nas fotos.\nRecomendamos para assertividade e garantia da instalação e dos produtos do KIT, sejam todos adquiridos todos pela Demo Car Parts.\nPor isso fornecemos o KIT Completo incluindo TBI, Módulo, Chicote personalizado, sensores, mangueiras, abraçadeiras e mais para facilitar sua conversão de carburado para injetado rapidamente.",
+      "images": [
+        {
+          "id": 3336,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421129-42-3.webp",
+          "name": "15394421129-42-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3337,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421131-42-3.webp",
+          "name": "15394421131-42-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3338,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421134-42-3.webp",
+          "name": "15394421134-42-3.webp",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;TBI 42mm &#8211; 1 bico 40 lbs&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3339",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 2,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 42mm – 1 bico 40 lbs – Demo Car Parts",
+          "description": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\r\n \r\nTBI PARA BASE COLETOR:\r\n\r\nVW AIR COOLED\r\nCHEVETTE\r\nOPALA\r\nPUMA\r\nWYLLIS\r\nF-75\r\nGURGEL\r\nFORD/GM Carburação Simples",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 1.725,00",
+            "Ou 6x de R$ 287,50 sem juros R$ 1.638,75 no Pix",
+            "2 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 1.725,00 sem juros",
+            "2x de R$ 862,50 sem juros",
+            "3x de R$ 575,00 sem juros",
+            "4x de R$ 431,25 sem juros",
+            "5x de R$ 345,00 sem juros",
+            "6x de R$ 287,50 sem juros",
+            "7x de R$ 256,29 com juros",
+            "R$ 1.794,03",
+            "8x de R$ 224,25 com juros",
+            "R$ 1.794,00",
+            "9x de R$ 199,33 com juros",
+            "R$ 1.793,97",
+            "10x de R$ 179,40 com juros",
+            "11x de R$ 163,09 com juros",
+            "R$ 1.793,99",
+            "12x de R$ 149,50 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3335,
+      "name": "TBI 42mm – 1 bico 60 lbs",
+      "slug": "tbi-42mm-1-bico-60-lbs",
+      "type": "simple",
+      "sku": "TBI42-1-60",
+      "permalink": "https://demo-car-parts.test/produto/tbi-42mm-1-bico-60-lbs/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2025-12-01T10:27:44Z",
+        "modifiedAt": "2026-05-24T15:18:25Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 1725,
+        "regularPrice": 1725,
+        "salePrice": 1725,
+        "raw": {
+          "price": "172500",
+          "regularPrice": "172500",
+          "salePrice": "172500"
+        }
+      },
+      "priceHtml": "R$ 1.725,00\nR$ 1.638,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "2 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 2,
+      "shortDescriptionText": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\nTBI PARA BASE COLETOR:\nVW AIR COOLED\nCHEVETTE\nOPALA\nPUMA\nWYLLIS\nF-75\nGURGEL\nFORD/GM Carburação Simples",
+      "descriptionText": "Imagem meramente ilustrativa, a TBI desse anuncio é de apenas 1 bico injetor.\nTBI com borboleta de 42mm.\nA TBI acompanha:\nCorpo em alumínio\nBico injetor\nTPS\nSensor de temperatura.\nConexão para combustível\nEquipamento de fácil instalação.\nA TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\nA TBI 42mm da Demo Car Parts possui o corpo interno que aumenta a fluidez, velocidade e volume do fluxo de ar.\nEsqueça os problemas provenientes do carburador, assuma o controle do seu motor.\nGarantia de aumento de torque e potência, além de redução do consumo.\nSeu carro agora Flex. (Programando diferentes mapas no módulo)\nVerifique as medidas da base do seu coletor com as especificadas nas fotos.\nRecomendamos para assertividade e garantia da instalação e dos produtos do KIT, sejam todos adquiridos todos pela Demo Car Parts.\nPor isso fornecemos o KIT Completo incluindo TBI, Módulo, Chicote personalizado, sensores, mangueiras, abraçadeiras e mais para facilitar sua conversão de carburado para injetado rapidamente.",
+      "images": [
+        {
+          "id": 3331,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421134-42-2.webp",
+          "name": "15394421134-42-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3332,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421131-42-2.webp",
+          "name": "15394421131-42-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3333,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421129-42-2.webp",
+          "name": "15394421129-42-2.webp",
+          "alt": ""
+        },
+        {
+          "id": 3334,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15279672657-tbi-42mm-06-2.png",
+          "name": "15279672657-tbi-42mm-06-2.png",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;TBI 42mm &#8211; 1 bico 60 lbs&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3335",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 2,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 42mm – 1 bico 60 lbs – Demo Car Parts",
+          "description": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\r\n \r\nTBI PARA BASE COLETOR:\r\n\r\nVW AIR COOLED\r\nCHEVETTE\r\nOPALA\r\nPUMA\r\nWYLLIS\r\nF-75\r\nGURGEL\r\nFORD/GM Carburação Simples",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 1.725,00",
+            "Ou 6x de R$ 287,50 sem juros R$ 1.638,75 no Pix",
+            "2 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 1.725,00 sem juros",
+            "2x de R$ 862,50 sem juros",
+            "3x de R$ 575,00 sem juros",
+            "4x de R$ 431,25 sem juros",
+            "5x de R$ 345,00 sem juros",
+            "6x de R$ 287,50 sem juros",
+            "7x de R$ 256,29 com juros",
+            "R$ 1.794,03",
+            "8x de R$ 224,25 com juros",
+            "R$ 1.794,00",
+            "9x de R$ 199,33 com juros",
+            "R$ 1.793,97",
+            "10x de R$ 179,40 com juros",
+            "11x de R$ 163,09 com juros",
+            "R$ 1.793,99",
+            "12x de R$ 149,50 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3330,
+      "name": "TBI 42mm – 2 bicos 40 lbs",
+      "slug": "tbi-42mm-2-bicos-40-lbs",
+      "type": "simple",
+      "sku": "TBI42-2-40",
+      "permalink": "https://demo-car-parts.test/produto/tbi-42mm-2-bicos-40-lbs/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2025-12-01T10:27:39Z",
+        "modifiedAt": "2026-05-24T15:18:50Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 2125,
+        "regularPrice": 2125,
+        "salePrice": 2125,
+        "raw": {
+          "price": "212500",
+          "regularPrice": "212500",
+          "salePrice": "212500"
+        }
+      },
+      "priceHtml": "R$ 2.125,00\nR$ 2.018,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "2 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 2,
+      "shortDescriptionText": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\nTBI PARA BASE COLETOR:\nVW AIR COOLED\nCHEVETTE\nOPALA\nPUMA\nWYLLIS\nF-75\nGURGEL\nFORD/GM Carburação Simples",
+      "descriptionText": "TBI com borboleta de 42mm.\nA TBI acompanha:\nCorpo em alumínio\nBico injetor\nTPS\nSensor de temperatura.\nConexão para combustível\nEquipamento de fácil instalação.\nA TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\nA TBI 42mm da Demo Car Parts possui o corpo interno que aumenta a fluidez, velocidade e volume do fluxo de ar.\nEsqueça os problemas provenientes do carburador, assuma o controle do seu motor.\nGarantia de aumento de torque e potência, além de redução do consumo.\nSeu carro agora Flex. (Programando diferentes mapas no módulo)\nVerifique as medidas da base do seu coletor com as especificadas nas fotos.\nRecomendamos para assertividade e garantia da instalação e dos produtos do KIT, sejam todos adquiridos todos pela Demo Car Parts.\nPor isso fornecemos o KIT Completo incluindo TBI, Módulo, Chicote personalizado, sensores, mangueiras, abraçadeiras e mais para facilitar sua conversão de carburado para injetado rapidamente.",
+      "images": [
+        {
+          "id": 3326,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421134-42-1.webp",
+          "name": "15394421134-42-1.webp",
+          "alt": ""
+        },
+        {
+          "id": 3327,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421131-42-1.webp",
+          "name": "15394421131-42-1.webp",
+          "alt": ""
+        },
+        {
+          "id": 3328,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421129-42-1.webp",
+          "name": "15394421129-42-1.webp",
+          "alt": ""
+        },
+        {
+          "id": 3329,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15279672657-tbi-42mm-06-1.png",
+          "name": "15279672657-tbi-42mm-06-1.png",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;TBI 42mm &#8211; 2 bicos 40 lbs&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3330",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 2,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 42mm – 2 bicos 40 lbs – Demo Car Parts",
+          "description": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\r\n \r\nTBI PARA BASE COLETOR:\r\n\r\nVW AIR COOLED\r\nCHEVETTE\r\nOPALA\r\nPUMA\r\nWYLLIS\r\nF-75\r\nGURGEL\r\nFORD/GM Carburação Simples",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 2.125,00",
+            "Ou 6x de R$ 354,17 sem juros R$ 2.018,75 no Pix",
+            "2 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 2.125,00 sem juros",
+            "2x de R$ 1.062,50 sem juros",
+            "3x de R$ 708,33 sem juros",
+            "R$ 2.124,99",
+            "4x de R$ 531,25 sem juros",
+            "5x de R$ 425,00 sem juros",
+            "6x de R$ 354,17 sem juros",
+            "R$ 2.125,02",
+            "7x de R$ 315,71 com juros",
+            "R$ 2.209,97",
+            "8x de R$ 276,25 com juros",
+            "R$ 2.210,00",
+            "9x de R$ 245,56 com juros",
+            "R$ 2.210,04",
+            "10x de R$ 221,00 com juros",
+            "11x de R$ 200,91 com juros",
+            "R$ 2.210,01",
+            "12x de R$ 184,17 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3325,
+      "name": "TBI 42mm – 2 bicos 60 lbs",
+      "slug": "tbi-42mm-2-bicos-60-lbs",
+      "type": "simple",
+      "sku": "TBI42-2-60",
+      "permalink": "https://demo-car-parts.test/produto/tbi-42mm-2-bicos-60-lbs/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2025-12-01T10:27:34Z",
+        "modifiedAt": "2025-12-01T10:30:48Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 2125,
+        "regularPrice": 2125,
+        "salePrice": 2125,
+        "raw": {
+          "price": "212500",
+          "regularPrice": "212500",
+          "salePrice": "212500"
+        }
+      },
+      "priceHtml": "R$ 2.125,00\nR$ 2.018,75 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "2 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 2,
+      "shortDescriptionText": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\nTBI PARA BASE COLETOR:\nVW AIR COOLED\nCHEVETTE\nOPALA\nPUMA\nWYLLIS\nF-75\nGURGEL\nFORD/GM Carburação Simples",
+      "descriptionText": "TBI com borboleta de 42mm.\nA TBI acompanha:\nCorpo em alumínio\nBico injetor\nTPS\nSensor de temperatura.\nConexão para combustível\nEquipamento de fácil instalação.\nA TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\nA TBI 42mm da Demo Car Parts possui o corpo interno que aumenta a fluidez, velocidade e volume do fluxo de ar.\nEsqueça os problemas provenientes do carburador, assuma o controle do seu motor.\nGarantia de aumento de torque e potência, além de redução do consumo.\nSeu carro agora Flex. (Programando diferentes mapas no módulo)\nVerifique as medidas da base do seu coletor com as especificadas nas fotos.\nRecomendamos para assertividade e garantia da instalação e dos produtos do KIT, sejam todos adquiridos todos pela Demo Car Parts.\nPor isso fornecemos o KIT Completo incluindo TBI, Módulo, Chicote personalizado, sensores, mangueiras, abraçadeiras e mais para facilitar sua conversão de carburado para injetado rapidamente.",
+      "images": [
+        {
+          "id": 3321,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421134-42.webp",
+          "name": "15394421134-42.webp",
+          "alt": ""
+        },
+        {
+          "id": 3322,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421131-42.webp",
+          "name": "15394421131-42.webp",
+          "alt": ""
+        },
+        {
+          "id": 3323,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15394421129-42.webp",
+          "name": "15394421129-42.webp",
+          "alt": ""
+        },
+        {
+          "id": 3324,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15279672657-tbi-42mm-06.png",
+          "name": "15279672657-tbi-42mm-06.png",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;TBI 42mm &#8211; 2 bicos 60 lbs&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3325",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 2,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 42mm – 2 bicos 60 lbs – Demo Car Parts",
+          "description": "A TBI 42mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor.\r\n \r\nTBI PARA BASE COLETOR:\r\n\r\nVW AIR COOLED\r\nCHEVETTE\r\nOPALA\r\nPUMA\r\nWYLLIS\r\nF-75\r\nGURGEL\r\nFORD/GM Carburação Simples",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 2.125,00",
+            "Ou 6x de R$ 354,17 sem juros R$ 2.018,75 no Pix",
+            "2 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 2.125,00 sem juros",
+            "2x de R$ 1.062,50 sem juros",
+            "3x de R$ 708,33 sem juros",
+            "R$ 2.124,99",
+            "4x de R$ 531,25 sem juros",
+            "5x de R$ 425,00 sem juros",
+            "6x de R$ 354,17 sem juros",
+            "R$ 2.125,02",
+            "7x de R$ 315,71 com juros",
+            "R$ 2.209,97",
+            "8x de R$ 276,25 com juros",
+            "R$ 2.210,00",
+            "9x de R$ 245,56 com juros",
+            "R$ 2.210,04",
+            "10x de R$ 221,00 com juros",
+            "11x de R$ 200,91 com juros",
+            "R$ 2.210,01",
+            "12x de R$ 184,17 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3262,
+      "name": "TBI 60MM PERSONALIZADO",
+      "slug": "tbi-dfv-446-60mm-personalizado",
+      "type": "simple",
+      "sku": "TBIDFV/446PER",
+      "permalink": "https://demo-car-parts.test/produto/tbi-dfv-446-60mm-personalizado/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2024-07-10T19:35:36Z",
+        "modifiedAt": "2025-05-30T18:12:28Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 9673,
+        "regularPrice": 9673,
+        "salePrice": 9673,
+        "raw": {
+          "price": "967300",
+          "regularPrice": "967300",
+          "salePrice": "967300"
+        }
+      },
+      "priceHtml": "R$ 9.673,00\nR$ 9.189,35 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": false,
+      "stockAvailability": "Fora de estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 0,
+      "shortDescriptionText": "A TBI 60mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento.",
+      "descriptionText": "TBI 60mm Personalizada.",
+      "images": [
+        {
+          "id": 3258,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2024/07/15280333227_TBI2060mm20QDA2005_.png",
+          "name": "15280333227_TBI2060mm20QDA2005_.png",
+          "alt": ""
+        },
+        {
+          "id": 3259,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2024/07/15280333264_TBI2060mm20QDA2007_.png",
+          "name": "15280333264_TBI2060mm20QDA2007_.png",
+          "alt": ""
+        },
+        {
+          "id": 3260,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2024/07/15280333198_TBI2060mm20QDA2004_.png",
+          "name": "15280333198_TBI2060mm20QDA2004_.png",
+          "alt": ""
+        },
+        {
+          "id": 3261,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2024/07/15280333182_TBI2060mm20QDA2003_.png",
+          "name": "15280333182_TBI2060mm20QDA2003_.png",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Leia mais",
+        "description": "Leia mais sobre &ldquo;TBI 60MM PERSONALIZADO&rdquo;",
+        "url": "https://demo-car-parts.test/produto/tbi-dfv-446-60mm-personalizado/",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 9999,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 60MM PERSONALIZADO – Demo Car Parts",
+          "description": "A TBI 60mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento.",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 9.673,00",
+            "Ou 6x de R$ 1.612,17 sem juros R$ 9.189,35 no Pix",
+            "Fora de estoque"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 3028,
+      "name": "QUADRIJET DEMO CAR PARTS BLACK",
+      "slug": "quadrijet-demo-car-parts",
+      "type": "simple",
+      "sku": "QUADRIP",
+      "permalink": "https://demo-car-parts.test/produto/quadrijet-demo-car-parts/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [],
+      "dates": {
+        "publishedAt": "2024-06-18T13:33:52Z",
+        "modifiedAt": "2025-12-01T10:38:50Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 6580,
+        "regularPrice": 6580,
+        "salePrice": 6580,
+        "raw": {
+          "price": "658000",
+          "regularPrice": "658000",
+          "salePrice": "658000"
+        }
+      },
+      "priceHtml": "R$ 6.580,00\nR$ 6.251,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "1 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": 1,
+      "shortDescriptionText": "A TBI Quadrijet da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\nTBI PARA BASE Quadrijet .\nV8",
+      "descriptionText": "TBI Quadrijet.\nA TBI acompanha:\nCorpo em alumínio anodizado preto ou cor natural alumínio\n4 Bicos injetores 80 Libras Longo\nTPS\nAtuador de lenta eletrônico\nFlautas interligadas com conexões especiais em alumínio\nConexão para linha de combustível\nEquipamento de fácil instalação.",
+      "images": [
+        {
+          "id": 3361,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553685-quadriject-1-scaled-3.webp",
+          "name": "15281553685-quadriject-1-scaled-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3362,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553693-quadriject-6-scaled-3.webp",
+          "name": "15281553693-quadriject-6-scaled-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3363,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553704-quadriject-2-scaled-3.webp",
+          "name": "15281553704-quadriject-2-scaled-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3364,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553712-quadriject-3-scaled-3.webp",
+          "name": "15281553712-quadriject-3-scaled-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3365,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553720-quadriject-5-scaled-3.webp",
+          "name": "15281553720-quadriject-5-scaled-3.webp",
+          "alt": ""
+        },
+        {
+          "id": 3366,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/12/15281553727-quadriject-4-1-scaled-3.webp",
+          "name": "15281553727-quadriject-4-1-scaled-3.webp",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;QUADRIJET DEMO CAR PARTS BLACK&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=3028",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 1,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "QUADRIJET DEMO CAR PARTS BLACK – Demo Car Parts",
+          "description": "A TBI Quadrijet da Demo Car Parts foi desenvolvida com Engenharia aplicada para que você mesmo possa injetar seu carro na sua garagem, e obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere o TBI pois a base já está com as medidas certas para encaixe no coletor.\r\nTBI PARA BASE Quadrijet .\r\n\r\nV8",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 6.580,00",
+            "Ou 6x de R$ 1.096,67 sem juros R$ 6.251,00 no Pix",
+            "1 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 6.580,00 sem juros",
+            "2x de R$ 3.290,00 sem juros",
+            "3x de R$ 2.193,33 sem juros",
+            "R$ 6.579,99",
+            "4x de R$ 1.645,00 sem juros",
+            "5x de R$ 1.316,00 sem juros",
+            "6x de R$ 1.096,67 sem juros",
+            "R$ 6.580,02",
+            "7x de R$ 977,60 com juros",
+            "R$ 6.843,20",
+            "8x de R$ 855,40 com juros",
+            "9x de R$ 760,36 com juros",
+            "R$ 6.843,24",
+            "10x de R$ 684,32 com juros",
+            "11x de R$ 622,11 com juros",
+            "R$ 6.843,21",
+            "12x de R$ 570,27 com juros",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 1399,
+      "name": "TBI 60mm FORD",
+      "slug": "tbi-60mm-ford",
+      "type": "simple",
+      "sku": "TBIFORD60",
+      "permalink": "https://demo-car-parts.test/produto/tbi-60mm-ford/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [
+        {
+          "id": 68,
+          "name": "60mm",
+          "slug": "60mm",
+          "count": 1
+        },
+        {
+          "id": 58,
+          "name": "ford",
+          "slug": "ford",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "name": "tbi",
+          "slug": "tbi",
+          "count": 2
+        }
+      ],
+      "dates": {
+        "publishedAt": "2021-10-23T20:08:22Z",
+        "modifiedAt": "2025-11-26T13:36:52Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 3580,
+        "regularPrice": 3580,
+        "salePrice": 3580,
+        "raw": {
+          "price": "358000",
+          "regularPrice": "358000",
+          "salePrice": "358000"
+        }
+      },
+      "priceHtml": "R$ 3.580,00\nR$ 3.401,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "5 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": null,
+      "shortDescriptionText": "A TBI 60mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere a TBI pois a base já está com as medidas certas para encaixe no coletor.\nTBI PARA BASE COLETOR FORD.\nMaverick\nGalaxie\nLandau\nF100\nMustang\nRural\nMotores 272/292/302",
+      "descriptionText": "TBI com borboleta de 60mm.\nA TBI acompanha:\nCorpo em alumínio\n4 Bicos injetores\nTPS\nFlautas interligadas com conexões especiais em alumínio\nConexão para combustível\nA TBI 60mm da Demo Car Parts possui o corpo interno cônico o que aumenta a fluidez, velocidade e volume do fluxo de ar.\nEsqueça os problemas provenientes do carburador, assuma o controle do seu motor.\nGarantia de aumento de torque e potência, além de redução do consumo.\nSeu carro agora Flex. (Programando diferentes mapas no módulo)\nVerifique as medidas da base do seu coletor com as especificadas nas fotos.",
+      "images": [
+        {
+          "id": 3306,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332005-tbi-60mm-ford-02.png",
+          "name": "15280332005-tbi-60mm-ford-02.png",
+          "alt": ""
+        },
+        {
+          "id": 3307,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332019-tbi-60mm-ford-03.png",
+          "name": "15280332019-tbi-60mm-ford-03.png",
+          "alt": ""
+        },
+        {
+          "id": 3308,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332045-tbi-60mm-ford-06.png",
+          "name": "15280332045-tbi-60mm-ford-06.png",
+          "alt": ""
+        },
+        {
+          "id": 3309,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332087-tbi-60mm-ford-04.png",
+          "name": "15280332087-tbi-60mm-ford-04.png",
+          "alt": ""
+        },
+        {
+          "id": 3310,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332101-tbi-60mm-ford.png",
+          "name": "15280332101-tbi-60mm-ford.png",
+          "alt": ""
+        },
+        {
+          "id": 3311,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332122-tbi-ford-bicos.png",
+          "name": "15280332122-tbi-ford-bicos.png",
+          "alt": ""
+        },
+        {
+          "id": 3312,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280332149-tbi-60mm-ford-05.png",
+          "name": "15280332149-tbi-60mm-ford-05.png",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;TBI 60mm FORD&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=1399",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 5,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 60mm FORD – Demo Car Parts",
+          "description": "A TBI 60mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para  obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere a TBI pois a base já está com as medidas certas para encaixe no coletor.\r\n \r\nTBI PARA BASE COLETOR FORD.\r\n\r\nMaverick\r\nGalaxie\r\nLandau\r\nF100\r\nMustang\r\nRural\r\nMotores 272/292/302",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 3.580,00",
+            "Ou 6x de R$ 596,67 sem juros R$ 3.401,00 no Pix",
+            "5 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 3.580,00 sem juros",
+            "2x de R$ 1.790,00 sem juros",
+            "3x de R$ 1.193,33 sem juros",
+            "R$ 3.579,99",
+            "4x de R$ 895,00 sem juros",
+            "5x de R$ 716,00 sem juros",
+            "6x de R$ 596,67 sem juros",
+            "R$ 3.580,02",
+            "7x de R$ 531,89 com juros",
+            "R$ 3.723,23",
+            "8x de R$ 465,40 com juros",
+            "R$ 3.723,20",
+            "9x de R$ 413,69 com juros",
+            "R$ 3.723,21",
+            "10x de R$ 372,32 com juros",
+            "11x de R$ 338,47 com juros",
+            "R$ 3.723,17",
+            "12x de R$ 310,27 com juros",
+            "R$ 3.723,24",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    },
+    {
+      "id": 1392,
+      "name": "TBI 60mm DFV 446 / H34",
+      "slug": "tbi-60mm-dfv-446",
+      "type": "simple",
+      "sku": "TBIDFVH3460",
+      "permalink": "https://demo-car-parts.test/produto/tbi-60mm-dfv-446/",
+      "categories": [
+        {
+          "id": 15,
+          "name": "TBI’s",
+          "slug": "tbi",
+          "description": "Corpo de borboleta",
+          "parent": 0,
+          "count": 8,
+          "image": null,
+          "reviewCount": 0,
+          "permalink": "https://demo-car-parts.test/categoria-produto/tbi/"
+        }
+      ],
+      "tags": [
+        {
+          "id": 67,
+          "name": "60",
+          "slug": "60",
+          "count": 1
+        },
+        {
+          "id": 66,
+          "name": "dfv",
+          "slug": "dfv",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "name": "tbi",
+          "slug": "tbi",
+          "count": 2
+        }
+      ],
+      "dates": {
+        "publishedAt": "2021-10-23T19:33:58Z",
+        "modifiedAt": "2025-11-26T13:37:28Z"
+      },
+      "prices": {
+        "currency": "BRL",
+        "symbol": "R$",
+        "minorUnit": 2,
+        "price": 3580,
+        "regularPrice": 3580,
+        "salePrice": 3580,
+        "raw": {
+          "price": "358000",
+          "regularPrice": "358000",
+          "salePrice": "358000"
+        }
+      },
+      "priceHtml": "R$ 3.580,00\nR$ 3.401,00 no Pix",
+      "averageRating": "0",
+      "reviewCount": 0,
+      "isOnSale": false,
+      "isPurchasable": true,
+      "isInStock": true,
+      "stockAvailability": "5 em estoque",
+      "hasOptions": false,
+      "isSoldIndividually": false,
+      "lowStockRemaining": null,
+      "shortDescriptionText": "A TBI 60mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere a TBI pois a base já está com as medidas certas para encaixe no coletor.\nTBI PARA BASE COLETOR DFV 446 / H34.\nOpala\nCaravan\nChevette\nDodge\nGol/Parati",
+      "descriptionText": "TBI com borboleta de 60mm.\nA TBI acompanha:\nCorpo em alumínio\n4 Bicos injetores\nTPS\nFlautas interligadas com conexões especiais em alumínio\nConexão para combustível\nA TBI 60mm da Demo Car Parts possui o corpo interno cônico o que aumenta a fluidez, velocidade e volume do fluxo de ar.\nEsqueça os problemas provenientes do carburador, assuma o controle do seu motor.\nGarantia de aumento de torque e potência, além de redução do consumo.\nSeu carro agora Flex. (Programando diferentes mapas no módulo)\nVerifique as medidas da base do seu coletor com as especificadas nas fotos.\nEquipamento de fácil instalação, porém aconselhamos ser feita por profissional capacitado.",
+      "images": [
+        {
+          "id": 3313,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333164-tbi-60mm-qda-01.png",
+          "name": "15280333164-tbi-60mm-qda-01.png",
+          "alt": ""
+        },
+        {
+          "id": 3314,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333182-tbi-60mm-qda-03.png",
+          "name": "15280333182-tbi-60mm-qda-03.png",
+          "alt": ""
+        },
+        {
+          "id": 3315,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333198-tbi-60mm-qda-04.png",
+          "name": "15280333198-tbi-60mm-qda-04.png",
+          "alt": ""
+        },
+        {
+          "id": 3316,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333210-tbi-60mm-qda-02.png",
+          "name": "15280333210-tbi-60mm-qda-02.png",
+          "alt": ""
+        },
+        {
+          "id": 3317,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333227-tbi-60mm-qda-05.png",
+          "name": "15280333227-tbi-60mm-qda-05.png",
+          "alt": ""
+        },
+        {
+          "id": 3318,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333247-tbi-60mm-qda-06.png",
+          "name": "15280333247-tbi-60mm-qda-06.png",
+          "alt": ""
+        },
+        {
+          "id": 3319,
+          "src": "https://demo-car-parts.test/wp-content/uploads/2025/11/15280333264-tbi-60mm-qda-07.png",
+          "name": "15280333264-tbi-60mm-qda-07.png",
+          "alt": ""
+        }
+      ],
+      "attributes": [],
+      "variations": [],
+      "addToCart": {
+        "text": "Adicionar ao carrinho",
+        "description": "Adicione ao carrinho: &ldquo;TBI 60mm DFV 446 / H34&rdquo;",
+        "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;add-to-cart=1392",
+        "single_text": "Adicionar ao carrinho",
+        "minimum": 1,
+        "maximum": 5,
+        "multiple_of": 1
+      },
+      "clientFacing": {
+        "productPage": {
+          "fetched": true,
+          "title": "TBI 60mm DFV 446 / H34 – Demo Car Parts",
+          "description": "A TBI 60mm da Demo Car Parts foi desenvolvida com Engenharia aplicada para  obter o melhor rendimento do seu motor. A TBI foi projetada para facilitar a troca, apenas retira-se o carburador e insere a TBI pois a base já está com as medidas certas para encaixe no coletor.\r\n \r\nTBI PARA BASE COLETOR DFV 446 / H34.\r\n\r\nOpala\r\nCaravan\r\nChevette\r\nDodge\r\nGol/Parati",
+          "detectedFeatures": [
+            "woocommerce_composite_products",
+            "installments",
+            "pix_discount",
+            "cielo_payments",
+            "melhor_envio_shipping"
+          ]
+        },
+        "offers": {
+          "mainProductLines": [
+            "R$ 0,00",
+            "R$ 3.580,00",
+            "Ou 6x de R$ 596,67 sem juros R$ 3.401,00 no Pix",
+            "5 em estoque",
+            "Detalhes do parcelamento",
+            "1x de R$ 3.580,00 sem juros",
+            "2x de R$ 1.790,00 sem juros",
+            "3x de R$ 1.193,33 sem juros",
+            "R$ 3.579,99",
+            "4x de R$ 895,00 sem juros",
+            "5x de R$ 716,00 sem juros",
+            "6x de R$ 596,67 sem juros",
+            "R$ 3.580,02",
+            "7x de R$ 531,89 com juros",
+            "R$ 3.723,23",
+            "8x de R$ 465,40 com juros",
+            "R$ 3.723,20",
+            "9x de R$ 413,69 com juros",
+            "R$ 3.723,21",
+            "10x de R$ 372,32 com juros",
+            "11x de R$ 338,47 com juros",
+            "R$ 3.723,17",
+            "12x de R$ 310,27 com juros",
+            "R$ 3.723,24",
+            "Adicionar ao carrinho"
+          ]
+        },
+        "kit": {
+          "markers": [],
+          "componentCandidates": []
+        }
+      }
+    }
+  ]
+}

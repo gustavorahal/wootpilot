@@ -250,6 +250,10 @@ boundaries, translators convert representations, clients perform low-level API
 calls, repositories persist domain objects, registries select configured adapters
 or installations, and services orchestrate workflows.
 
+The MVP should stay API-only. Do not add an admin UI before webhook intake,
+product context, policy, private notes, and limited auto replies work through
+the API and local Chatwoot stack.
+
 ## Python Baseline
 
 The primary runtime should be Python 3.14. Keep Python 3.13 compatibility only

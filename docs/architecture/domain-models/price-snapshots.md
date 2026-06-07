@@ -91,6 +91,9 @@ class PriceSnapshot(BaseModel):
   currency and decimal scale.
 - Preserve `display_text` when useful, but do not send it to a customer unless
   `can_mention=true`.
+- WooCommerce translators should set `can_mention=true` by default for fresh
+  exact public prices unless the product is hidden-price, quote-required,
+  unavailable, stale, ambiguous, or blocked by tenant policy.
 - Persist the `PriceSnapshot` used by the agent run so later audits can explain
   why a price was or was not mentioned.
 - Do not infer currency from locale, tenant, or storefront URL at the point of

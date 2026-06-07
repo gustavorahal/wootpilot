@@ -191,7 +191,7 @@ connector interfaces should leave room for authenticated capabilities such as
 `coupon_create`, but those capabilities should remain disabled and unimplemented
 initially.
 
-The planned local fixture path is:
+The committed local fixture path is:
 
 ```text
 data/mock-woocommerce/catalog.demo-car-parts.json
@@ -199,9 +199,9 @@ data/mock-woocommerce/catalog.demo-car-parts.json
 
 It contains:
 
-- A fictional car-parts product catalog;
-- Products clearly marked as demo data;
-- 3 categories;
+- Products clearly marked as mock or test data;
+- categories, tags, stock status, prices, kits, and WooCommerce Store API
+  product fields;
 - product types covering TBI, kits, modules, harnesses, sensors, ignition, fuel,
   and addons.
 
@@ -296,7 +296,8 @@ support deployment.
 
 - The agent may send a public product name and public URL for a single safe
   product match.
-- The agent may mention price only when `price.canMention=true`.
+- The agent may mention exact public WooCommerce prices by default when
+  `price.canMention=true`.
 - The agent may mention availability only when `availability.canMention=true`.
 - Kit products, quote placeholders, hidden-price products, or any price snapshot
   with `kind=quote_required` must never be described as free.

@@ -15,6 +15,8 @@
 - Add cost and latency tracking.
 - Add structured log review for failed, blocked, and high-latency workflows.
 - Add production deployment docs.
+- Add Chatwoot Cloud compatibility notes for webhook authentication, API base
+  URLs, account ids, inbox ids, and outbound message permissions.
 - Revisit optional observability integrations such as LangSmith or OpenTelemetry
   after the MVP audit/logging baseline is stable.
 
@@ -31,6 +33,8 @@
   prices, and zero-value kit placeholders.
 - Production deployment docs include required environment variables and the
   Postgres requirement for production public auto-send.
+- Chatwoot Cloud configuration docs map to the same channel adapter contract used
+  by local self-hosted Chatwoot.
 
 ## Manual Verification
 
