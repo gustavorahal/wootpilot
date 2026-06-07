@@ -34,6 +34,7 @@
 
 ## Manual Verification
 
+- Start the local Chatwoot dev stack with `./scripts/chatwoot-dev-up`.
 - Run a low-risk fixture through limited auto mode.
 - Confirm one public-message outbound action is queued and sent.
 - Repeat with a human-active fixture and confirm execution is blocked.

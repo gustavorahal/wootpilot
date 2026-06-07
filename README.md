@@ -67,3 +67,22 @@ Customer message
 - [Persistence Model](docs/architecture/persistence.md)
 - [Observability](docs/architecture/observability.md)
 - [Implementation Slices](docs/implementation/milestones.md)
+
+## Local Chatwoot
+
+Use the disposable local Chatwoot stack for manual integration testing:
+
+```sh
+./scripts/chatwoot-dev-up
+```
+
+Open `http://localhost:3000`, create the first local account, and generate a
+Chatwoot API token for WootPilot development.
+
+Reset the stack to an empty database:
+
+```sh
+./scripts/chatwoot-dev-reset
+```
+
+See [Local Chatwoot Dev Stack](infra/chatwoot-dev/README.md).

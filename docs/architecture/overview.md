@@ -48,6 +48,16 @@ wootpilot/
   data/
     mock-woocommerce/
       catalog.demo-car-parts.json
+  infra/
+    chatwoot-dev/
+      compose.yml
+      chatwoot.env
+      README.md
+  scripts/
+    chatwoot-dev-up
+    chatwoot-dev-down
+    chatwoot-dev-reset
+    chatwoot-dev-logs
   pyproject.toml
   src/
     wootpilot/

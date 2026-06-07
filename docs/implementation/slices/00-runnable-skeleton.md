@@ -14,6 +14,8 @@
 - Add health route.
 - Add lint/test tooling.
 - Add Dockerfile.
+- Add disposable local Chatwoot Docker Compose stack for manual integration
+  testing.
 - Set Python 3.14 as the primary runtime and configure CI for supported Python
   versions.
 - Add SQLite database profile for local development.
@@ -26,6 +28,8 @@
 - Settings load from environment variables and test overrides.
 - SQLite database initializes from an empty file.
 - Alembic applies the baseline migration to an empty SQLite database.
+- Local Chatwoot Compose configuration validates with `docker compose config`.
+- Chatwoot dev helper scripts pass shell syntax checks.
 - Unit test, lint, and type-check commands run in CI.
 
 ## Manual Verification
@@ -33,3 +37,5 @@
 - Start the app locally.
 - Call `GET /health`.
 - Run the baseline migration against a new local SQLite database.
+- Start local Chatwoot with `./scripts/chatwoot-dev-up` when manual Chatwoot
+  integration testing is needed.

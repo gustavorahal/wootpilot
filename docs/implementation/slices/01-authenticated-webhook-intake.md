@@ -30,6 +30,7 @@
 
 ## Manual Verification
 
+- Start the local Chatwoot dev stack with `./scripts/chatwoot-dev-up`.
 - Start the app locally.
 - POST a fixture Chatwoot customer-message webhook with a valid shared secret.
 - Confirm the database contains one raw event and one normalized message.

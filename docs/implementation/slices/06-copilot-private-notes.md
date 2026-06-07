@@ -34,6 +34,8 @@
 
 ## Manual Verification
 
+- Start the local Chatwoot dev stack with `./scripts/chatwoot-dev-up`.
+- Create a local Chatwoot account, inbox, conversation, and API token.
 - Run a fixture customer message through copilot mode.
 - Confirm one queued private-note outbound action.
 - Run the outbound executor.
