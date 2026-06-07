@@ -2,7 +2,7 @@ name: wootpilot-chatwoot-dev
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: chatwoot_dev
       POSTGRES_USER: chatwoot

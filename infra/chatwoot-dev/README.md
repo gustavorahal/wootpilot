@@ -3,14 +3,14 @@
 This stack runs a disposable Chatwoot instance for WootPilot development and
 manual integration testing.
 
-It starts Chatwoot, Sidekiq, Postgres, and Redis through Docker Compose. The
-stack does not define persistent volumes. Running `down` removes containers, and
-running `reset` removes containers plus any anonymous volumes.
+It starts Chatwoot, Sidekiq, Postgres with pgvector, and Redis through Docker
+Compose. The stack does not define persistent volumes. Running `down` removes
+containers, and running `reset` removes containers plus any anonymous volumes.
 
 ## Requirements
 
 - Docker with Compose v2.
-- Enough local memory for Chatwoot, Postgres, and Redis.
+- Enough local memory for Chatwoot, Postgres with pgvector, and Redis.
 
 ## Start
 
