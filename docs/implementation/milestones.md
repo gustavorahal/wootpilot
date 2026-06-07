@@ -3,6 +3,14 @@
 Each implementation slice should leave the repository in a runnable and testable
 state. Prefer thin vertical slices over broad implementation layers.
 
+## Current Baseline
+
+- Disposable local Chatwoot is available through `./scripts/chatwoot-dev-up`.
+- Chatwoot runs at `http://localhost:3000` with Chatwoot web, Sidekiq,
+  Postgres with pgvector, and Redis.
+- Use the local Chatwoot stack for manual integration checks in webhook,
+  private-note, and public-reply slices.
+
 ## Slices
 
 - [Slice 0: Runnable Skeleton](slices/00-runnable-skeleton.md)

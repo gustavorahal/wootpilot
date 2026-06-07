@@ -17,6 +17,9 @@ implementation is planned as a Python 3.14 service using FastAPI, Pydantic v2,
 LangGraph, SQLAlchemy/Alembic, SQLite for local alpha workflows, and PostgreSQL
 for production.
 
+A disposable local Chatwoot development stack is available for manual
+integration testing.
+
 ## Planned Capabilities
 
 - Receive and normalize Chatwoot webhook events.
