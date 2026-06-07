@@ -12,10 +12,15 @@ Use this mode for early production testing.
 
 ### Copilot
 
-The agent writes private notes with suggested replies and reasoning summaries.
+The agent writes private notes in Chatwoot with suggested replies, concise
+reasoning summaries, relevant context, and risk reasons.
 
 Use this mode when humans should remain fully in control of customer-facing
 messages.
+
+Copilot mode does not use LangGraph interrupts in the MVP. The graph produces a
+proposal, WootPilot queues or writes the private note, and the run completes.
+Human review happens in Chatwoot.
 
 ### Limited Auto
 
@@ -64,8 +69,10 @@ pipeline should:
 - Normalize Chatwoot payloads into internal message models.
 - Mark ignored events without invoking the LLM.
 
-LangGraph should receive a trusted normalized message plus service dependencies.
-It should not know how to verify signatures or parse raw webhook envelopes.
+LangGraph should receive a trusted normalized message, prepared conversation
+state, prepared catalog context, bot mode, and policy inputs. It should not know
+how to verify signatures, parse raw webhook envelopes, discover connectors, or
+perform external writes.
 
 ## Application Use Cases
 
@@ -78,11 +85,10 @@ BuildCatalogContext
 ExecuteOutboundAction
 ```
 
-The graph is allowed to orchestrate state and call injected ports, but it should
-not become the only place where system behavior exists. In particular, durable
-state transitions such as raw-event dedupe, audit persistence, and outbound
-action execution should be owned by application use cases so they can be tested
-without replaying the whole graph.
+The graph should orchestrate decision state from prepared inputs. Durable state
+transitions such as raw-event dedupe, connector context loading, context snapshot
+persistence, audit persistence, and outbound action execution should be owned by
+application use cases so they can be tested without replaying the whole graph.
 
 ## LangGraph Workflow
 
@@ -97,6 +103,7 @@ human_operator_state
 triage_result
 catalog_context
 bot_mode
+pre_model_policy_decision
 agent_proposal
 outbound_action_candidate
 workflow_decision
@@ -105,19 +112,19 @@ workflow_decision
 Agent nodes:
 
 ```text
-load_human_operator_state
 should_invoke
 triage_message
-load_catalog_context
 policy_gate
 llm_proposal
 validate_outbound_action
 build_workflow_decision
 ```
 
-`RunSupportWorkflow` should persist the audit record and queue an outbound action
-after the graph returns a decision. This keeps the graph focused on reasoning and
-branching while the application layer owns transaction boundaries.
+`RunSupportWorkflow` should load human operator state, build catalog context,
+persist the context snapshots used by the run, invoke the graph, persist the
+audit record, and queue an outbound action after the graph returns a decision.
+The graph should finish each MVP workflow run without waiting for human approval
+or resume input.
 
 Outbound execution should be a separate application use case or worker, not an
 LLM node. That use case should load the queued action, re-check policy, re-read
@@ -148,6 +155,10 @@ the exact public content and current tenant/channel state before execution.
 Every model call that affects workflow state should return Pydantic-validated
 structured output. The model returns proposals only. System execution status is
 computed after deterministic checks and channel API results.
+
+OpenRouter is the MVP model provider. Model adapter code should sit behind
+`ModelProposalPort` so prompts, structured output handling, retries, usage
+capture, and provider errors stay outside domain services and graph state.
 
 Initial proposal and status schema:
 

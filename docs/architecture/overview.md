@@ -110,7 +110,7 @@ wootpilot/
         translators.py
         outbox.py
       observability/
-        tracing.py
+        correlation.py
         redaction.py
       settings.py
   tests/
@@ -128,19 +128,21 @@ Chatwoot webhook
   -> dedupe and replay checks
   -> channel translator
   -> handle-webhook use case
-  -> LangGraph support workflow
+  -> conversation state read
   -> connector registry
   -> connector capability protocol
   -> normalized resource snapshots
   -> policy-aware agent context
+  -> LangGraph support workflow
   -> guarded action proposal
   -> idempotent outbound action execution
 ```
 
-The agent graph should orchestrate workflow state. It should not know how to
-discover WooCommerce, parse connector payloads, or decide which tenant
-installation to use. Application services should handle those details and pass
-compact structured context into the graph.
+The agent graph should make workflow decisions from prepared inputs. It should
+not know how to discover WooCommerce, parse connector payloads, decide which
+tenant installation to use, write to Chatwoot, or persist database rows.
+Application services should handle those details and pass compact structured
+context into the graph.
 
 Application services should be organized around a few durable use cases, not one
 service per tiny operation. Version 1 should start with these use-case modules:
@@ -152,9 +154,9 @@ HandleWebhookEvent
   eligible customer messages.
 
 RunSupportWorkflow
-  Loads conversation and business context, applies policy, invokes the graph or
-  model proposal port, and produces an audited decision or queued outbound
-  action.
+  Loads conversation state and business context, persists the context snapshots
+  used by the run, applies policy, invokes the graph, and turns the graph result
+  into an audited decision or queued outbound action.
 
 BuildCatalogContext
   Resolves the configured product catalog connector, reads product snapshots,
@@ -206,16 +208,18 @@ thin: parse transport details, call `HandleWebhookEvent`, and translate returned
 application errors into HTTP responses. The ingress use case should authenticate
 requests, reject replays, persist raw events, deduplicate provider events, and
 call channel translators to produce domain event/message objects. LangGraph
-should receive trusted domain input plus service dependencies.
+should receive trusted domain input and prepared context.
 
-The agent graph should produce action proposals. It should not directly mark a
-message as sent or call Chatwoot APIs. Outbound execution should happen through a
-small use case that performs final policy checks, re-reads human operator and
-replyability state through a channel-facing safety port, sends through the
-channel writer, and records the result idempotently.
+The agent graph should produce workflow decisions and action proposals. It
+should not perform connector HTTP reads, write database rows, mark a message as
+sent, or call Chatwoot APIs. Outbound execution should happen through a small use
+case that performs final policy checks, re-reads human operator and replyability
+state through a channel-facing safety port, sends through the channel writer,
+and records the result idempotently.
 
 Connector packages should map raw external payloads into domain snapshots.
-Services and graph nodes should not depend on raw WooCommerce Store API fields.
+Services that build context should consume those snapshots. Graph nodes should
+not depend on raw WooCommerce Store API fields or perform connector discovery.
 
 The domain model docs are the source of truth for shared vocabulary. If a concept
 appears in persistence, policy, connectors, and agent prompts, define it in

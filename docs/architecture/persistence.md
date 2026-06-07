@@ -76,7 +76,7 @@ agent_runs
   input_tokens
   output_tokens
   latency_ms
-  trace_id
+  correlation_id
   created_at
   completed_at
 
@@ -297,10 +297,12 @@ postgres
   Production workflows using langgraph-checkpoint-postgres.
 ```
 
-Human-in-the-loop graph interrupts, thread memory, time travel debugging, and
-fault-tolerant graph resumes depend on checkpointers. SQLite is enough to start,
-but production graph state should move to Postgres with the rest of production
-persistence.
+Thread memory, time travel debugging, and fault-tolerant graph resumes depend on
+checkpointers. SQLite is enough to start, but production graph state should move
+to Postgres with the rest of production persistence.
+
+MVP copilot workflows should complete after producing a Chatwoot private note.
+They should not pause on LangGraph interrupts for human approval.
 
 ## Idempotent Action Execution
 

@@ -1,10 +1,16 @@
 # Observability
 
+The MVP observability baseline should be self-contained: structured application
+logs plus durable audit records in WootPilot's database. LangSmith and
+OpenTelemetry are useful future integrations, but the first release should not
+require a hosted observability service or an optional tracing configuration path.
+
 Minimum useful telemetry:
 
 - Webhook latency.
 - End-to-end workflow latency.
 - Model latency.
+- Model provider and model id.
 - Tool and channel API latency.
 - Connector read latency.
 - Connector action latency.
@@ -25,7 +31,8 @@ Minimum useful telemetry:
 - Final pre-send policy recheck result.
 - Price mention policy decisions.
 
-Sensitive fields should be redacted before logs and traces:
+Sensitive fields should be redacted before logs, audit summaries, and any future
+external traces:
 
 - API keys.
 - Authorization headers.
@@ -39,7 +46,9 @@ Sensitive fields should be redacted before logs and traces:
   be broadly visible.
 - Raw price display text if tenant policy treats pricing as sensitive.
 
-Traces should link raw event id, normalized message id, agent run id, context
-snapshot ids, outbound action id, and provider message id. That correlation is
-more useful than logging full payloads, and it keeps auditability separate from
-unnecessary data exposure.
+Every workflow log entry should carry correlation identifiers: raw event id,
+normalized message id, agent run id, context snapshot ids, outbound action id,
+and provider message id when available. That correlation is more useful than
+logging full payloads, and it keeps auditability separate from unnecessary data
+exposure. These identifiers also keep the design compatible with future
+LangSmith or OpenTelemetry integrations without making either part of the MVP.

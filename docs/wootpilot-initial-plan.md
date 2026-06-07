@@ -17,9 +17,9 @@ The design goal is a practical production-ready foundation:
 
 - Chatwoot-native integration through webhooks and APIs.
 - WooCommerce product-context integration for ecommerce support conversations.
-- Python-first AI stack using LangGraph, provider SDK integrations, and
-  Pydantic. Add broader LangChain dependencies only when they provide a clear
-  workflow benefit.
+- Python-first AI stack using LangGraph, OpenRouter as the first model provider,
+  and Pydantic. Add broader LangChain dependencies only when they provide a
+  clear workflow benefit.
 - Deterministic policy before and after model calls.
 - Human-in-the-loop by default for risky support, sales, billing, technical, or
   account-specific claims.
@@ -97,7 +97,7 @@ Customer message
   -> outbound guardrails
   -> idempotent outbound action execution
   -> Chatwoot public message or private note
-  -> audit log and traces
+  -> audit log and structured operational logs
 ```
 
 Core architecture:
@@ -142,8 +142,9 @@ Persistence
   pipeline.
 
 Observability
-  Captures traces, model calls, tool calls, policy decisions, connector activity,
-  costs, latency, and redacted payloads.
+  Captures structured logs, model calls, tool calls, policy decisions, connector
+  activity, costs, latency, and redacted payload summaries. The MVP should not
+  depend on LangSmith or any hosted observability service.
 ```
 
 Detailed architecture:
@@ -179,9 +180,10 @@ Agent and LLM infrastructure:
 
 - LangGraph
 - LangChain, only for components that are directly useful
-- langchain-openai
-- langchain-anthropic
-- LangSmith
+- OpenRouter as the MVP model provider
+- `langchain-openrouter` for LangChain/LangGraph chat model integration
+- Direct HTTPX calls to OpenRouter only if the dedicated integration blocks a
+  required MVP feature
 
 Persistence:
 
@@ -194,6 +196,17 @@ Persistence:
 - `langgraph-checkpoint-sqlite` for local and alpha workflows
 - `langgraph-checkpoint-postgres` for production workflows
 - pgvector, later, only when semantic retrieval is needed
+
+Deferred observability integrations:
+
+- LangSmith, later, only after the local audit/logging path proves useful.
+- OpenTelemetry, later, when operators need standard metrics and distributed
+  tracing export.
+
+Deferred model provider integrations:
+
+- Direct OpenAI and Anthropic provider integrations, later, when WootPilot needs
+  provider-specific behavior that OpenRouter does not expose.
 
 Developer experience:
 
@@ -212,6 +225,7 @@ Build the first release as an API-only service with:
 - FastAPI.
 - LangGraph.
 - Pydantic.
+- OpenRouter-backed model proposals.
 - SQLAlchemy/Alembic persistence with SQLite first and Postgres as the production
   target.
 - Chatwoot API client.

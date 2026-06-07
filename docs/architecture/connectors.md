@@ -211,9 +211,10 @@ being committed.
 
 ### Product Catalog Capability
 
-The agent graph should depend on `CatalogContextService`, not directly on
+`RunSupportWorkflow` should depend on `CatalogContextService`, not directly on
 WooCommerce or connector discovery. `CatalogContextService` should use the
-connector registry to resolve the tenant's configured product catalog adapter.
+connector registry to resolve the tenant's configured product catalog adapter
+before the graph is invoked.
 
 ```python
 catalog_adapter = registry.require_capability(
@@ -226,13 +227,13 @@ catalog_adapter = registry.require_capability(
 The WooCommerce connector adapter should use translators to convert raw
 WooCommerce payloads into shared domain resource snapshots such as
 [ProductSnapshot](domain-models/product-snapshots.md) and `ProductCategory`.
-Services must not receive raw WooCommerce API responses.
+Services and graph nodes must not receive raw WooCommerce API responses.
 
 ### Product Context Shape
 
 The LLM should not receive raw WooCommerce API responses. A
 `CatalogContextService` should convert adapter results into compact,
-policy-aware structured context.
+policy-aware structured context before `RunSupportWorkflow` invokes the graph.
 
 ```json
 {

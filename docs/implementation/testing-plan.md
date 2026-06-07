@@ -45,6 +45,8 @@
 - Kit price `0.00` handling.
 - Availability claim gating.
 - Agent proposal schema validation.
+- OpenRouter model proposal adapter maps structured responses, usage metadata,
+  retryable errors, and permanent errors into WootPilot result types.
 - System status assignment after policy and action execution.
 - Redaction of secrets, contact data, raw payloads, and sensitive pricing text.
 
@@ -70,6 +72,8 @@
   disagrees with local conversation state.
 - Product lookup conversation against the mock WooCommerce catalog.
 - Product lookup persists context snapshots used by the agent run.
+- LangGraph workflow receives prepared conversation/catalog context and does not
+  perform connector reads, database writes, or Chatwoot writes.
 - Ambiguous product match produces a clarifying question or private note.
 - Price snapshots persist the exact policy-aware price context used by the agent
   run.

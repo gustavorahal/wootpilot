@@ -42,4 +42,5 @@ class ContextSnapshot(BaseModel):
 - Include connector identity when context came from a connector.
 - Include snapshot ids in agent proposals so audits can connect model output to
   source context.
-- Redact sensitive fields before context enters LLM prompts or traces.
+- Redact sensitive fields before context enters LLM prompts, logs, or any future
+  external traces.
