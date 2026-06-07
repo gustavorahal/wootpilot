@@ -33,8 +33,18 @@ wootpilot/
       persistence.md
       observability.md
     implementation/
-      testing-plan.md
       milestones.md
+      slices/
+        00-runnable-skeleton.md
+        01-authenticated-webhook-intake.md
+        02-event-filtering-and-conversation-state.md
+        03-mock-product-context.md
+        04-shadow-workflow.md
+        05-openrouter-model-proposals.md
+        06-copilot-private-notes.md
+        07-limited-auto-public-replies.md
+        08-woocommerce-store-api.md
+        09-production-readiness.md
   data/
     mock-woocommerce/
       catalog.demo-car-parts.json

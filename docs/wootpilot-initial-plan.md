@@ -160,8 +160,7 @@ Detailed architecture:
 
 Implementation planning:
 
-- [Testing Plan](implementation/testing-plan.md)
-- [Milestones And Open Questions](implementation/milestones.md)
+- [Implementation Slices](implementation/milestones.md)
 
 ## Recommended Python Stack
 

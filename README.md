@@ -66,5 +66,4 @@ Customer message
 - [Policy And Agent Workflow](docs/architecture/policy-and-agent-workflow.md)
 - [Persistence Model](docs/architecture/persistence.md)
 - [Observability](docs/architecture/observability.md)
-- [Testing Plan](docs/implementation/testing-plan.md)
-- [Milestones And Open Questions](docs/implementation/milestones.md)
+- [Implementation Slices](docs/implementation/milestones.md)

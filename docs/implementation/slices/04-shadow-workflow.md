@@ -1,0 +1,41 @@
+# Slice 4: Shadow Workflow
+
+## Running Outcome
+
+- WootPilot can run the support workflow in shadow mode from a stored customer
+  message, produce an audited decision, and avoid all Chatwoot writes.
+
+## Implementation Scope
+
+- Add minimal `AgentRun`, `PolicyDecision`, `AgentProposal`, `AuditRecord`, and
+  workflow decision models.
+- Add `RunSupportWorkflow`.
+- Add pre-model policy gate.
+- Add LangGraph workflow that receives prepared normalized message,
+  conversation state, bot mode, policy inputs, and catalog context.
+- Add an in-memory or fake `ModelProposalPort` for deterministic workflow tests.
+- Persist agent run, policy decisions, context snapshot links, and audit records.
+- Keep graph nodes free of connector reads, database writes, and Chatwoot writes.
+
+## Required Tests
+
+- Shadow workflow produces an agent run and audit record.
+- Shadow workflow creates no outbound action and performs no Chatwoot write.
+- Pre-model policy blocks ineligible messages before model proposal.
+- Policy decision rule ids and outcomes are stable.
+- Graph receives prepared conversation/catalog context.
+- LangGraph workflow does not perform connector reads, database writes, or
+  Chatwoot writes.
+- Audit records link raw event, normalized message, agent run, policy decision,
+  and context snapshot ids.
+- Audit records and context snapshots redact secrets, contact data, raw payloads,
+  and sensitive pricing text.
+- Architecture import boundaries prevent domain models from importing API,
+  persistence, channel, connector, or provider SDK modules.
+
+## Manual Verification
+
+- Run a fixture customer message through shadow mode.
+- Confirm the database contains an agent run, policy decision, audit record, and
+  context snapshot links.
+- Confirm no outbound action row or Chatwoot write is created.
