@@ -17,7 +17,9 @@ The design goal is a practical production-ready foundation:
 
 - Chatwoot-native integration through webhooks and APIs.
 - WooCommerce product-context integration for ecommerce support conversations.
-- Python-first AI stack using LangGraph, LangChain, and Pydantic.
+- Python-first AI stack using LangGraph, provider SDK integrations, and
+  Pydantic. Add broader LangChain dependencies only when they provide a clear
+  workflow benefit.
 - Deterministic policy before and after model calls.
 - Human-in-the-loop by default for risky support, sales, billing, technical, or
   account-specific claims.
@@ -84,14 +86,16 @@ High-level flow:
 Customer message
   -> Chatwoot
   -> WootPilot webhook endpoint
-  -> signature verification
+  -> authenticated ingress verification
+  -> replay protection
   -> deduplication
   -> message normalization
   -> deterministic triage
   -> WooCommerce product context loading
   -> policy gate
-  -> LangGraph agent decision
+  -> LangGraph agent proposal
   -> outbound guardrails
+  -> idempotent outbound action execution
   -> Chatwoot public message or private note
   -> audit log and traces
 ```
@@ -101,6 +105,11 @@ Core architecture:
 ```text
 FastAPI
   Receives webhooks, exposes health/admin endpoints, and owns transport concerns.
+
+Ingress
+  Authenticates webhook requests, rejects replays, persists raw events,
+  deduplicates provider events, and normalizes channel payloads before any agent
+  workflow starts.
 
 Channels
   Integrate with the conversation platform WootPilot is centered around.
@@ -112,8 +121,9 @@ Domain services
   and validate outbound actions.
 
 LangGraph
-  Orchestrates the agent workflow as explicit stateful nodes rather than relying
-  on a single free-form agent loop.
+  Orchestrates support reasoning as explicit stateful nodes. It receives
+  normalized messages and compact context; it should not own raw webhook
+  authentication, replay protection, or low-level connector payload mapping.
 
 Connectors
   Integrate with external small-business systems that provide business context
@@ -124,7 +134,8 @@ Connectors
 Persistence
   Stores raw events, normalized messages, decisions, outbound actions, human
   activity state, context snapshots, connector installations, and graph
-  checkpoints.
+  checkpoints. Public writes must flow through an idempotent outbox/action
+  pipeline.
 
 Observability
   Captures traces, model calls, tool calls, policy decisions, connector activity,
@@ -136,6 +147,7 @@ Detailed architecture:
 - [Architecture Overview](architecture/overview.md)
 - [Chatwoot Channel Model](architecture/channels.md)
 - [Connector Model](architecture/connectors.md)
+- [Domain Models](architecture/domain-models/overview.md)
 - [Policy And Agent Workflow](architecture/policy-and-agent-workflow.md)
 - [Persistence Model](architecture/persistence.md)
 - [Observability](architecture/observability.md)
@@ -149,10 +161,11 @@ Implementation planning:
 
 Runtime and API:
 
-- Python 3.12+
+- Python 3.14 as the primary development and CI runtime.
+- Python 3.13 compatibility only while key dependencies still need it.
 - FastAPI
 - Uvicorn
-- Pydantic
+- Pydantic v2
 - pydantic-settings
 - HTTPX
 - Tenacity
@@ -160,7 +173,7 @@ Runtime and API:
 Agent and LLM infrastructure:
 
 - LangGraph
-- LangChain
+- LangChain, only for components that are directly useful
 - langchain-openai
 - langchain-anthropic
 - LangSmith
@@ -176,8 +189,8 @@ Persistence:
 Developer experience:
 
 - uv
-- Ruff
-- Pyright or mypy
+- Ruff for linting, import sorting, and formatting
+- Pyright or basedpyright for strict type checking
 - pytest
 - pytest-asyncio
 - respx
@@ -194,6 +207,12 @@ Build the first release as an API-only service with:
 - Chatwoot API client.
 - Connector registry with tenant-scoped WooCommerce `mock` and `store_api`
   product catalog modes.
+- First-class domain models for tenant boundaries, normalized messages, money,
+  price snapshots, availability snapshots, product snapshots, triage, risk
+  signals, policy decisions, agent proposals, outbound actions, connector
+  installations, context snapshots, conversation state, and audit records.
+- Idempotent outbound action execution with final policy and human-active
+  rechecks.
 - Shadow and copilot modes first.
 - Limited auto replies behind an explicit configuration flag.
 

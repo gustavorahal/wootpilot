@@ -6,6 +6,8 @@ the conversation platform and handoff surface.
 
 Required Chatwoot inputs:
 
+- Provider event id.
+- Event timestamp.
 - Account id.
 - Inbox id.
 - Conversation id.
@@ -17,6 +19,13 @@ Required Chatwoot inputs:
 - Message content.
 - Attachments metadata.
 - Conversation status.
+- Conversation replyability or lock state when available.
+
+Inbound webhooks must be authenticated before normalization. Use Chatwoot
+signature verification when available. If a Chatwoot deployment does not provide
+a signature, require a configured shared-secret fallback such as a header token
+or unguessable webhook URL secret. Do not run the agent for unauthenticated
+production webhooks.
 
 Required Chatwoot outputs:
 
@@ -28,3 +37,17 @@ Required Chatwoot outputs:
 
 The first version should support one Chatwoot account cleanly, but the data model
 should include tenant/account boundaries from the start.
+
+Every normalized Chatwoot message should preserve:
+
+- `tenant_id`
+- `provider`
+- `provider_account_id`
+- `provider_inbox_id`
+- `provider_conversation_id`
+- `provider_message_id`
+- `provider_contact_id`
+
+Do not rely on conversation id alone as a globally unique identifier. Chatwoot
+Cloud, self-hosted Chatwoot, imports, tests, and future multi-account setups can
+all make that assumption fragile.

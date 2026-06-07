@@ -13,7 +13,7 @@ back to Chatwoot.
 ## Current Status
 
 This repository is in the initial planning and architecture phase. The first
-implementation is planned as a Python service using FastAPI, Pydantic,
+implementation is planned as a Python 3.14 service using FastAPI, Pydantic v2,
 LangGraph, and PostgreSQL.
 
 ## Planned Capabilities
@@ -45,9 +45,11 @@ The core flow is:
 Customer message
   -> Chatwoot
   -> WootPilot webhook endpoint
+  -> authenticated ingress and replay protection
   -> policy and context loading
-  -> LangGraph agent workflow
+  -> LangGraph agent proposal
   -> outbound guardrails
+  -> idempotent outbound action execution
   -> Chatwoot private note or public reply
   -> audit log
 ```
@@ -58,6 +60,7 @@ Customer message
 - [Architecture Overview](docs/architecture/overview.md)
 - [Chatwoot Channel Model](docs/architecture/channels.md)
 - [Connector Model](docs/architecture/connectors.md)
+- [Domain Models](docs/architecture/domain-models/overview.md)
 - [Policy And Agent Workflow](docs/architecture/policy-and-agent-workflow.md)
 - [Persistence Model](docs/architecture/persistence.md)
 - [Observability](docs/architecture/observability.md)

@@ -40,8 +40,7 @@ from enum import StrEnum
 
 
 class ConnectorCapability(StrEnum):
-    catalog_read = "catalog_read"
-    product_read = "product_read"
+    product_catalog_read = "product_catalog_read"
     order_read = "order_read"
     customer_read = "customer_read"
     order_note_write = "order_note_write"
@@ -51,8 +50,10 @@ class ConnectorCapability(StrEnum):
     customer_tag_write = "customer_tag_write"
 ```
 
-Reads can be moderately coarse-grained. Writes should be fine-grained because
-policy and audit need to know exactly which business mutation was proposed.
+Reads can be moderately coarse-grained. `product_catalog_read` covers product
+search, category listing, and product lookup for version 1. Writes should be
+fine-grained because policy and audit need to know exactly which business
+mutation was proposed.
 
 Prefer separate protocols per capability rather than one large connector base
 class with many optional methods:
@@ -208,13 +209,13 @@ connector registry to resolve the tenant's configured product catalog connector.
 catalog_connector = registry.require_capability(
     tenant_id=tenant_id,
     connector_installation_id=workflow_config.catalog_connector_installation_id,
-    capability=ConnectorCapability.product_read,
+    capability=ConnectorCapability.product_catalog_read,
 )
 ```
 
 The WooCommerce connector should map raw WooCommerce payloads into shared domain
-resource snapshots such as `ProductSnapshot` and `ProductCategory`. Services
-must not receive raw WooCommerce API responses.
+resource snapshots such as [ProductSnapshot](domain-models/product-snapshots.md)
+and `ProductCategory`. Services must not receive raw WooCommerce API responses.
 
 ### Product Context Shape
 
@@ -234,14 +235,31 @@ policy-aware structured context.
       "productType": "tbi",
       "publicUrl": "https://example-store.test/products/tbi-60mm-ford",
       "price": {
-        "currency": "BRL",
-        "amount": 3580.0,
-        "canMentionPrice": true
+        "kind": "exact",
+        "source": "woocommerce_store_api",
+        "capturedAt": "2026-06-07T00:00:00Z",
+        "money": {
+          "amountMinor": 358000,
+          "currency": "BRL",
+          "decimalPlaces": 2
+        },
+        "rangeMin": null,
+        "rangeMax": null,
+        "displayText": "R$ 3.580,00",
+        "taxInclusive": null,
+        "priceListId": null,
+        "canMention": true,
+        "mentionPolicyReason": null
       },
-      "stock": {
+      "availability": {
         "status": "in_stock",
+        "source": "woocommerce_store_api",
+        "capturedAt": "2026-06-07T00:00:00Z",
         "quantity": 5,
-        "canMentionAvailability": true
+        "quantityVisible": true,
+        "canMention": true,
+        "mentionPolicyReason": null,
+        "uncertaintyReasons": []
       },
       "fitmentHints": ["Maverick", "Galaxie", "Landau", "F100", "Mustang"],
       "riskSignals": ["compatibility_requires_human_review"]
@@ -252,6 +270,13 @@ policy-aware structured context.
 }
 ```
 
+`price` must be a serialized [PriceSnapshot](domain-models/price-snapshots.md),
+not a float, a bare decimal, or a raw `Money` value. `availability` must be a
+serialized [AvailabilitySnapshot](domain-models/availability-snapshots.md).
+`Money` carries the exact amount and currency; `PriceSnapshot` carries quote
+status, source, display text, capture time, and whether policy allows the price
+to be mentioned.
+
 ### WooCommerce Policy Rules
 
 WooCommerce context should exercise the same safety rules expected from a real
@@ -259,10 +284,10 @@ support deployment.
 
 - The agent may send a public product name and public URL for a single safe
   product match.
-- The agent may mention price only when `canMentionPrice=true`.
-- The agent may mention availability only when `canMentionAvailability=true`.
-- Kit products with price `0.00` must never be described as free; they are quote
-  or composition placeholders.
+- The agent may mention price only when `price.canMention=true`.
+- The agent may mention availability only when `availability.canMention=true`.
+- Kit products, quote placeholders, hidden-price products, or any price snapshot
+  with `kind=quote_required` must never be described as free.
 - Fitment hints are search aids, not final compatibility claims.
 - Any final kit composition, installation promise, warranty claim, or
   performance claim requires human review.
