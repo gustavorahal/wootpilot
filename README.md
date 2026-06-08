@@ -18,7 +18,8 @@ LangGraph, SQLAlchemy/Alembic, SQLite for local alpha workflows, and PostgreSQL
 for production.
 
 A disposable local Chatwoot development stack is available for manual
-integration testing.
+integration testing. The public dev Chatwoot server for Meta-reachable MVP
+testing is `https://chat.gmrahal.net/`.
 
 ## Planned Capabilities
 
@@ -30,6 +31,10 @@ integration testing.
 - Use WooCommerce as the first connector for product catalog context.
 - Run agent workflows through explicit LangGraph nodes.
 - Support shadow mode, copilot private notes, and limited low-risk auto replies.
+- Hand off to humans by suppressing public automation and surfacing private
+  notes or handoff markers in Chatwoot.
+- Let humans explicitly hand a later customer turn back to AI through Chatwoot
+  labels or custom attributes, subject to policy.
 - Persist audit records, context snapshots, outbound actions, and policy
   decisions.
 
@@ -64,7 +69,9 @@ Customer message
 - [Architecture Overview](docs/architecture/overview.md)
 - [Architecture Vocabulary](docs/architecture/vocabulary.md)
 - [Chatwoot Channel Model](docs/architecture/channels.md)
+- [MVP Conversation Behavior](docs/architecture/mvp-conversation-behavior.md)
 - [Connector Model](docs/architecture/connectors.md)
+- [Configuration](docs/configuration.md)
 - [Domain Models](docs/architecture/domain-models/overview.md)
 - [Policy And Agent Workflow](docs/architecture/policy-and-agent-workflow.md)
 - [Persistence Model](docs/architecture/persistence.md)
@@ -89,3 +96,21 @@ Reset the stack to an empty database:
 ```
 
 See [Local Chatwoot Dev Stack](infra/chatwoot-dev/README.md).
+
+## Public Dev Chatwoot
+
+Use `https://chat.gmrahal.net/` for opt-in manual smoke tests that need a
+publicly reachable Chatwoot environment, including Meta-connected channel
+back-and-forth. The intended MVP loop is: customer message reaches Chatwoot,
+Chatwoot notifies WootPilot, WootPilot writes a private note or safe public
+reply through the Chatwoot API, a human can reply in Chatwoot, and WootPilot
+observes that human activity before deciding whether a later customer turn is
+eligible for AI again.
+
+Copy [.env.public-dev.example](.env.public-dev.example) to `.env.local` to run
+WootPilot locally against this server. The implementation should read these
+values through `pydantic-settings` from `WOOTPILOT_*` environment variables; see
+[Configuration](docs/configuration.md).
+
+For the full laptop tunnel loop, follow
+[Public Dev Laptop Loop](docs/runbooks/public-dev-laptop-loop.md).

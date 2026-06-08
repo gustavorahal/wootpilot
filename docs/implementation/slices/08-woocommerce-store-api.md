@@ -12,6 +12,9 @@
 - Map Store API product/category responses into domain snapshots.
 - Keep authenticated WooCommerce REST API support out of the MVP.
 - Keep context structured before adding vector retrieval.
+- Keep default CI network-free by using recorded public Store API fixtures.
+- Treat live Store API checks as optional smoke tests against fictional or
+  explicitly approved demo storefronts.
 
 ## Required Tests
 
@@ -28,6 +31,8 @@
   modes.
 - Exact public Store API prices become mentionable by default when the product
   is a single safe match and the price is fresh.
+- Recorded fixtures are fictionalized and contain no client-specific product
+  data, source paths, or private storefront URLs.
 
 ## Manual Verification
 
@@ -36,3 +41,5 @@
 - Confirm both modes produce the same structured context shape.
 - Confirm a safe exact-price product lookup allows the public reply policy to
   include the displayed price.
+- Optionally run a live read-only Store API smoke test against an approved demo
+  storefront and confirm no credentials are required.

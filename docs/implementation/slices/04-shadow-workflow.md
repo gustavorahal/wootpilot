@@ -20,12 +20,16 @@
 - Add an in-memory or fake `ModelProposalPort` for deterministic workflow tests.
 - Persist agent run, policy decisions, context snapshot links, and audit records.
 - Keep graph nodes free of connector reads, database writes, and Chatwoot writes.
+- Keep this slice deterministic by using the fake model proposal port in default
+  tests. Real provider calls belong to Slice 5.
 
 ## Required Tests
 
 - Shadow workflow produces an agent run and audit record.
 - Shadow workflow creates no outbound action and performs no Chatwoot write.
 - Pre-model policy blocks ineligible messages before model proposal.
+- Graph returns a stable workflow decision for ignored, blocked, shadow
+  proposed, and provider-failure cases.
 - Policy decision rule ids and outcomes are stable.
 - Graph receives prepared conversation/catalog context.
 - Graph invocation uses a stable tenant/channel/conversation `thread_id` when a

@@ -14,7 +14,11 @@
 - Add `ExecuteOutboundAction` for private-note actions.
 - Add copilot branching that queues private-note actions after policy checks.
 - Keep copilot review inside Chatwoot private notes.
+- Add support for writing a WootPilot handoff label or custom attribute when a
+  risky conversation needs human review, if the Chatwoot API path is available.
 - Do not add LangGraph interrupt approval/resume flows for the MVP.
+- Keep private-note execution on the same outbox path planned for public
+  messages so Slice 7 adds policy, not a second sending architecture.
 
 ## Required Tests
 
@@ -31,6 +35,10 @@
 - Outbound action executor state transitions cover queued, executing, sent,
   retryable failure, permanent failure, and blocked-by-policy outcomes.
 - Private-note content redacts internal-only fields and raw payloads.
+- Private-note execution can be tested with a fake `ChannelWriter` without
+  running Chatwoot.
+- Risky copilot paths can mark the conversation as needing human review without
+  sending a public customer-visible message.
 
 ## Manual Verification
 
@@ -41,3 +49,7 @@
 - Run the outbound executor.
 - Confirm the Chatwoot private note request is sent and the outbound action is
   marked sent.
+- Open the local Chatwoot conversation and confirm the note is private, not a
+  customer-visible public reply.
+- Repeat against `https://chat.gmrahal.net/` and confirm the private note or
+  handoff marker appears for the human agent.

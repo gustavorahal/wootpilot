@@ -22,6 +22,9 @@ class RiskSignalCode(StrEnum):
     prompt_injection_attempt = "prompt_injection_attempt"
     ambiguous_product_match = "ambiguous_product_match"
     human_operator_active = "human_operator_active"
+    customer_requested_human = "customer_requested_human"
+    automation_paused = "automation_paused"
+    unsupported_message_type = "unsupported_message_type"
 
 
 class RiskSignal(BaseModel):

@@ -7,7 +7,7 @@ wootpilot/
   README.md
   docs/
     wootpilot-initial-plan.md
-    architecture/
+      architecture/
       overview.md
       vocabulary.md
       channels.md
@@ -29,10 +29,12 @@ wootpilot/
         connector-installations.md
         context-snapshots.md
         audit-records.md
+      mvp-conversation-behavior.md
       policy-and-agent-workflow.md
       langchain-langgraph.md
       persistence.md
       observability.md
+    configuration.md
     implementation/
       milestones.md
       slices/
@@ -135,6 +137,8 @@ wootpilot/
         correlation.py
         redaction.py
       settings.py
+  .env.example
+  .env.public-dev.example
   tests/
     unit/
     integration/
@@ -158,6 +162,7 @@ Chatwoot webhook
   -> LangGraph support workflow
   -> guarded action proposal
   -> idempotent outbound action execution
+  -> human-active or explicit resume signal observed through Chatwoot
 ```
 
 The agent graph should make workflow decisions from prepared inputs. It should
@@ -199,6 +204,12 @@ ExecuteOutboundAction
 These modules may call small helper functions, but the use cases should remain
 the main test boundaries. Avoid creating many shallow services whose public API
 is just one line of another module.
+
+Repository implementations can be grouped by aggregate or persistence profile
+while the codebase is small. Do not create one repository class per table merely
+because a table exists. Introduce narrower repositories when a use case needs a
+clear testing boundary, a different backend implementation, or concurrency
+semantics such as outbox claiming.
 
 ## Application Ports
 
@@ -269,6 +280,13 @@ The MVP should stay API-only. Do not add an admin UI before webhook intake,
 product context, policy, private notes, and limited auto replies work through
 the API and local Chatwoot stack.
 
+The live MVP integration target is the public dev Chatwoot server at
+`https://chat.gmrahal.net/`. That server should be used to verify Meta-connected
+channel back-and-forth: customer message enters Chatwoot, Chatwoot notifies
+WootPilot, WootPilot writes through Chatwoot APIs, and human replies or control
+signals in Chatwoot affect later automation. See
+[MVP Conversation Behavior](mvp-conversation-behavior.md).
+
 ## Python Baseline
 
 The primary runtime should be Python 3.14. Keep Python 3.13 compatibility only
@@ -285,3 +303,16 @@ Prefer modern Python patterns:
 - `Field(default_factory=...)` for mutable defaults.
 - Ruff for linting, formatting, import sorting, pyupgrade rules, and docstring
   formatting of Python examples.
+
+## Configuration Boundary
+
+Only the app composition layer should read environment variables. Implement
+`src/wootpilot/settings.py` with `pydantic-settings` and a `WOOTPILOT_` prefix.
+Services, adapters, graph builders, and repositories should receive typed
+settings or explicit constructor arguments. Domain models must never read
+environment variables.
+
+See [Configuration](../configuration.md) for the live-dev Chatwoot settings,
+including the difference between local API access through
+`https://chat.gmrahal.net` and server-side Docker network access through
+`http://chatwoot-web:3000`.

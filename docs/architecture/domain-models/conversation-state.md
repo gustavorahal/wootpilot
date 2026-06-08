@@ -25,6 +25,8 @@ class ConversationState(BaseModel):
     human_operator_active_until: datetime | None = None
     last_human_public_message_at: datetime | None = None
     last_customer_message_at: datetime | None = None
+    automation_paused: bool = False
+    automation_resume_requested: bool = False
     updated_at: datetime
 ```
 
@@ -35,3 +37,8 @@ class ConversationState(BaseModel):
   private notes.
 - Use time-bounded suppression windows instead of permanent sticky flags.
 - Keep Chatwoot as the system of record for conversation content and assignment.
+- Treat Chatwoot labels or custom attributes as explicit human control signals
+  when present. `wootpilot-paused` should block public automation, while
+  `wootpilot-auto-ok` can make the next customer turn eligible after policy.
+- Do not resume AI in the middle of an existing customer turn. The clean MVP
+  resume boundary is the next customer message.

@@ -24,6 +24,8 @@
   provider routing, usage, and schema failures without leaking provider payloads
   into domain services.
 - Keep provider-specific schemas outside the domain layer.
+- Keep default CI provider-free by mocking OpenRouter HTTP or the LangChain chat
+  model boundary.
 
 ## Required Tests
 
@@ -36,9 +38,13 @@
 - Permanent OpenRouter errors map to permanent WootPilot result types.
 - Provider-specific response shapes do not leak into domain models.
 - Shadow workflow can run with the OpenRouter adapter mocked by `respx`.
+- No test in the default suite requires `OPENROUTER_API_KEY`.
 
 ## Manual Verification
 
 - Run the shadow workflow against a mocked OpenRouter response.
 - Confirm model metadata is captured on the agent run or related model-call
   record.
+- Optionally run one live OpenRouter smoke test with `OPENROUTER_API_KEY` set,
+  then confirm logs and audit records contain provider metadata without storing
+  the API key or raw provider payload.

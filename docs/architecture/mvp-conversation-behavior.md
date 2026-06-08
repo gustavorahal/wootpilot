@@ -1,0 +1,209 @@
+# MVP Conversation Behavior
+
+This document describes what WootPilot's MVP agent actually does in a Chatwoot
+conversation. It is the product contract that the architecture and slices should
+implement.
+
+## Channel Path
+
+The MVP path is:
+
+```text
+Customer on WhatsApp or web chat
+  -> Meta / Chatwoot channel infrastructure
+  -> Chatwoot conversation
+  -> Chatwoot webhook to WootPilot
+  -> WootPilot policy, context, and agent workflow
+  -> WootPilot outbound action
+  -> Chatwoot API write
+  -> Chatwoot delivers through the original channel
+```
+
+WootPilot does not talk directly to Meta in the MVP. Chatwoot owns the Meta
+WhatsApp Cloud API integration, inbox, customer identity, conversation thread,
+agent UI, and final delivery. WootPilot integrates with Chatwoot webhooks and
+Chatwoot APIs.
+
+The public development Chatwoot server is:
+
+```text
+https://chat.gmrahal.net/
+```
+
+This server is the MVP live integration target for Meta-reachable Chatwoot
+testing. Local disposable Chatwoot remains useful for fast manual checks, but
+the public dev server should be used to verify real channel back-and-forth with
+Meta once WootPilot has webhook and outbound API wiring.
+
+For the initial MVP loop, WootPilot runs on this laptop behind a public tunnel.
+Chatwoot posts signed webhooks to the tunnel URL. WootPilot calls the public
+Chatwoot API at `https://chat.gmrahal.net` to write private notes or safe public
+replies.
+
+## MVP Features
+
+The MVP agent offers these behaviors:
+
+- Receive customer messages from Chatwoot webhooks.
+- Ignore non-customer events, private notes, outbound messages, bot echoes, and
+  duplicate deliveries.
+- Track whether a human operator is active in the conversation.
+- Classify customer intent with deterministic rules before model calls.
+- Load structured WooCommerce product context from mock data or public Store API
+  reads.
+- Produce an auditable agent proposal with a structured model response.
+- Run in shadow mode, copilot mode, or limited auto mode.
+- Write Chatwoot private notes in copilot mode for human review.
+- Send public replies only for low-risk cases in limited auto mode.
+- Stop public automation when deterministic policy says the case needs a human.
+- Persist raw events, normalized messages, context snapshots, policy decisions,
+  agent runs, outbound actions, and audit records.
+
+The MVP does not perform refunds, discounts, order changes, account changes,
+authenticated WooCommerce mutations, or custom Chatwoot UI approval flows.
+
+## Mode Behavior
+
+Shadow mode:
+
+- WootPilot evaluates the message and stores what it would have done.
+- It never writes a private note or public reply to Chatwoot.
+- Use this for live observation against the public dev Chatwoot server before
+  enabling writes.
+
+Copilot mode:
+
+- WootPilot writes a private note with a suggested reply, useful context, and
+  risk reasons.
+- The customer does not see the private note.
+- A human agent replies from Chatwoot if they want to use or edit the suggestion.
+- This is the default MVP write mode.
+
+Limited auto mode:
+
+- WootPilot can send a public message only when the final policy check says the
+  exact content is safe.
+- It may answer simple approved-context questions, ask a clarifying question,
+  share a safe product link, or mention an exact product price only when the
+  price snapshot allows it.
+- It must not send public messages for sensitive, ambiguous, account-specific,
+  billing, refund, compatibility, technical diagnosis, or policy-heavy cases.
+
+## Handoff To Humans
+
+In the MVP, "handoff" means WootPilot stops public automation and leaves the
+conversation for a human in Chatwoot. Chatwoot remains the handoff surface.
+
+WootPilot should hand off when:
+
+- A human agent has replied publicly recently.
+- The conversation is assigned to a human and local policy treats assignment as
+  active handling.
+- The conversation has a WootPilot pause label or custom attribute.
+- The customer asks for a person, manager, callback, cancellation, refund,
+  discount, legal/policy decision, account change, or other sensitive action.
+- Product matching is ambiguous or the requested claim requires human review.
+- The customer sends unsupported media or a message WootPilot cannot safely
+  interpret.
+- Prompt injection or private/internal-information requests are detected.
+- Final pre-send policy rejects the exact proposed public content.
+
+Handoff actions by mode:
+
+```text
+shadow
+  Record the handoff decision only.
+
+copilot
+  Write a private note explaining the suggested response, context, and risk
+  reasons.
+
+limited_auto
+  Prefer a private note and no public reply. A short public "someone will review
+  this" message is allowed only when policy permits it and no human is already
+  active.
+```
+
+WootPilot should not send a public handoff confirmation if a human is already
+active, because that creates noise and can make the customer feel bounced around.
+
+## Human Control Signals
+
+The MVP should treat these Chatwoot-side signals as human control:
+
+```text
+human public reply
+  A human agent sent a customer-visible message. Public auto replies are
+  suppressed for a configured window.
+
+assignment
+  A human or team assignment can suppress public auto replies when configured.
+
+status
+  Open means the customer is waiting. Pending can be used by teams to indicate
+  bot/AI handling. Resolved means the case is done until the customer replies.
+
+labels or custom attributes
+  WootPilot-specific labels/custom attributes can pause or re-enable automation.
+```
+
+Suggested MVP labels:
+
+```text
+wootpilot-paused
+  Do not send public AI replies. Private copilot notes may still be allowed.
+
+wootpilot-auto-ok
+  A human has explicitly allowed WootPilot to handle the next eligible customer
+  turn according to bot mode and policy.
+
+wootpilot-needs-human
+  WootPilot detected a case that needs human review.
+```
+
+Labels are a product contract, not an implementation requirement for every
+slice. Early slices can model them as fixture fields or conversation state.
+Once the Chatwoot writer supports labels or custom attributes, WootPilot can
+write `wootpilot-needs-human` and read `wootpilot-paused` / `wootpilot-auto-ok`.
+
+## Handoff Back To AI
+
+The MVP should support conservative return-to-AI behavior.
+
+WootPilot may resume handling a conversation when all of these are true:
+
+- A new customer message arrives.
+- Bot mode for the tenant/inbox allows the relevant behavior.
+- The conversation is replyable and not resolved in a way that blocks replies.
+- The human-active suppression window has expired, or a human explicitly added
+  `wootpilot-auto-ok`.
+- The conversation does not have `wootpilot-paused`.
+- Pre-model and post-model policy pass.
+
+WootPilot should not automatically resume just because a human stopped typing or
+because time passed inside an existing customer turn. A new customer message is
+the clean MVP boundary for another AI decision.
+
+If a human wants to hand back immediately, they can use the explicit Chatwoot
+control signal, such as adding `wootpilot-auto-ok` or removing
+`wootpilot-paused`. The next customer message is then eligible for WootPilot,
+subject to policy.
+
+## Public Dev Back-And-Forth
+
+The public dev environment should prove this loop:
+
+```text
+customer sends message through Meta-connected channel
+  -> message appears in https://chat.gmrahal.net/
+  -> Chatwoot sends webhook to WootPilot
+  -> WootPilot records the event and decides a mode action
+  -> WootPilot writes private note or public reply through Chatwoot API
+  -> human can reply in Chatwoot
+  -> WootPilot observes the human reply and suppresses public automation
+  -> human can add an explicit resume signal
+  -> next customer message can be handled by WootPilot again
+```
+
+This public loop should be an opt-in integration smoke test, not default CI.
+Default CI should use fixtures and mocked HTTP for determinism.

@@ -39,8 +39,11 @@ Suggested WootPilot settings:
 
 ```text
 WOOTPILOT_CHATWOOT_BASE_URL=http://localhost:3000
+WOOTPILOT_CHATWOOT_PUBLIC_URL=http://localhost:3000
 WOOTPILOT_CHATWOOT_API_TOKEN=<local-user-api-token>
 WOOTPILOT_CHATWOOT_ACCOUNT_ID=<local-account-id>
+WOOTPILOT_CHATWOOT_WEBHOOK_SECRET=<chatwoot-generated-webhook-secret>
+WOOTPILOT_CHATWOOT_WEBHOOK_SIGNATURE_MODE=chatwoot-hmac-sha256
 ```
 
 ## Stop

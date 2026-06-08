@@ -13,8 +13,12 @@
 - Add `ConversationState` model and persistence.
 - Track human-active state, last human public message, last customer message,
   and replyability/lock signals when available.
+- Track explicit WootPilot pause/resume signals from Chatwoot labels or custom
+  attributes when present.
 - Add deterministic triage for deciding whether a message should invoke the
   workflow.
+- Represent workflow invocation as a use-case result or port call; do not add
+  LangGraph or model-provider dependencies in this slice.
 
 ## Required Tests
 
@@ -29,9 +33,16 @@
 - Triage assigns stable risk signal codes.
 - Webhook intake commits raw-event and dedupe state before any model or connector
   call.
+- Event filtering fixtures cover customer public inbound messages, private
+  notes, human public replies, bot echoes, system events, assignment changes,
+  and conversation status/replyability changes.
+- Pause/resume fixtures cover `wootpilot-paused`, `wootpilot-auto-ok`, and
+  human-active suppression windows.
 
 ## Manual Verification
 
 - POST fixture private-note, outbound-message, and assignment-change webhooks.
 - Confirm ignored message events do not create model workflow records.
 - Confirm assignment or conversation events update local conversation state.
+- In the public dev Chatwoot server, send a human public reply and confirm the
+  next webhook updates human-active state.

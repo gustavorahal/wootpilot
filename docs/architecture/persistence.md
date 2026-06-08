@@ -146,22 +146,12 @@ agent_context_snapshots
   external_resource_id
   snapshot_json
   captured_at
-
-connector_actions
-  id
-  agent_run_id
-  connector_key
-  connector_installation_id
-  capability
-  action_kind
-  proposed_payload_json
-  status
-  policy_decision_json
-  execution_result_json
-  error_code
-  created_at
-  updated_at
 ```
+
+Defer `connector_actions` until the first connector write capability is in
+scope. The MVP needs Chatwoot outbound actions and read-only connector context;
+adding connector mutation tables before there is an executable write workflow
+would create schema and policy surface without product behavior.
 
 ## Required Constraints
 
@@ -368,6 +358,12 @@ Public-message actions require a final pre-send check:
 
 Private notes should also be idempotent, but they can use a less restrictive
 policy path than public messages.
+
+Deferred connector writes should use the same guardrail philosophy as outbound
+Chatwoot actions, but they do not need the same table in the MVP. When a write
+capability such as `order_note_write`, `refund_create`, or `coupon_create`
+becomes product scope, add a dedicated connector action table or queue with
+capability-specific policy records and execution results.
 
 ## Data Types
 

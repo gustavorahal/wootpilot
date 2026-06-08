@@ -22,6 +22,8 @@
 - Add search by name, SKU, category, tags, and fitment hints.
 - Add `CatalogContextService`.
 - Persist compact context snapshots before invoking the graph.
+- Keep lookup deterministic and local: no embeddings, no fuzzy vector search, no
+  network access, and no authenticated WooCommerce API calls.
 
 ## Required Tests
 
@@ -42,6 +44,8 @@
 - Connector installation effective capability calculation is deterministic.
 - Catalog context persists snapshot ids that can be linked to an agent run.
 - No raw WooCommerce payload crosses into service or graph inputs.
+- Context building returns a compact, policy-aware shape that is stable across
+  repeated fixture runs.
 
 ## Manual Verification
 

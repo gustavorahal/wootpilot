@@ -24,6 +24,9 @@ Copilot mode does not use LangGraph interrupts in the MVP. The graph produces a
 proposal, WootPilot queues or writes the private note, and the run completes.
 Human review happens in Chatwoot.
 
+If a human replies publicly, WootPilot treats the conversation as human-active
+and suppresses public auto replies for the configured window.
+
 ### Limited Auto
 
 The agent may send public messages only when deterministic policy says the case
@@ -59,14 +62,20 @@ Initial policy rules:
   technical compatibility, delivery time, or account changes without approval.
 - Do not expose private reasoning or internal triage in public messages.
 - Do not send if the target conversation id does not match the current event.
+- Hand off to a human when the customer explicitly asks for a person, manager,
+  callback, cancellation, refund, discount, account change, or sensitive policy
+  decision.
+- Do not resume public automation while a WootPilot pause label/custom attribute
+  is present.
 
 ## Ingress Before LangGraph
 
 Inbound webhook handling should finish before LangGraph starts. The ingress
 pipeline should:
 
-- Authenticate the webhook through Chatwoot signature verification when
-  available, or a configured shared-secret fallback.
+- Authenticate the webhook through Chatwoot's signed webhook headers:
+  `X-Chatwoot-Signature` and `X-Chatwoot-Timestamp`, verified with the
+  Chatwoot-generated webhook secret.
 - Reject stale or replayed requests using provider event ids, timestamps, and a
   short replay window.
 - Persist the raw event before channel translation.
@@ -94,6 +103,12 @@ The graph should orchestrate decision state from prepared inputs. Durable state
 transitions such as raw-event dedupe, connector context loading, context snapshot
 persistence, audit persistence, and outbound action execution should be owned by
 application use cases so they can be tested without replaying the whole graph.
+
+The MVP handoff contract is documented in
+[MVP Conversation Behavior](mvp-conversation-behavior.md). In short: WootPilot
+hands off by not sending public AI messages, writing private notes or labels when
+useful, and observing human replies or explicit pause/resume signals from
+Chatwoot before deciding whether a later customer turn is eligible for AI again.
 
 ## LangGraph Workflow
 
@@ -155,6 +170,8 @@ shadow mode -> llm proposal -> audit decision -> done
 copilot mode -> private note candidate -> guard -> queue note action
 limited auto safe -> public message candidate -> guard -> queue public action
 risky or uncertain -> private note -> guard -> queue note action
+human active or paused -> optional private note -> done
+explicit resume signal on later customer turn -> policy gate
 ```
 
 Before a public send, the outbound executor must re-check the conversation id,

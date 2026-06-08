@@ -16,6 +16,8 @@ and records auditable decisions.
 The design goal is a practical production-ready foundation:
 
 - Chatwoot-native integration through webhooks and APIs.
+- Public dev-loop validation against `https://chat.gmrahal.net/`, the
+  Meta-reachable Chatwoot development server.
 - WooCommerce product-context integration for ecommerce support conversations.
 - Python-first AI stack using LangGraph as the workflow runtime, OpenRouter as
   the first model provider, Pydantic v2 for domain validation, and narrowly
@@ -63,7 +65,11 @@ The first version should support a narrow but useful set of workflows:
 7. In shadow mode, log what the agent would have done.
 8. In copilot mode, write private notes for human review.
 9. In limited auto mode, send public replies only for low-risk cases.
-10. Persist an audit trail for every decision.
+10. Hand off to humans by suppressing public automation and writing private
+    notes or labels when policy says human review is needed.
+11. Allow humans to hand back to AI through explicit Chatwoot control signals,
+    such as a WootPilot resume label, on a later customer turn.
+12. Persist an audit trail for every decision.
 
 ## Non-Goals For Version 1
 
@@ -97,6 +103,7 @@ Customer message
   -> outbound guardrails
   -> idempotent outbound action execution
   -> Chatwoot public message or private note
+  -> human reply or WootPilot resume/pause signal observed through Chatwoot
   -> audit log and structured operational logs
 ```
 
@@ -151,7 +158,10 @@ Detailed architecture:
 
 - [Architecture Overview](architecture/overview.md)
 - [Architecture Vocabulary](architecture/vocabulary.md)
+- [Configuration](configuration.md)
+- [Public Dev Laptop Loop](runbooks/public-dev-laptop-loop.md)
 - [Chatwoot Channel Model](architecture/channels.md)
+- [MVP Conversation Behavior](architecture/mvp-conversation-behavior.md)
 - [Connector Model](architecture/connectors.md)
 - [Domain Models](architecture/domain-models/overview.md)
 - [Policy And Agent Workflow](architecture/policy-and-agent-workflow.md)
@@ -175,6 +185,18 @@ Runtime and API:
 - pydantic-settings
 - HTTPX
 - Tenacity
+
+Configuration:
+
+- Runtime settings read from `WOOTPILOT_*` environment variables through
+  `pydantic-settings`.
+- Committed templates in `.env.example` and `.env.public-dev.example`.
+- Local developer secrets in ignored `.env.local`.
+- Server-side live-dev secrets in `/srv/apps/env/clients/wootpilot.env` if
+  WootPilot is deployed beside Chatwoot on the GMR platform host.
+- Public dev Chatwoot API calls use `https://chat.gmrahal.net` when WootPilot
+  runs locally, and `http://chatwoot-web:3000` when WootPilot runs as a
+  container on the same server-side Docker network.
 
 Agent and LLM infrastructure:
 
@@ -234,6 +256,9 @@ Build the first release as an API-only service with:
 - LangGraph checkpointers configured per environment, with stable tenant/channel
   conversation thread ids.
 - Chatwoot API client.
+- Public dev Chatwoot integration path for `https://chat.gmrahal.net/`, with
+  Meta-connected inbound messages entering Chatwoot and WootPilot writing back
+  through Chatwoot APIs.
 - Connector registry with tenant-scoped WooCommerce `mock` and `store_api`
   product catalog modes.
 - First-class domain models for tenant boundaries, normalized messages, money,
@@ -242,6 +267,9 @@ Build the first release as an API-only service with:
   installations, context snapshots, conversation state, and audit records.
 - Idempotent outbound action execution with final policy and human-active
   rechecks.
+- Human handoff through Chatwoot: public automation pauses when a human is active
+  or policy requires review, and explicit Chatwoot labels/custom attributes can
+  allow the next eligible customer turn to return to AI.
 - Shadow and copilot modes first.
 - Limited auto replies behind an explicit configuration flag, with Postgres
   required before production public auto-send.

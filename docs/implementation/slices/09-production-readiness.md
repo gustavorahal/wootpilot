@@ -22,8 +22,17 @@
 - Add production deployment docs.
 - Add Chatwoot Cloud compatibility notes for webhook authentication, API base
   URLs, account ids, inbox ids, and outbound message permissions.
+- Add public dev Chatwoot runbook for `https://chat.gmrahal.net/`, including
+  webhook configuration, API token scope, Meta channel setup expectations, and
+  safe test-number handling.
+- If WootPilot is deployed on the GMR platform host, add infra support for
+  `/srv/apps/env/clients/wootpilot.env`, a WootPilot Compose service on the
+  internal and egress networks, and a Caddy route such as
+  `wootpilot.gmrahal.net`.
 - Revisit optional observability integrations such as LangSmith or OpenTelemetry
   after the MVP audit/logging baseline is stable.
+- Add release-readiness checks for secret scanning, dependency audit, and public
+  repository fixture review.
 
 ## Required Tests
 
@@ -42,6 +51,16 @@
   Postgres requirement for production public auto-send.
 - Chatwoot Cloud configuration docs map to the same channel adapter contract used
   by local self-hosted Chatwoot.
+- Public dev Chatwoot runbook covers Meta-connected inbound messages, WootPilot
+  webhook delivery, Chatwoot API writes, human reply suppression, and explicit
+  resume signals.
+- Server-side public-dev deployment docs explain why
+  `WOOTPILOT_CHATWOOT_BASE_URL=http://chatwoot-web:3000` is used for internal
+  API calls while `WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net` is
+  used for links and manual verification.
+- Secret scanning runs against the repository history or is documented as a
+  required release command.
+- Deployment docs include rollback, migration, worker, and queue-draining notes.
 
 ## Manual Verification
 
@@ -49,3 +68,11 @@
 - Run the golden conversation suite.
 - Review structured logs for at least one successful, blocked, retryable, and
   permanently failed workflow.
+- Run an opt-in Chatwoot integration smoke test for webhook intake, private
+  notes, and one blocked public auto-send case.
+- Run the public dev Meta-connected loop against `https://chat.gmrahal.net/`:
+  inbound customer message, AI private note or public reply, human public reply,
+  public automation suppression, explicit resume signal, and next eligible
+  customer message.
+- Review committed fixtures and example environment files for real customer
+  data, secrets, and private storefront URLs before release.

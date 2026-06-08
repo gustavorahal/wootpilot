@@ -8,6 +8,11 @@ These rules apply to this entire repository.
 - This repository is a VERY EARLY WIP. Proposing sweeping changes that improve long-term maintainability is encouraged.
 - When in doubt between duplicating logic and extracting shared logic, extract it.
 
+## Reference Source Code
+
+- The local Chatwoot source code lives in `../chatwoot` and can be used to investigate behavior, models, jobs, integrations, and self-hosting details.
+- The local Chatwoot mobile app source code lives in `../chatwoot-mobile-app` and can be used to investigate the mobile agent experience.
+
 ## Code Documentation
 
 - When writing code, add docstrings or inline documentation where they help humans understand intent, behavior, or rationale.
