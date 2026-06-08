@@ -1,0 +1,73 @@
+"""Runtime configuration loaded from WOOTPILOT_* environment variables."""
+
+from __future__ import annotations
+
+from functools import cache
+from pathlib import Path
+
+from pydantic import AnyHttpUrl, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from wootpilot.domain.models import BotMode
+
+
+class Settings(BaseSettings):
+    """Runtime settings are injected into services instead of read globally."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="WOOTPILOT_",
+        env_file=(".env", ".env.local"),
+        extra="ignore",
+    )
+
+    env: str = "local"
+    log_level: str = "info"
+    model_high_latency_ms: int = 10000
+    public_base_url: AnyHttpUrl = "http://localhost:8000"  # type: ignore[assignment]
+    webhook_path: str = "/webhooks/chatwoot"
+    local_health_url: str = "http://127.0.0.1:8000/health"
+
+    db_url: str = "sqlite+aiosqlite:///./data/wootpilot.db"
+    checkpointer: str = "memory"
+    limited_auto_production_allowed: bool = False
+
+    bot_mode: BotMode = BotMode.shadow
+    human_operator_active_ttl_seconds: int = 1800
+    suppress_public_auto_when_assigned: bool = True
+    webhook_replay_window_seconds: int = 300
+    outbound_retry_delay_seconds: int = 60
+    outbound_max_attempts: int = 3
+
+    chatwoot_base_url: AnyHttpUrl = "http://localhost:3000"  # type: ignore[assignment]
+    chatwoot_public_url: AnyHttpUrl = "http://localhost:3000"  # type: ignore[assignment]
+    chatwoot_account_id: str = "change-me"
+    chatwoot_api_token: str = "change-me"
+    chatwoot_webhook_name: str = "WootPilot laptop tunnel"
+    chatwoot_webhook_secret: str = "change-me"
+    chatwoot_webhook_signature_mode: str = "chatwoot-hmac-sha256"
+    chatwoot_webhook_signature_header: str = "x-chatwoot-signature"
+    chatwoot_webhook_timestamp_header: str = "x-chatwoot-timestamp"
+    chatwoot_webhook_delivery_header: str = "x-chatwoot-delivery"
+    chatwoot_update_status_after_public_reply: bool = False
+    chatwoot_public_reply_status: str = "pending"
+    chatwoot_mark_needs_human_on_private_review: bool = True
+    chatwoot_needs_human_label: str = "wootpilot-needs-human"
+
+    model_provider: str = "fake"
+    openrouter_api_key: str = ""
+    openrouter_model: str = "openai/gpt-4.1-mini"
+
+    catalog_connector_mode: str = "mock"
+    mock_catalog_path: Path = Field(
+        default=Path("./data/mock-woocommerce/catalog.demo-car-parts.json")
+    )
+    woocommerce_store_api_base_url: str = ""
+
+
+@cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+def reset_settings_cache() -> None:
+    get_settings.cache_clear()

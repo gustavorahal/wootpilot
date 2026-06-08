@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 WEBHOOK_NAME_DEFAULT = "WootPilot laptop tunnel"
 LOCAL_HEALTH_URL_DEFAULT = "http://127.0.0.1:8000/health"
 
@@ -114,7 +113,9 @@ def webhook_name(config: RuntimeConfig) -> str:
 def subscriptions(config: RuntimeConfig) -> list[str]:
     path = config.root / "infra" / "public-dev-laptop" / "webhook-subscriptions.json"
     loaded = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(loaded, list) or not all(isinstance(item, str) for item in loaded):
+    if not isinstance(loaded, list) or not all(
+        isinstance(item, str) for item in loaded
+    ):
         raise UserFacingError(f"invalid subscription list in {path}")
     return loaded
 
@@ -162,7 +163,9 @@ def request_json(
     try:
         loaded = json.loads(response_body)
     except json.JSONDecodeError as exc:
-        raise UserFacingError(f"Chatwoot API returned non-JSON response from {url}") from exc
+        raise UserFacingError(
+            f"Chatwoot API returned non-JSON response from {url}"
+        ) from exc
     if not isinstance(loaded, dict):
         raise UserFacingError(f"Chatwoot API returned unexpected response from {url}")
     return loaded
@@ -256,7 +259,8 @@ def find_managed_webhook(
         return by_url[0]
     if len(by_url) > 1:
         raise UserFacingError(
-            "multiple Chatwoot webhooks already use the target URL; remove duplicates first"
+            "multiple Chatwoot webhooks already use the target URL; "
+            "remove duplicates first"
         )
     return None
 
@@ -326,13 +330,16 @@ def doctor() -> int:
     if public_base_url and not public_base_url.startswith("https://"):
         errors.append("WOOTPILOT_PUBLIC_BASE_URL must be an HTTPS tunnel URL")
 
-    if config.get("WOOTPILOT_CHATWOOT_BASE_URL").rstrip("/") != "https://chat.gmrahal.net":
-        warnings.append(
-            "WOOTPILOT_CHATWOOT_BASE_URL is not https://chat.gmrahal.net"
-        )
+    if (
+        config.get("WOOTPILOT_CHATWOOT_BASE_URL").rstrip("/")
+        != "https://chat.gmrahal.net"
+    ):
+        warnings.append("WOOTPILOT_CHATWOOT_BASE_URL is not https://chat.gmrahal.net")
 
     if config.get("WOOTPILOT_BOT_MODE", "shadow") != "shadow":
-        warnings.append("WOOTPILOT_BOT_MODE is not shadow; be careful with live traffic")
+        warnings.append(
+            "WOOTPILOT_BOT_MODE is not shadow; be careful with live traffic"
+        )
 
     if config.get("WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED") == "true":
         warnings.append("WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED is true")
@@ -350,7 +357,9 @@ def doctor() -> int:
         print(f"error: {line}", file=sys.stderr)
 
     if errors:
-        print(f"\npublic-dev doctor failed with {len(errors)} error(s).", file=sys.stderr)
+        print(
+            f"\npublic-dev doctor failed with {len(errors)} error(s).", file=sys.stderr
+        )
         return 1
     print("\npublic-dev doctor passed.")
     return 0
@@ -369,7 +378,9 @@ def check_chatwoot_root(
             if response.status < 500:
                 passes.append(f"Chatwoot is reachable at {base_url}")
             else:
-                warnings.append(f"Chatwoot returned HTTP {response.status} at {base_url}")
+                warnings.append(
+                    f"Chatwoot returned HTTP {response.status} at {base_url}"
+                )
     except urllib.error.URLError as exc:
         warnings.append(f"could not reach Chatwoot frontend at {base_url}: {exc}")
 
@@ -392,7 +403,8 @@ def check_webhook_state(
     webhook = find_managed_webhook(webhooks, name, url)
     if not webhook:
         errors.append(
-            f"Chatwoot webhook {name!r} is not configured; run ./scripts/public-dev-webhook-sync"
+            f"Chatwoot webhook {name!r} is not configured; "
+            "run ./scripts/public-dev-webhook-sync"
         )
         return
 
@@ -408,7 +420,9 @@ def check_webhook_state(
     actual_subscriptions = set(webhook.get("subscriptions") or [])
     missing = desired_subscriptions - actual_subscriptions
     if missing:
-        errors.append(f"Chatwoot webhook is missing subscriptions: {', '.join(sorted(missing))}")
+        errors.append(
+            f"Chatwoot webhook is missing subscriptions: {', '.join(sorted(missing))}"
+        )
     else:
         passes.append("Chatwoot webhook subscriptions are complete")
 
@@ -418,7 +432,8 @@ def check_webhook_state(
         errors.append("WOOTPILOT_CHATWOOT_WEBHOOK_SECRET is missing in .env.local")
     elif chatwoot_secret and local_secret != chatwoot_secret:
         errors.append(
-            "WOOTPILOT_CHATWOOT_WEBHOOK_SECRET does not match the Chatwoot webhook secret"
+            "WOOTPILOT_CHATWOOT_WEBHOOK_SECRET does not match the "
+            "Chatwoot webhook secret"
         )
     else:
         passes.append("local webhook secret matches Chatwoot")
@@ -433,12 +448,15 @@ def check_local_health(
     try:
         with urllib.request.urlopen(health_url, timeout=5) as response:
             if response.status < 500:
-                passes.append(f"local WootPilot health endpoint is reachable at {health_url}")
+                passes.append(
+                    f"local WootPilot health endpoint is reachable at {health_url}"
+                )
             else:
                 warnings.append(
                     f"local WootPilot health endpoint returned HTTP {response.status}"
                 )
     except urllib.error.URLError as exc:
         warnings.append(
-            f"local WootPilot health endpoint is not reachable yet at {health_url}: {exc}"
+            "local WootPilot health endpoint is not reachable yet at "
+            f"{health_url}: {exc}"
         )

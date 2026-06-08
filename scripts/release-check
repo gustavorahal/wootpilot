@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+RUN_PUBLIC_DEV=0
+RUN_POSTGRES_EXTRA=0
+for arg in "$@"; do
+  case "$arg" in
+    --public-dev)
+      RUN_PUBLIC_DEV=1
+      ;;
+    --postgres-extra)
+      RUN_POSTGRES_EXTRA=1
+      ;;
+    *)
+      echo "usage: $0 [--public-dev] [--postgres-extra]" >&2
+      exit 2
+      ;;
+  esac
+done
+
+uv run ruff check .
+uv run pyright
+uv run pip-audit
+uv run pytest
+uv run wootpilot eval-golden
+uv run alembic upgrade head
+docker compose -f infra/chatwoot-dev/compose.yml config >/dev/null
+for script in scripts/chatwoot-dev-* scripts/public-dev-tunnel-run; do
+  sh -n "$script"
+done
+for script in scripts/public-dev-doctor scripts/public-dev-webhook-show scripts/public-dev-webhook-sync; do
+  uv run python -m py_compile "$script"
+done
+
+uv run python - <<'PY'
+from pathlib import Path
+
+for path in [
+    Path("tests/fixtures/golden/conversations.json"),
+    Path("tests/fixtures/woocommerce/store_api_products.json"),
+    Path(".env.example"),
+    Path(".env.public-dev.example"),
+]:
+    text = path.read_text(encoding="utf-8")
+    forbidden = [
+        "api_access_token=",
+        "api-access-token=",
+        "sk-or-",
+        "WOOTPILOT_OPENROUTER_API_KEY=sk-",
+        "WOOTPILOT_CHATWOOT_API_TOKEN=ey",
+        "WOOTPILOT_CHATWOOT_WEBHOOK_SECRET=whsec_",
+    ]
+    found = [item for item in forbidden if item in text]
+    if found:
+        raise SystemExit(f"{path} contains forbidden secret marker(s): {found}")
+print("ok: fixture and env-template secret marker review passed")
+PY
+
+if [[ "$RUN_PUBLIC_DEV" == "1" ]]; then
+  ./scripts/public-dev-doctor
+fi
+
+if [[ "$RUN_POSTGRES_EXTRA" == "1" ]]; then
+  uv run --extra postgres python - <<'PY'
+import psycopg
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
+assert psycopg.__version__
+assert AsyncPostgresSaver.__name__ == "AsyncPostgresSaver"
+print("ok: postgres optional dependencies import")
+PY
+fi
+
+echo "release checks passed"

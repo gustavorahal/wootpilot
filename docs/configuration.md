@@ -69,10 +69,15 @@ WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED
 
 WOOTPILOT_BOT_MODE
 WOOTPILOT_HUMAN_OPERATOR_ACTIVE_TTL_SECONDS
+WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS
+WOOTPILOT_OUTBOUND_MAX_ATTEMPTS
 ```
 
 `WOOTPILOT_PUBLIC_BASE_URL` is the URL Chatwoot uses to call WootPilot webhooks.
 It is not necessarily the same as the Chatwoot URL.
+Retryable outbound channel failures are retried after
+`WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS` until `WOOTPILOT_OUTBOUND_MAX_ATTEMPTS`
+is reached, then the action is marked as a permanent failure.
 
 ## Chatwoot Variables
 
@@ -86,11 +91,23 @@ WOOTPILOT_CHATWOOT_WEBHOOK_SIGNATURE_MODE
 WOOTPILOT_CHATWOOT_WEBHOOK_SIGNATURE_HEADER
 WOOTPILOT_CHATWOOT_WEBHOOK_TIMESTAMP_HEADER
 WOOTPILOT_CHATWOOT_WEBHOOK_DELIVERY_HEADER
+WOOTPILOT_CHATWOOT_UPDATE_STATUS_AFTER_PUBLIC_REPLY
+WOOTPILOT_CHATWOOT_PUBLIC_REPLY_STATUS
+WOOTPILOT_CHATWOOT_MARK_NEEDS_HUMAN_ON_PRIVATE_REVIEW
+WOOTPILOT_CHATWOOT_NEEDS_HUMAN_LABEL
 ```
 
 Use `WOOTPILOT_CHATWOOT_BASE_URL` for API calls from WootPilot to Chatwoot.
 Use `WOOTPILOT_CHATWOOT_PUBLIC_URL` only for links, logs, and manual
 verification instructions.
+When `WOOTPILOT_CHATWOOT_UPDATE_STATUS_AFTER_PUBLIC_REPLY=true`, WootPilot sets
+the conversation to `WOOTPILOT_CHATWOOT_PUBLIC_REPLY_STATUS` after a successful
+public reply. The default target is `pending`, and the feature is disabled by
+default to keep live test traffic conservative.
+When `WOOTPILOT_CHATWOOT_MARK_NEEDS_HUMAN_ON_PRIVATE_REVIEW=true`, WootPilot
+adds `WOOTPILOT_CHATWOOT_NEEDS_HUMAN_LABEL` after a private note produced by a
+human-review path. The label writer first reads existing labels and merges the
+WootPilot label because Chatwoot's labels endpoint replaces the full label set.
 
 For local disposable Chatwoot:
 

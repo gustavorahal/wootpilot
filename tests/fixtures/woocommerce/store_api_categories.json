@@ -1,0 +1,14 @@
+[
+  {
+    "id": 10,
+    "name": "Harnesses",
+    "slug": "harnesses",
+    "parent": 0
+  },
+  {
+    "id": 11,
+    "name": "Kits",
+    "slug": "kits",
+    "parent": 0
+  }
+]

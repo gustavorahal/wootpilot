@@ -12,10 +12,12 @@ back to Chatwoot.
 
 ## Current Status
 
-This repository is in the initial planning and architecture phase. The first
-implementation is planned as a Python 3.14 service using FastAPI, Pydantic v2,
-LangGraph, SQLAlchemy/Alembic, SQLite for local alpha workflows, and PostgreSQL
-for production.
+This repository now contains an initial Python 3.14 service using FastAPI,
+Pydantic v2, LangGraph, LangChain/OpenRouter, SQLAlchemy/Alembic, and SQLite for
+local alpha workflows. The implemented vertical path receives signed Chatwoot
+webhooks, stores raw and normalized events, builds deterministic mock
+WooCommerce catalog context, runs the support workflow in LangGraph, audits the
+decision, and queues/executed Chatwoot outbound actions through an outbox.
 
 A disposable local Chatwoot development stack is available for manual
 integration testing. The public dev Chatwoot server for Meta-reachable MVP
@@ -77,8 +79,47 @@ Customer message
 - [Persistence Model](docs/architecture/persistence.md)
 - [Observability](docs/architecture/observability.md)
 - [Implementation Slices](docs/implementation/milestones.md)
+- [Production Readiness](docs/production-readiness.md)
 
 ## Local Chatwoot
+
+Install dependencies and run the default checks:
+
+```sh
+uv sync
+uv sync --extra postgres  # only when testing the production Postgres profile
+uv run pytest
+uv run ruff check .
+./scripts/release-check
+```
+
+Start WootPilot locally:
+
+```sh
+uv run uvicorn wootpilot.api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Build the application container:
+
+```sh
+docker build -t wootpilot:local .
+```
+
+Initialize or migrate the local database:
+
+```sh
+uv run alembic upgrade head
+# or create tables directly for disposable local use
+uv run wootpilot init-db
+```
+
+Run local helper commands:
+
+```sh
+uv run wootpilot catalog-search "chicote aircooled"
+uv run wootpilot execute-outbound --limit 10
+uv run wootpilot eval-golden
+```
 
 Use the disposable local Chatwoot stack for manual integration testing:
 

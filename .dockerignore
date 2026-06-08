@@ -1,0 +1,12 @@
+.git
+.venv
+.wrangler
+__pycache__
+*.py[cod]
+.env
+.env.*
+!.env.example
+!.env.public-dev.example
+data/*.db
+data/*.db-*
+infra/chatwoot-dev/.env

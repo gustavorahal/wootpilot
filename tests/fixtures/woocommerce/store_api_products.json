@@ -1,0 +1,42 @@
+[
+  {
+    "id": 101,
+    "name": "Demo Aircooled Harness",
+    "sku": "DEMO-HARNESS-001",
+    "permalink": "https://fictional-woocommerce-demo.test/product/demo-aircooled-harness/",
+    "categories": [{"id": 10, "name": "Harnesses", "slug": "harnesses"}],
+    "tags": [{"id": 20, "name": "aircooled", "slug": "aircooled"}],
+    "prices": {
+      "currency_code": "BRL",
+      "currency_symbol": "R$",
+      "currency_minor_unit": 2,
+      "price": "350000",
+      "regular_price": "350000",
+      "sale_price": "350000"
+    },
+    "price_html": "<span class=\"woocommerce-Price-amount amount\">R$ 3.500,00</span>",
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "stock_availability": "1 in stock"
+  },
+  {
+    "id": 102,
+    "name": "Demo Custom Kit",
+    "sku": "DEMO-KIT-QUOTE",
+    "permalink": "https://fictional-woocommerce-demo.test/product/demo-custom-kit/",
+    "categories": [{"id": 11, "name": "Kits", "slug": "kits"}],
+    "tags": [],
+    "prices": {
+      "currency_code": "BRL",
+      "currency_symbol": "R$",
+      "currency_minor_unit": 2,
+      "price": "0",
+      "regular_price": "0",
+      "sale_price": "0"
+    },
+    "price_html": "",
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "stock_availability": "Available by quote"
+  }
+]
