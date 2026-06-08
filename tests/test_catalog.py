@@ -15,6 +15,7 @@ from wootpilot.catalog.store_api import (
     store_api_product_to_snapshot,
 )
 from wootpilot.domain.models import (
+    CatalogConnectorMode,
     ConnectorCapability,
     ConnectorInstallation,
     Money,
@@ -235,7 +236,7 @@ def test_store_api_settings_require_base_url() -> None:
     from wootpilot.catalog.factory import catalog_connector_from_settings
 
     settings = Settings(
-        catalog_connector_mode="store_api",
+        catalog_connector_mode=CatalogConnectorMode.store_api,
         woocommerce_store_api_base_url="",
         chatwoot_webhook_secret="secret",
     )

@@ -22,6 +22,7 @@ from wootpilot.domain.models import (
     ProductCategory,
     ProductSearchQuery,
     ProductSnapshot,
+    RiskSignal,
     StructuredCatalogContext,
 )
 from wootpilot.observability import log_event
@@ -55,7 +56,11 @@ class StoreApiCatalog:
         except (httpx.HTTPError, ValueError) as exc:
             raise CatalogContextError("woocommerce_store_api_context_failed") from exc
         snapshots = [store_api_product_to_snapshot(product) for product in products]
-        risks = ["catalog.no_match"] if query.strip() and not snapshots else []
+        risks = (
+            [RiskSignal.catalog_no_match.value]
+            if query.strip() and not snapshots
+            else []
+        )
         return StructuredCatalogContext(
             query=query,
             products=snapshots,

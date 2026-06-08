@@ -10,9 +10,18 @@ from hashlib import sha256
 from typing import Any
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from wootpilot.domain.models import AttachmentMetadata, ChannelEvent, NormalizedMessage
+from wootpilot.domain.models import (
+    AttachmentMetadata,
+    ChannelEvent,
+    ConversationStatus,
+    MessageAuthorType,
+    MessageDirection,
+    MessageVisibility,
+    NormalizedMessage,
+    Provider,
+)
 from wootpilot.observability import log_event
 from wootpilot.settings import Settings
 from wootpilot.time import IdGenerator
@@ -30,9 +39,16 @@ class ChannelSafetyState(BaseModel):
     paused: bool = False
     assigned_agent_id: str | None = None
     assigned_team_id: str | None = None
-    status: str | None = None
+    status: ConversationStatus | None = None
     labels: list[str] = Field(default_factory=list)
     custom_attributes: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def coerce_status(
+        cls, value: ConversationStatus | str | None
+    ) -> ConversationStatus | None:
+        return _conversation_status(value)
 
 
 def event_type(payload: dict[str, Any]) -> str:
@@ -86,9 +102,15 @@ def translate_message(
 
     message_type = str(message.get("message_type") or "")
     direction = (
-        "inbound" if message_type in {"incoming", "0", "inbound"} else "outbound"
+        MessageDirection.inbound
+        if message_type in {"incoming", "0", "inbound"}
+        else MessageDirection.outbound
     )
-    visibility = "private" if bool(message.get("private")) else "public"
+    visibility = (
+        MessageVisibility.private
+        if bool(message.get("private"))
+        else MessageVisibility.public
+    )
     author_type = _author_type(message, sender)
     created_at = _created_at(message.get("created_at") or payload.get("created_at"))
     content = str(message.get("content") or "").strip()
@@ -106,7 +128,7 @@ def translate_message(
         id=ids.new(),
         raw_event_id=raw_event_id,
         tenant_id=str(account_id),
-        provider="chatwoot",
+        provider=Provider.chatwoot,
         provider_account_id=str(account_id),
         provider_inbox_id=str(inbox_id),
         provider_conversation_id=str(conversation_id),
@@ -202,7 +224,7 @@ def translate_channel_event(
             or "chatwoot"
         ),
         conversation_id=str(conversation_id),
-        status=str(conversation.get("status")) if conversation.get("status") else None,
+        status=_conversation_status(conversation.get("status")),
         replyable=conversation.get("can_reply"),
         paused="wootpilot-paused" in label_set
         or bool(custom_attributes.get("wootpilot_paused")),
@@ -254,16 +276,21 @@ def _assigned_team_id(conversation: dict[str, Any]) -> str | None:
     return str(value) if value not in {None, ""} else None
 
 
-def _author_type(message: dict[str, Any], sender: dict[str, Any]) -> str:
+def _author_type(
+    message: dict[str, Any],
+    sender: dict[str, Any],
+) -> MessageAuthorType:
     sender_type = str(sender.get("type") or message.get("sender_type") or "").lower()
     if "contact" in sender_type:
-        return "customer"
+        return MessageAuthorType.customer
     if "user" in sender_type:
-        return "human_agent"
+        return MessageAuthorType.human_agent
     if "agentbot" in sender_type or "bot" in sender_type:
-        return "bot"
+        return MessageAuthorType.bot
     return (
-        "customer" if str(message.get("message_type")) == "incoming" else "human_agent"
+        MessageAuthorType.customer
+        if str(message.get("message_type")) == "incoming"
+        else MessageAuthorType.human_agent
     )
 
 
@@ -278,6 +305,15 @@ def _created_at(value: Any) -> datetime:
         except ValueError:
             pass
     return datetime.now(UTC)
+
+
+def _conversation_status(value: Any) -> ConversationStatus | None:
+    if value in {None, ""}:
+        return None
+    try:
+        return ConversationStatus(str(value))
+    except ValueError:
+        return None
 
 
 class ChatwootClient:
@@ -510,7 +546,7 @@ class ChatwootClient:
             logger,
             "chatwoot_api_call_completed",
             level=level,
-            provider="chatwoot",
+            provider=Provider.chatwoot.value,
             operation=operation,
             account_id=self.settings.chatwoot_account_id,
             conversation_id=conversation_id,
@@ -543,7 +579,7 @@ def _conversation_safety_from_response(
         or bool(custom_attributes.get("wootpilot_paused")),
         assigned_agent_id=_assigned_agent_id(payload),
         assigned_team_id=_assigned_team_id(payload),
-        status=str(payload.get("status")) if payload.get("status") else None,
+        status=_conversation_status(payload.get("status")),
         labels=labels,
         custom_attributes=custom_attributes,
     )

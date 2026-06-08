@@ -10,9 +10,12 @@ from wootpilot.domain.models import (
     AgentProposal,
     BotMode,
     ConversationState,
+    ConversationStatus,
     NormalizedMessage,
     PolicyDecision,
     PolicyOutcome,
+    PolicyRule,
+    PolicyStage,
     StructuredCatalogContext,
     TriageResult,
 )
@@ -58,35 +61,35 @@ def pre_model_policy(
     now: datetime,
     ids: IdGenerator,
 ) -> PolicyDecision:
-    rule_ids: list[str] = []
-    if message.direction != "inbound" or message.visibility != "public":
-        rule_ids.append("ingress.customer_public_inbound_required")
+    rule_ids: list[PolicyRule] = []
+    if not message.is_customer_public_inbound():
+        rule_ids.append(PolicyRule.ingress_customer_public_inbound_required)
     if not state.replyable:
-        rule_ids.append("conversation.not_replyable")
-    if state.status == "resolved":
-        rule_ids.append("conversation.resolved")
+        rule_ids.append(PolicyRule.conversation_not_replyable)
+    if state.status is ConversationStatus.resolved:
+        rule_ids.append(PolicyRule.conversation_resolved)
     if state.paused:
-        rule_ids.append("conversation.wootpilot_paused")
+        rule_ids.append(PolicyRule.conversation_wootpilot_paused)
     if (
         state.human_active_until
         and state.human_active_until > now
         and not state.auto_ok
     ):
-        rule_ids.append("conversation.human_active")
+        rule_ids.append(PolicyRule.conversation_human_active)
     if (
         bot_mode is BotMode.limited_auto
         and suppress_public_auto_when_assigned
         and (state.assigned_agent_id or state.assigned_team_id)
         and not state.auto_ok
     ):
-        rule_ids.append("conversation.assigned_to_human")
+        rule_ids.append(PolicyRule.conversation_assigned_to_human)
     if "intent.human" in triage.risk_signals or "intent.agent" in triage.risk_signals:
-        rule_ids.append("intent.human_requested")
+        rule_ids.append(PolicyRule.intent_human_requested)
 
     outcome = PolicyOutcome.block if rule_ids else PolicyOutcome.allow
     return PolicyDecision(
         id=ids.new(),
-        stage="pre_model",
+        stage=PolicyStage.pre_model,
         outcome=outcome,
         rule_ids=rule_ids,
         details={
@@ -109,9 +112,9 @@ def validate_proposal(
     now: datetime,
     ids: IdGenerator,
 ) -> PolicyDecision:
-    rule_ids: list[str] = []
+    rule_ids: list[PolicyRule] = []
     if proposal is None:
-        rule_ids.append("model.no_proposal")
+        rule_ids.append(PolicyRule.model_no_proposal)
     elif (
         bot_mode is BotMode.limited_auto
         and proposal.action_kind == AgentActionKind.public_message
@@ -121,18 +124,18 @@ def validate_proposal(
         if any(
             term in lowered for term in ("internal", "triage", "policy", "reasoning")
         ):
-            rule_ids.append("public.no_internal_reasoning")
+            rule_ids.append(PolicyRule.public_no_internal_reasoning)
         if triage.risk_signals:
-            rule_ids.append("public.risk_requires_review")
+            rule_ids.append(PolicyRule.public_risk_requires_review)
         if proposal.risk_reasons:
-            rule_ids.append("public.proposal_risk_requires_review")
+            rule_ids.append(PolicyRule.public_proposal_risk_requires_review)
         price_rule = public_price_policy_rule(text, catalog_context)
         if price_rule:
             rule_ids.append(price_rule)
     outcome = PolicyOutcome.block if rule_ids else PolicyOutcome.allow
     return PolicyDecision(
         id=ids.new(),
-        stage="post_model",
+        stage=PolicyStage.post_model,
         outcome=outcome,
         rule_ids=rule_ids,
         details={"bot_mode": bot_mode.value, "triage": triage.model_dump(mode="json")},
@@ -143,7 +146,7 @@ def validate_proposal(
 def public_price_policy_rule(
     text: str,
     catalog_context: StructuredCatalogContext,
-) -> str | None:
+) -> PolicyRule | None:
     """Return a block rule when public text makes an unsafe price claim."""
 
     if not _mentions_exact_price(text):
@@ -161,7 +164,7 @@ def public_price_policy_rule(
     normalized_text = _normalize_price_text(text)
     if any(price and price in normalized_text for price in mentionable_prices):
         return None
-    return "public.price_requires_mentionable_snapshot"
+    return PolicyRule.public_price_requires_mentionable_snapshot
 
 
 def _mentions_exact_price(text: str) -> bool:

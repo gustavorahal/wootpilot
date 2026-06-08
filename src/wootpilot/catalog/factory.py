@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from wootpilot.catalog.mock import MockCatalog
 from wootpilot.catalog.store_api import StoreApiCatalog
-from wootpilot.domain.models import ConnectorCapability, ConnectorInstallation
+from wootpilot.domain.models import (
+    CatalogConnectorMode,
+    ConnectorCapability,
+    ConnectorInstallation,
+)
 from wootpilot.domain.ports import ProductCatalogConnector
 from wootpilot.settings import Settings
 
@@ -35,10 +39,10 @@ class CatalogConnectorRegistry:
                 f"Unsupported product catalog connector: {configured.connector_key}"
             )
 
-        mode = str(
+        mode = CatalogConnectorMode(
             configured.config.get("mode") or self.settings.catalog_connector_mode
         )
-        if mode == "store_api":
+        if mode is CatalogConnectorMode.store_api:
             base_url = str(
                 configured.config.get("base_url")
                 or self.settings.woocommerce_store_api_base_url
@@ -49,9 +53,11 @@ class CatalogConnectorRegistry:
                     "WOOTPILOT_CATALOG_CONNECTOR_MODE=store_api"
                 )
             return StoreApiCatalog(base_url=base_url)
-        if mode == "mock":
+        if mode is CatalogConnectorMode.mock:
             return MockCatalog(self.settings.mock_catalog_path)
-        raise ValueError(f"Unsupported WooCommerce catalog connector mode: {mode}")
+        raise ValueError(
+            f"Unsupported WooCommerce catalog connector mode: {mode.value}"
+        )
 
 
 def default_catalog_installation_from_settings(
@@ -60,7 +66,7 @@ def default_catalog_installation_from_settings(
     """Seed the default tenant's WooCommerce catalog installation from env settings."""
 
     capabilities = [ConnectorCapability.product_catalog_read]
-    config: dict[str, str] = {"mode": settings.catalog_connector_mode}
+    config: dict[str, str] = {"mode": settings.catalog_connector_mode.value}
     if settings.woocommerce_store_api_base_url:
         config["base_url"] = settings.woocommerce_store_api_base_url
     return ConnectorInstallation(

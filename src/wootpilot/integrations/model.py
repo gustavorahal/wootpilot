@@ -12,6 +12,7 @@ from wootpilot.domain.models import (
     AgentProposal,
     ConversationState,
     ModelProposalResult,
+    ModelProvider,
     NormalizedMessage,
     StructuredCatalogContext,
 )
@@ -214,7 +215,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
 
 
 def model_port_from_settings(settings: Settings) -> ModelProposalPort:
-    if settings.model_provider == "openrouter":
+    if settings.model_provider is ModelProvider.openrouter:
         return OpenRouterModelProposalPort(settings)
     return FakeModelProposalPort()
 

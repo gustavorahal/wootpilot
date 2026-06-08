@@ -10,9 +10,25 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wootpilot.domain.models import (
+    AgentActionKind,
+    AgentRunStatus,
     AttachmentMetadata,
+    AuditEventType,
+    BotMode,
+    ContextSnapshotKind,
     ConversationState,
+    ConversationStatus,
+    MessageAuthorType,
+    MessageDirection,
+    MessageVisibility,
     NormalizedMessage,
+    OutboundActionStatus,
+    PolicyOutcome,
+    PolicyRule,
+    PolicyStage,
+    Provider,
+    QueuedOutboundAction,
+    RawEventStatus,
 )
 from wootpilot.persistence.models import (
     AgentRunRow,
@@ -27,11 +43,13 @@ from wootpilot.persistence.models import (
 
 
 def row_to_message(row: ConversationMessageRow) -> NormalizedMessage:
+    """Translate a stored message row into the typed domain contract."""
+
     return NormalizedMessage(
         id=row.id,
         raw_event_id=row.raw_event_id,
         tenant_id=row.tenant_id,
-        provider=row.provider,
+        provider=Provider(row.provider),
         provider_account_id=row.provider_account_id,
         provider_inbox_id=row.provider_inbox_id,
         provider_conversation_id=row.provider_conversation_id,
@@ -41,9 +59,9 @@ def row_to_message(row: ConversationMessageRow) -> NormalizedMessage:
         conversation_id=row.conversation_id,
         message_id=row.message_id,
         contact_id=row.contact_id,
-        direction=row.direction,
-        visibility=row.visibility,
-        author_type=row.author_type,
+        direction=MessageDirection(row.direction),
+        visibility=MessageVisibility(row.visibility),
+        author_type=MessageAuthorType(row.author_type),
         content=row.content,
         attachments=[
             AttachmentMetadata.model_validate(attachment)
@@ -55,6 +73,8 @@ def row_to_message(row: ConversationMessageRow) -> NormalizedMessage:
 
 
 def row_to_state(row: ConversationStateRow) -> ConversationState:
+    """Translate persisted conversation safety state into a domain object."""
+
     return ConversationState(
         id=row.id,
         tenant_id=row.tenant_id,
@@ -65,7 +85,7 @@ def row_to_state(row: ConversationStateRow) -> ConversationState:
         last_customer_message_at=row.last_customer_message_at,
         assigned_agent_id=row.assigned_agent_id,
         assigned_team_id=row.assigned_team_id,
-        status=row.status,
+        status=ConversationStatus(row.status) if row.status else None,
         replyable=row.replyable,
         paused=row.paused,
         auto_ok=row.auto_ok,
@@ -73,8 +93,31 @@ def row_to_state(row: ConversationStateRow) -> ConversationState:
     )
 
 
+def row_to_outbound_action(row: OutboundActionRow) -> QueuedOutboundAction:
+    """Build the executor-facing read model from a queued outbound row."""
+
+    return QueuedOutboundAction(
+        id=row.id,
+        tenant_id=row.tenant_id,
+        channel_id=row.channel_id,
+        conversation_id=row.conversation_id,
+        source_message_id=row.source_message_id,
+        action_kind=AgentActionKind(row.action_kind),
+        content=row.content,
+        safety_context=row.safety_context,
+        status=OutboundActionStatus(row.status),
+        attempt_count=row.attempt_count,
+    )
+
+
 class Repository:
-    """Thin SQLAlchemy repository keeping persistence details out of use cases."""
+    """Thin SQLAlchemy repository keeping persistence details out of use cases.
+
+    Database rows store serialized values such as strings and JSON objects. This
+    class is the explicit translation boundary: callers pass and receive domain
+    models/enums, while repository methods serialize only at insert/update time
+    and hydrate typed read models on fetch.
+    """
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -83,22 +126,22 @@ class Repository:
         self,
         *,
         id: str,
-        provider: str,
+        provider: Provider,
         provider_event_id: str,
         event_type: str,
         payload_hash: str,
         payload: dict[str, Any],
-        status: str,
+        status: RawEventStatus,
         received_at: datetime,
     ) -> tuple[RawEventRow, bool]:
         row = RawEventRow(
             id=id,
-            provider=provider,
+            provider=provider.value,
             provider_event_id=provider_event_id,
             event_type=event_type,
             payload_hash=payload_hash,
             payload=payload,
-            status=status,
+            status=status.value,
             received_at=received_at,
         )
         try:
@@ -109,7 +152,7 @@ class Repository:
         except IntegrityError:
             existing = await self.session.scalar(
                 select(RawEventRow).where(
-                    RawEventRow.provider == provider,
+                    RawEventRow.provider == provider.value,
                     RawEventRow.provider_event_id == provider_event_id,
                 )
             )
@@ -117,10 +160,12 @@ class Repository:
                 raise
             return existing, False
 
-    async def update_raw_status(self, raw_event_id: str, status: str) -> None:
+    async def update_raw_status(
+        self, raw_event_id: str, status: RawEventStatus
+    ) -> None:
         row = await self.session.get(RawEventRow, raw_event_id)
         if row:
-            row.status = status
+            row.status = status.value
             await self.session.flush()
 
     async def insert_message(
@@ -130,7 +175,7 @@ class Repository:
             id=message.id,
             raw_event_id=message.raw_event_id,
             tenant_id=message.tenant_id,
-            provider=message.provider,
+            provider=message.provider.value,
             provider_account_id=message.provider_account_id,
             provider_inbox_id=message.provider_inbox_id,
             provider_conversation_id=message.provider_conversation_id,
@@ -140,9 +185,9 @@ class Repository:
             conversation_id=message.conversation_id,
             message_id=message.message_id,
             contact_id=message.contact_id,
-            direction=message.direction,
-            visibility=message.visibility,
-            author_type=message.author_type,
+            direction=message.direction.value,
+            visibility=message.visibility.value,
+            author_type=message.author_type.value,
             content=message.content,
             attachments=[
                 attachment.model_dump(mode="json") for attachment in message.attachments
@@ -205,14 +250,15 @@ class Repository:
         tenant_id: str,
         channel_id: str,
         conversation_id: str,
-    ) -> ConversationStateRow | None:
-        return await self.session.scalar(
+    ) -> ConversationState | None:
+        row = await self.session.scalar(
             select(ConversationStateRow).where(
                 ConversationStateRow.tenant_id == tenant_id,
                 ConversationStateRow.channel_id == channel_id,
                 ConversationStateRow.conversation_id == conversation_id,
             )
         )
+        return row_to_state(row) if row is not None else None
 
     async def insert_context_snapshot(
         self,
@@ -220,7 +266,7 @@ class Repository:
         id: str,
         tenant_id: str,
         conversation_id: str,
-        kind: str,
+        kind: ContextSnapshotKind,
         snapshot: dict[str, Any],
         created_at: datetime,
     ) -> None:
@@ -229,7 +275,7 @@ class Repository:
                 id=id,
                 tenant_id=tenant_id,
                 conversation_id=conversation_id,
-                kind=kind,
+                kind=kind.value,
                 snapshot=snapshot,
                 created_at=created_at,
             )
@@ -242,8 +288,8 @@ class Repository:
         id: str,
         normalized_message_id: str,
         raw_event_id: str,
-        bot_mode: str,
-        status: str,
+        bot_mode: BotMode,
+        status: AgentRunStatus,
         workflow_decision: dict[str, Any],
         model_metadata: dict[str, Any],
         created_at: datetime,
@@ -253,8 +299,8 @@ class Repository:
                 id=id,
                 normalized_message_id=normalized_message_id,
                 raw_event_id=raw_event_id,
-                bot_mode=bot_mode,
-                status=status,
+                bot_mode=bot_mode.value,
+                status=status.value,
                 workflow_decision=workflow_decision,
                 model_metadata=model_metadata,
                 created_at=created_at,
@@ -268,9 +314,9 @@ class Repository:
         id: str,
         agent_run_id: str | None,
         normalized_message_id: str,
-        stage: str,
-        outcome: str,
-        rule_ids: list[str],
+        stage: PolicyStage,
+        outcome: PolicyOutcome,
+        rule_ids: list[PolicyRule],
         details: dict[str, Any],
         created_at: datetime,
     ) -> None:
@@ -279,9 +325,9 @@ class Repository:
                 id=id,
                 agent_run_id=agent_run_id,
                 normalized_message_id=normalized_message_id,
-                stage=stage,
-                outcome=outcome,
-                rule_ids=rule_ids,
+                stage=stage.value,
+                outcome=outcome.value,
+                rule_ids=[item.value for item in rule_ids],
                 details=details,
                 created_at=created_at,
             )
@@ -297,9 +343,9 @@ class Repository:
         channel_id: str,
         conversation_id: str,
         source_message_id: str,
-        action_kind: str,
+        action_kind: AgentActionKind,
         content: str,
-        status: str,
+        status: OutboundActionStatus,
         idempotency_key: str,
         created_at: datetime,
         safety_context: dict[str, Any] | None = None,
@@ -314,10 +360,10 @@ class Repository:
                         channel_id=channel_id,
                         conversation_id=conversation_id,
                         source_message_id=source_message_id,
-                        action_kind=action_kind,
+                        action_kind=action_kind.value,
                         content=content,
                         safety_context=safety_context or {},
-                        status=status,
+                        status=status.value,
                         idempotency_key=idempotency_key,
                         created_at=created_at,
                         updated_at=created_at,
@@ -330,7 +376,7 @@ class Repository:
 
     async def list_queued_outbound_actions(
         self, *, limit: int = 10, now: datetime
-    ) -> list[OutboundActionRow]:
+    ) -> list[QueuedOutboundAction]:
         statement = queued_outbound_actions_statement(
             limit=limit,
             now=now,
@@ -339,13 +385,13 @@ class Repository:
         result = await self.session.scalars(
             statement
         )
-        return list(result)
+        return [row_to_outbound_action(row) for row in result]
 
     async def mark_outbound_action(
         self,
         *,
         action_id: str,
-        status: str,
+        status: OutboundActionStatus,
         updated_at: datetime,
         provider_message_id: str | None = None,
         failure_reason: str | None = None,
@@ -357,7 +403,7 @@ class Repository:
         row = await self.session.get(OutboundActionRow, action_id)
         if row is None:
             return
-        row.status = status
+        row.status = status.value
         row.updated_at = updated_at
         if provider_message_id is not None:
             row.provider_message_id = provider_message_id
@@ -382,7 +428,7 @@ class Repository:
         agent_run_id: str | None,
         policy_decision_id: str | None,
         context_snapshot_ids: list[str],
-        event_type: str,
+        event_type: AuditEventType,
         summary: str,
         details: dict[str, Any],
         created_at: datetime,
@@ -395,7 +441,7 @@ class Repository:
                 agent_run_id=agent_run_id,
                 policy_decision_id=policy_decision_id,
                 context_snapshot_ids=context_snapshot_ids,
-                event_type=event_type,
+                event_type=event_type.value,
                 summary=summary,
                 details=details,
                 created_at=created_at,
@@ -418,9 +464,10 @@ def queued_outbound_actions_statement(
         select(OutboundActionRow)
         .where(
             or_(
-                OutboundActionRow.status == "queued",
+                OutboundActionRow.status == OutboundActionStatus.queued.value,
                 and_(
-                    OutboundActionRow.status == "retryable_failure",
+                    OutboundActionRow.status
+                    == OutboundActionStatus.retryable_failure.value,
                     OutboundActionRow.next_attempt_at.is_not(None),
                     OutboundActionRow.next_attempt_at <= now,
                 ),

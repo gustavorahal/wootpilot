@@ -8,7 +8,14 @@ from pathlib import Path
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from wootpilot.domain.models import BotMode
+from wootpilot.domain.models import (
+    BotMode,
+    CatalogConnectorMode,
+    CheckpointerProfile,
+    ModelProvider,
+    RuntimeEnvironment,
+    WebhookSignatureMode,
+)
 
 
 class Settings(BaseSettings):
@@ -20,7 +27,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    env: str = "local"
+    env: RuntimeEnvironment = RuntimeEnvironment.local
     log_level: str = "info"
     model_high_latency_ms: int = 10000
     public_base_url: AnyHttpUrl = "http://localhost:8000"  # type: ignore[assignment]
@@ -28,7 +35,7 @@ class Settings(BaseSettings):
     local_health_url: str = "http://127.0.0.1:8000/health"
 
     db_url: str = "sqlite+aiosqlite:///./data/wootpilot.db"
-    checkpointer: str = "memory"
+    checkpointer: CheckpointerProfile = CheckpointerProfile.memory
     limited_auto_production_allowed: bool = False
 
     bot_mode: BotMode = BotMode.shadow
@@ -44,7 +51,9 @@ class Settings(BaseSettings):
     chatwoot_api_token: str = "change-me"
     chatwoot_webhook_name: str = "WootPilot laptop tunnel"
     chatwoot_webhook_secret: str = "change-me"
-    chatwoot_webhook_signature_mode: str = "chatwoot-hmac-sha256"
+    chatwoot_webhook_signature_mode: WebhookSignatureMode = (
+        WebhookSignatureMode.chatwoot_hmac_sha256
+    )
     chatwoot_webhook_signature_header: str = "x-chatwoot-signature"
     chatwoot_webhook_timestamp_header: str = "x-chatwoot-timestamp"
     chatwoot_webhook_delivery_header: str = "x-chatwoot-delivery"
@@ -53,11 +62,11 @@ class Settings(BaseSettings):
     chatwoot_mark_needs_human_on_private_review: bool = True
     chatwoot_needs_human_label: str = "wootpilot-needs-human"
 
-    model_provider: str = "fake"
+    model_provider: ModelProvider = ModelProvider.fake
     openrouter_api_key: str = ""
     openrouter_model: str = "openai/gpt-4.1-mini"
 
-    catalog_connector_mode: str = "mock"
+    catalog_connector_mode: CatalogConnectorMode = CatalogConnectorMode.mock
     mock_catalog_path: Path = Field(
         default=Path("./data/mock-woocommerce/catalog.demo-car-parts.json")
     )

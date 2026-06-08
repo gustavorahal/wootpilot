@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from wootpilot.application.security import verify_chatwoot_signature
 from wootpilot.application.webhooks import HandleWebhookEvent
+from wootpilot.domain.models import Provider
 from wootpilot.observability import configure_logging, log_event
 from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.settings import Settings, get_settings
@@ -49,7 +50,7 @@ async def session_dependency(request: Request):
 
 @app.get("/health")
 async def health(settings: Annotated[Settings, Depends(settings_dependency)]):
-    return {"status": "ok", "env": settings.env}
+    return {"status": "ok", "env": settings.env.value}
 
 
 @app.post("/webhooks/chatwoot")
@@ -73,7 +74,7 @@ async def chatwoot_webhook(
             logger,
             "webhook_authentication_failed",
             level=logging.WARNING,
-            provider="chatwoot",
+            provider=Provider.chatwoot.value,
             status_code=exc.status_code,
             reason=str(exc.detail),
             latency_ms=round((time.perf_counter() - started) * 1000),
@@ -84,7 +85,7 @@ async def chatwoot_webhook(
     log_event(
         logger,
         "webhook_handled",
-        provider="chatwoot",
+        provider=Provider.chatwoot.value,
         status=result.get("status"),
         raw_event_id=result.get("raw_event_id"),
         normalized_message_id=result.get("normalized_message_id"),

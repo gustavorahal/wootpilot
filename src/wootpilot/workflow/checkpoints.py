@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from wootpilot.domain.models import CheckpointerProfile
 from wootpilot.settings import Settings
 
 
@@ -25,22 +26,22 @@ async def checkpointer_from_settings(
     """
 
     profile = settings.checkpointer
-    if profile == "none":
+    if profile is CheckpointerProfile.none:
         yield None
         return
-    if profile == "memory":
+    if profile is CheckpointerProfile.memory:
         from langgraph.checkpoint.memory import InMemorySaver
 
         yield InMemorySaver()
         return
-    if profile == "sqlite":
+    if profile is CheckpointerProfile.sqlite:
         from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
         checkpoint_path = _sqlite_checkpoint_path(settings.db_url)
         async with AsyncSqliteSaver.from_conn_string(str(checkpoint_path)) as saver:
             yield saver
         return
-    if profile == "postgres":
+    if profile is CheckpointerProfile.postgres:
         try:
             from langgraph.checkpoint.postgres.aio import (  # pyright: ignore[reportMissingImports]
                 AsyncPostgresSaver,

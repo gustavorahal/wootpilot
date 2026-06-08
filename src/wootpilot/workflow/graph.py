@@ -23,6 +23,7 @@ from wootpilot.domain.models import (
     NormalizedMessage,
     PolicyDecision,
     PolicyOutcome,
+    PolicyRule,
     StructuredCatalogContext,
     TriageResult,
     WorkflowDecision,
@@ -192,14 +193,14 @@ def build_support_graph(
         """Checks whether this message should run WootPilot."""
 
         message = state["normalized_message"]
-        invoke = message.direction == "inbound" and message.visibility == "public"
+        invoke = message.is_customer_public_inbound()
         if invoke:
             return {}
         return {
             "workflow_decision": WorkflowDecision(
                 status=AgentRunStatus.ignored,
                 summary="Message is not an eligible public inbound customer turn.",
-                rule_ids=["ingress.customer_public_inbound_required"],
+                rule_ids=[PolicyRule.ingress_customer_public_inbound_required],
             )
         }
 
@@ -251,7 +252,7 @@ def build_support_graph(
                 "workflow_decision": WorkflowDecision(
                     status=AgentRunStatus.failed,
                     summary="Model proposal failed.",
-                    rule_ids=["model.proposal_failed"],
+                    rule_ids=[PolicyRule.model_proposal_failed],
                     risk_reasons=[
                         result.retryable_error or result.permanent_error or "unknown"
                     ],
@@ -371,7 +372,7 @@ def build_support_graph(
             "workflow_decision": WorkflowDecision(
                 status=AgentRunStatus.failed,
                 summary="No proposal was available after validation.",
-                rule_ids=["model.no_proposal"],
+                rule_ids=[PolicyRule.model_no_proposal],
             )
         }
 
@@ -521,7 +522,7 @@ def _limited_auto_review_note(
     *,
     proposal: AgentProposal | None,
     bot_mode: BotMode,
-    rule_ids: list[str],
+    rule_ids: list[PolicyRule],
     triage: TriageResult,
 ) -> str | None:
     """Build a private handoff note when public auto-send is denied.
@@ -535,7 +536,11 @@ def _limited_auto_review_note(
         return None
     if proposal.action_kind is not AgentActionKind.public_message:
         return None
-    reasons = sorted(set(rule_ids + triage.risk_signals + proposal.risk_reasons))
+    reasons = sorted(
+        {item.value for item in rule_ids}
+        | set(triage.risk_signals)
+        | set(proposal.risk_reasons)
+    )
     lines = [
         "WootPilot did not send a public reply because this turn needs human review.",
         f"Summary: {proposal.summary}",

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sqlalchemy.dialects import postgresql, sqlite
 
+from wootpilot.domain.models import CheckpointerProfile, RuntimeEnvironment
 from wootpilot.persistence.database import init_database, sqlite_pragmas
 from wootpilot.persistence.repositories import queued_outbound_actions_statement
 from wootpilot.settings import Settings
@@ -16,7 +17,7 @@ from wootpilot.workflow.checkpoints import (
 
 async def test_sqlite_profile_sets_runtime_pragmas(tmp_path: Path) -> None:
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{tmp_path / 'ready.db'}",
         chatwoot_webhook_secret="secret",
     )
@@ -30,7 +31,10 @@ async def test_sqlite_profile_sets_runtime_pragmas(tmp_path: Path) -> None:
 
 
 async def test_checkpointer_factory_selects_memory_profile() -> None:
-    settings = Settings(checkpointer="memory", chatwoot_webhook_secret="secret")
+    settings = Settings(
+        checkpointer=CheckpointerProfile.memory,
+        chatwoot_webhook_secret="secret",
+    )
 
     async with checkpointer_from_settings(settings) as saver:
         assert saver.__class__.__name__ == "InMemorySaver"
@@ -38,7 +42,7 @@ async def test_checkpointer_factory_selects_memory_profile() -> None:
 
 async def test_checkpointer_factory_selects_sqlite_profile(tmp_path: Path) -> None:
     settings = Settings(
-        checkpointer="sqlite",
+        checkpointer=CheckpointerProfile.sqlite,
         db_url=f"sqlite+aiosqlite:///{tmp_path / 'checkpoint.db'}",
         chatwoot_webhook_secret="secret",
     )

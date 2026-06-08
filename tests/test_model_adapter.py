@@ -11,6 +11,9 @@ from pydantic import ValidationError
 from wootpilot.domain.models import (
     AgentActionKind,
     ConversationState,
+    MessageAuthorType,
+    MessageDirection,
+    MessageVisibility,
     NormalizedMessage,
     StructuredCatalogContext,
 )
@@ -211,9 +214,9 @@ def _message() -> NormalizedMessage:
         channel_id="channel-1",
         conversation_id="conversation-1",
         message_id="provider-message-1",
-        direction="inbound",
-        visibility="public",
-        author_type="customer",
+        direction=MessageDirection.inbound,
+        visibility=MessageVisibility.public,
+        author_type=MessageAuthorType.customer,
         content="Do you have an aircooled harness?",
         created_at=now,
     )

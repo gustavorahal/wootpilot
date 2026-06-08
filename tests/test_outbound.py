@@ -7,7 +7,12 @@ from pathlib import Path
 from sqlalchemy import create_engine, text
 
 from wootpilot.application.outbound import ExecuteOutboundActions
-from wootpilot.domain.models import AgentActionKind, BotMode, OutboundActionStatus
+from wootpilot.domain.models import (
+    AgentActionKind,
+    BotMode,
+    OutboundActionStatus,
+    RuntimeEnvironment,
+)
 from wootpilot.integrations.chatwoot import ChannelSafetyState
 from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.persistence.models import (
@@ -126,7 +131,7 @@ def _http_error(*, status_code: int) -> Exception:
 async def test_outbound_executor_sends_private_note(tmp_path: Path, caplog) -> None:
     db_path = tmp_path / "outbound.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -144,9 +149,9 @@ async def test_outbound_executor_sends_private_note(tmp_path: Path, caplog) -> N
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="Suggested reply",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note",
             created_at=now,
         )
@@ -190,7 +195,7 @@ async def test_limited_auto_executor_sends_public_message_when_state_is_safe(
 ) -> None:
     db_path = tmp_path / "public-safe.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -216,9 +221,9 @@ async def test_limited_auto_executor_sends_public_message_when_state_is_safe(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.public_message.value,
+            action_kind=AgentActionKind.public_message,
             content="Thanks, this product is available.",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
             created_at=now,
         )
@@ -249,7 +254,7 @@ async def test_outbound_executor_commits_executing_before_channel_calls(
 ) -> None:
     db_path = tmp_path / "public-transaction-boundary.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -290,7 +295,7 @@ async def test_limited_auto_executor_sets_status_after_public_message_when_enabl
 ) -> None:
     db_path = tmp_path / "public-status-update.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -340,7 +345,7 @@ async def test_retryable_chatwoot_failure_schedules_next_attempt(
 ) -> None:
     db_path = tmp_path / "private-retryable-failure.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
         outbound_retry_delay_seconds=120,
@@ -359,9 +364,9 @@ async def test_retryable_chatwoot_failure_schedules_next_attempt(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="Suggested reply",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note",
             created_at=now,
         )
@@ -392,7 +397,7 @@ async def test_private_review_note_marks_conversation_as_needing_human(
 ) -> None:
     db_path = tmp_path / "private-review-label.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -410,9 +415,9 @@ async def test_private_review_note_marks_conversation_as_needing_human(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="WootPilot did not send a public reply.",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_review",
             safety_context={
                 "workflow_rule_ids": ["public.risk_requires_review"],
@@ -442,7 +447,7 @@ async def test_plain_private_note_does_not_mark_needs_human(
 ) -> None:
     db_path = tmp_path / "private-plain-no-label.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -460,9 +465,9 @@ async def test_plain_private_note_does_not_mark_needs_human(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="Suggested reply",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note_plain",
             created_at=now,
         )
@@ -485,7 +490,7 @@ async def test_due_retryable_action_is_retried_and_marked_sent(
 ) -> None:
     db_path = tmp_path / "private-retryable-due.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -504,15 +509,15 @@ async def test_due_retryable_action_is_retried_and_marked_sent(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="Suggested reply",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note",
             created_at=now,
         )
         await repo.mark_outbound_action(
             action_id=action_id,
-            status=OutboundActionStatus.retryable_failure.value,
+            status=OutboundActionStatus.retryable_failure,
             updated_at=now,
             attempt_count=1,
             next_attempt_at=now - timedelta(seconds=1),
@@ -542,7 +547,7 @@ async def test_due_retryable_action_is_retried_and_marked_sent(
 async def test_not_due_retryable_action_is_not_retried(tmp_path: Path) -> None:
     db_path = tmp_path / "private-retryable-not-due.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -561,15 +566,15 @@ async def test_not_due_retryable_action_is_not_retried(tmp_path: Path) -> None:
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="Suggested reply",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note",
             created_at=now,
         )
         await repo.mark_outbound_action(
             action_id=action_id,
-            status=OutboundActionStatus.retryable_failure.value,
+            status=OutboundActionStatus.retryable_failure,
             updated_at=now,
             attempt_count=1,
             next_attempt_at=now + timedelta(hours=1),
@@ -598,7 +603,7 @@ async def test_retryable_failure_becomes_permanent_at_max_attempts(
 ) -> None:
     db_path = tmp_path / "private-retryable-max-attempts.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
         outbound_max_attempts=1,
@@ -617,9 +622,9 @@ async def test_retryable_failure_becomes_permanent_at_max_attempts(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.private_note.value,
+            action_kind=AgentActionKind.private_note,
             content="Suggested reply",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note",
             created_at=now,
         )
@@ -645,7 +650,7 @@ async def test_public_message_is_blocked_when_human_becomes_active(
 ) -> None:
     db_path = tmp_path / "public-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -673,9 +678,9 @@ async def test_public_message_is_blocked_when_human_becomes_active(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.public_message.value,
+            action_kind=AgentActionKind.public_message,
             content="Thanks, this product is available.",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
             created_at=now,
         )
@@ -707,7 +712,7 @@ async def test_public_message_is_blocked_when_conversation_is_paused(
 ) -> None:
     db_path = tmp_path / "public-paused-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -752,7 +757,7 @@ async def test_public_message_is_blocked_when_channel_is_not_replyable(
 ) -> None:
     db_path = tmp_path / "public-channel-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -778,9 +783,9 @@ async def test_public_message_is_blocked_when_channel_is_not_replyable(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.public_message.value,
+            action_kind=AgentActionKind.public_message,
             content="Thanks, this product is available.",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
             created_at=now,
         )
@@ -813,7 +818,7 @@ async def test_public_message_is_blocked_when_channel_is_paused(
 ) -> None:
     db_path = tmp_path / "public-channel-paused-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -859,7 +864,7 @@ async def test_public_message_is_blocked_when_channel_id_mismatches(
 ) -> None:
     db_path = tmp_path / "public-channel-id-mismatch.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -905,7 +910,7 @@ async def test_public_message_is_blocked_when_conversation_is_assigned(
 ) -> None:
     db_path = tmp_path / "public-assigned-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -932,9 +937,9 @@ async def test_public_message_is_blocked_when_conversation_is_assigned(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.public_message.value,
+            action_kind=AgentActionKind.public_message,
             content="Thanks, this product is available.",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
             created_at=now,
         )
@@ -965,7 +970,7 @@ async def test_public_message_is_blocked_when_conversation_is_resolved(
 ) -> None:
     db_path = tmp_path / "public-resolved-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -992,9 +997,9 @@ async def test_public_message_is_blocked_when_conversation_is_resolved(
             channel_id="2",
             conversation_id="3",
             source_message_id="4",
-            action_kind=AgentActionKind.public_message.value,
+            action_kind=AgentActionKind.public_message,
             content="Thanks, this product is available.",
-            status=OutboundActionStatus.queued.value,
+            status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
             created_at=now,
         )
@@ -1025,7 +1030,7 @@ async def test_public_message_is_blocked_when_not_limited_auto(
 ) -> None:
     db_path = tmp_path / "public-shadow-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.shadow,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -1069,7 +1074,7 @@ async def test_public_message_is_blocked_in_production_without_override(
 ) -> None:
     db_path = tmp_path / "public-production-blocked.db"
     settings = Settings(
-        env="production",
+        env=RuntimeEnvironment.production,
         bot_mode=BotMode.limited_auto,
         limited_auto_production_allowed=False,
         db_url=f"sqlite+aiosqlite:///{db_path}",
@@ -1114,7 +1119,7 @@ async def test_public_message_is_blocked_when_content_leaks_reasoning(
 ) -> None:
     db_path = tmp_path / "public-content-leak-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -1158,7 +1163,7 @@ async def test_public_message_price_claim_is_blocked_without_safety_snapshot(
 ) -> None:
     db_path = tmp_path / "public-price-no-snapshot-blocked.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -1207,7 +1212,7 @@ async def test_public_message_price_claim_uses_queued_safety_snapshot(
 ) -> None:
     db_path = tmp_path / "public-price-snapshot-safe.db"
     settings = Settings(
-        env="test",
+        env=RuntimeEnvironment.test,
         bot_mode=BotMode.limited_auto,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
@@ -1340,10 +1345,10 @@ async def queue_public_action(
         channel_id="2",
         conversation_id="3",
         source_message_id="4",
-        action_kind=AgentActionKind.public_message.value,
+        action_kind=AgentActionKind.public_message,
         content=content,
         safety_context=safety_context,
-        status=OutboundActionStatus.queued.value,
+        status=OutboundActionStatus.queued,
         idempotency_key=f"1:2:3:4:public_message:{ids.new()}",
         created_at=now,
     )
