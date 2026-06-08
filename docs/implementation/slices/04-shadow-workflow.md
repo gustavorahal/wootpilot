@@ -49,3 +49,7 @@
 - Confirm the database contains an agent run, policy decision, audit record, and
   context snapshot links.
 - Confirm no outbound action row or Chatwoot write is created.
+- With `WOOTPILOT_BOT_MODE=shadow`, run the public-dev laptop harness and send a
+  Meta-connected test message. Confirm the real Chatwoot webhook drives the same
+  stored shadow decision while creating no private note or public reply in
+  Chatwoot.

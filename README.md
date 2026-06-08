@@ -112,5 +112,10 @@ WootPilot locally against this server. The implementation should read these
 values through `pydantic-settings` from `WOOTPILOT_*` environment variables; see
 [Configuration](docs/configuration.md).
 
-For the full laptop tunnel loop, follow
-[Public Dev Laptop Loop](docs/runbooks/public-dev-laptop-loop.md).
+For the full laptop tunnel loop, use the
+[Public Dev Laptop Harness](infra/public-dev-laptop/README.md):
+
+```sh
+./scripts/public-dev-webhook-sync
+./scripts/public-dev-doctor
+```

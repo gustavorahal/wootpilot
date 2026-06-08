@@ -51,5 +51,7 @@
   marked sent.
 - Open the local Chatwoot conversation and confirm the note is private, not a
   customer-visible public reply.
-- Repeat against `https://chat.gmrahal.net/` and confirm the private note or
-  handoff marker appears for the human agent.
+- Switch `.env.local` to `WOOTPILOT_BOT_MODE=copilot`, run the public-dev
+  laptop harness, send a Meta-connected test message, and confirm the private
+  note or handoff marker appears in `https://chat.gmrahal.net/` for the human
+  agent without sending a customer-visible public reply.

@@ -22,9 +22,9 @@
 - Add production deployment docs.
 - Add Chatwoot Cloud compatibility notes for webhook authentication, API base
   URLs, account ids, inbox ids, and outbound message permissions.
-- Add public dev Chatwoot runbook for `https://chat.gmrahal.net/`, including
-  webhook configuration, API token scope, Meta channel setup expectations, and
-  safe test-number handling.
+- Harden the public-dev laptop harness for `https://chat.gmrahal.net/`,
+  including webhook configuration, API token scope, Meta channel setup
+  expectations, safe test-number handling, and repeatable doctor checks.
 - If WootPilot is deployed on the GMR platform host, add infra support for
   `/srv/apps/env/clients/wootpilot.env`, a WootPilot Compose service on the
   internal and egress networks, and a Caddy route such as
@@ -51,9 +51,9 @@
   Postgres requirement for production public auto-send.
 - Chatwoot Cloud configuration docs map to the same channel adapter contract used
   by local self-hosted Chatwoot.
-- Public dev Chatwoot runbook covers Meta-connected inbound messages, WootPilot
-  webhook delivery, Chatwoot API writes, human reply suppression, and explicit
-  resume signals.
+- Public-dev laptop harness docs and scripts cover Meta-connected inbound
+  messages, WootPilot webhook delivery, Chatwoot API writes, human reply
+  suppression, explicit resume signals, and readiness checks.
 - Server-side public-dev deployment docs explain why
   `WOOTPILOT_CHATWOOT_BASE_URL=http://chatwoot-web:3000` is used for internal
   API calls while `WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net` is
@@ -70,9 +70,9 @@
   permanently failed workflow.
 - Run an opt-in Chatwoot integration smoke test for webhook intake, private
   notes, and one blocked public auto-send case.
-- Run the public dev Meta-connected loop against `https://chat.gmrahal.net/`:
-  inbound customer message, AI private note or public reply, human public reply,
-  public automation suppression, explicit resume signal, and next eligible
-  customer message.
+- Run the public-dev laptop harness against `https://chat.gmrahal.net/`:
+  inbound customer message through Meta, AI private note or public reply, human
+  public reply, public automation suppression, explicit resume signal, and next
+  eligible customer message.
 - Review committed fixtures and example environment files for real customer
   data, secrets, and private storefront URLs before release.

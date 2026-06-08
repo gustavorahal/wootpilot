@@ -60,7 +60,9 @@
 - Repeat with a human-active fixture and confirm execution is blocked.
 - Open the local Chatwoot conversation and confirm the sent message is public and
   contains no private reasoning, internal triage, or unsafe product claim.
-- Run an opt-in public dev smoke test: send a customer message through the
-  Meta-connected channel into `https://chat.gmrahal.net/`, confirm WootPilot
-  writes one safe public reply through Chatwoot, then send a human reply and
-  confirm the next public AI reply is suppressed.
+- Run an opt-in public-dev full-stack smoke test through the laptop harness:
+  set `WOOTPILOT_BOT_MODE=limited_auto`, keep production auto-send disabled,
+  send a low-risk customer message through the Meta-connected test channel into
+  `https://chat.gmrahal.net/`, confirm WootPilot writes one safe public reply
+  through Chatwoot, then send a human reply and confirm the next public AI reply
+  is suppressed.

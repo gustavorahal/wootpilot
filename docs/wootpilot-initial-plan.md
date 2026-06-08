@@ -159,7 +159,7 @@ Detailed architecture:
 - [Architecture Overview](architecture/overview.md)
 - [Architecture Vocabulary](architecture/vocabulary.md)
 - [Configuration](configuration.md)
-- [Public Dev Laptop Loop](runbooks/public-dev-laptop-loop.md)
+- [Public Dev Laptop Harness](../infra/public-dev-laptop/README.md)
 - [Chatwoot Channel Model](architecture/channels.md)
 - [MVP Conversation Behavior](architecture/mvp-conversation-behavior.md)
 - [Connector Model](architecture/connectors.md)

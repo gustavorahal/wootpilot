@@ -287,6 +287,13 @@ WootPilot, WootPilot writes through Chatwoot APIs, and human replies or control
 signals in Chatwoot affect later automation. See
 [MVP Conversation Behavior](mvp-conversation-behavior.md).
 
+For implementation work, the repeatable full-stack testing ground is the
+public-dev laptop harness in
+[infra/public-dev-laptop](../../infra/public-dev-laptop/README.md). It routes
+`https://wootpilot-local-dev.gmrahal.net` through the `wootpilot-local-dev`
+Cloudflare tunnel to local WootPilot on port `8000`, syncs the Chatwoot webhook,
+and checks readiness before live WhatsApp/Meta smoke tests.
+
 ## Python Baseline
 
 The primary runtime should be Python 3.14. Keep Python 3.13 compatibility only

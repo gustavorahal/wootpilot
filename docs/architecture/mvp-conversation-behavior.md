@@ -40,6 +40,15 @@ Chatwoot posts signed webhooks to the tunnel URL. WootPilot calls the public
 Chatwoot API at `https://chat.gmrahal.net` to write private notes or safe public
 replies.
 
+The configured public-dev laptop tunnel hostname is:
+
+```text
+https://wootpilot-local-dev.gmrahal.net
+```
+
+Use the harness in `infra/public-dev-laptop` to start the tunnel, sync the
+Chatwoot webhook, and run readiness checks while implementing each slice.
+
 ## MVP Features
 
 The MVP agent offers these behaviors:

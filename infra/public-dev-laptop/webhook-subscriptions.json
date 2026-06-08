@@ -1,0 +1,6 @@
+[
+  "message_created",
+  "message_updated",
+  "conversation_updated",
+  "conversation_status_changed"
+]

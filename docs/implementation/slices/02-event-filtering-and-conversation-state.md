@@ -44,5 +44,7 @@
 - POST fixture private-note, outbound-message, and assignment-change webhooks.
 - Confirm ignored message events do not create model workflow records.
 - Confirm assignment or conversation events update local conversation state.
-- In the public dev Chatwoot server, send a human public reply and confirm the
-  next webhook updates human-active state.
+- Through the public-dev laptop harness, send a customer message through the
+  Meta-connected test channel, then send a human public reply from
+  `https://chat.gmrahal.net/` and confirm the next webhook updates human-active
+  state.

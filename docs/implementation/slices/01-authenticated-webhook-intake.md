@@ -46,9 +46,12 @@
 - Confirm the database contains one raw event and one normalized message.
 - POST the same fixture again and confirm no duplicate normalized message is
   created.
-- For public-dev testing, copy `.env.public-dev.example` to `.env.local`, fill
-  `WOOTPILOT_CHATWOOT_ACCOUNT_ID`, `WOOTPILOT_CHATWOOT_API_TOKEN`, and
-  `WOOTPILOT_CHATWOOT_WEBHOOK_SECRET` from the Chatwoot webhook record, expose
-  local WootPilot through a public tunnel URL, and configure
-  `https://chat.gmrahal.net` to send webhooks to
-  `{WOOTPILOT_PUBLIC_BASE_URL}{WOOTPILOT_WEBHOOK_PATH}`.
+- For public-dev full-stack testing, copy `.env.public-dev.example` to
+  `.env.local`, fill `WOOTPILOT_CHATWOOT_ACCOUNT_ID` and
+  `WOOTPILOT_CHATWOOT_API_TOKEN`, start `./scripts/public-dev-tunnel-run`, run
+  `./scripts/public-dev-webhook-sync`, and run `./scripts/public-dev-doctor`.
+  The sync command creates or updates the Chatwoot webhook and copies the
+  generated webhook secret into `.env.local`.
+- Send a real message through the Meta-connected test channel and confirm
+  WootPilot receives a signed `message_created` webhook from
+  `https://chat.gmrahal.net/`.

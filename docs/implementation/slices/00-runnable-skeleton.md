@@ -22,6 +22,8 @@
 - Add Dockerfile.
 - Maintain disposable local Chatwoot Docker Compose stack for manual
   integration testing.
+- Maintain the public-dev laptop harness scripts as the opt-in full-stack
+  testing ground for later slices.
 - Set Python 3.14 as the primary runtime and configure CI for supported Python
   versions.
 - Add SQLite database profile for local development.
@@ -41,6 +43,8 @@
 - Alembic applies the baseline migration to an empty SQLite database.
 - Local Chatwoot Compose configuration validates with `docker compose config`.
 - Chatwoot dev helper scripts pass shell syntax checks.
+- Public-dev harness scripts pass syntax checks and fail with clear
+  operator-facing errors when `.env.local` is missing or incomplete.
 - Unit test, lint, and type-check commands run in CI.
 
 ## Manual Verification
@@ -53,3 +57,8 @@
   Chatwoot integration testing is needed.
 - Confirm `GET http://localhost:3000/` returns a successful response or
   redirects to onboarding.
+- Copy `.env.public-dev.example` to `.env.local`, keep
+  `WOOTPILOT_BOT_MODE=shadow`, start `./scripts/public-dev-tunnel-run`, and run
+  `./scripts/public-dev-doctor`. At this slice it is acceptable for the doctor
+  to warn that only the health endpoint is available; the purpose is to confirm
+  the full-stack harness can be started.

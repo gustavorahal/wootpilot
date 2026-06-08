@@ -44,10 +44,49 @@ or future integration before a slice has a caller.
   private-note, and public-reply slices.
 - Use `https://chat.gmrahal.net/` for public dev checks that must be reachable
   by Meta channel infrastructure.
+- The public-dev laptop harness is available through
+  [infra/public-dev-laptop](../../infra/public-dev-laptop/README.md). It gives
+  each slice an opt-in full-stack testing ground where real WhatsApp traffic can
+  flow through Meta, public Chatwoot, the Cloudflare tunnel, local WootPilot, and
+  back to Chatwoot.
+- The stable public WootPilot development hostname is
+  `https://wootpilot-local-dev.gmrahal.net`, routed by the
+  `wootpilot-local-dev` Cloudflare tunnel to local port `8000`.
 
 Do not require the Chatwoot Docker stack to start in the default CI path. The
 Compose file and helper scripts should be validated automatically, while live
 Chatwoot startup remains a manual or opt-in integration smoke test.
+
+## Public-Dev Full-Stack Harness
+
+Use the public-dev harness as a repeatable testing ground while implementing
+each slice. It is not default CI, but it should be ready whenever a slice has
+behavior that benefits from real webhook delivery or Chatwoot API writes.
+
+Baseline commands:
+
+```sh
+cp .env.public-dev.example .env.local
+uvicorn wootpilot.api.main:app --reload --host 0.0.0.0 --port 8000
+./scripts/public-dev-tunnel-run
+./scripts/public-dev-webhook-sync
+./scripts/public-dev-doctor
+```
+
+The harness owns:
+
+- Cloudflare tunnel connector startup for
+  `https://wootpilot-local-dev.gmrahal.net`.
+- Chatwoot account webhook create/update for
+  `{WOOTPILOT_PUBLIC_BASE_URL}{WOOTPILOT_WEBHOOK_PATH}`.
+- Chatwoot-generated webhook secret sync into `.env.local`.
+- Readiness checks for local settings, Chatwoot reachability, webhook URL,
+  subscriptions, webhook secret match, and local health endpoint reachability.
+
+Slice docs should keep deterministic tests as the correctness contract and use
+the public-dev harness only for opt-in full-stack verification. Once a slice
+adds a real part of the loop, its manual verification should say what the
+operator can prove through this harness.
 
 ## Definition Of Done
 
@@ -79,8 +118,8 @@ opt-in integration
 
 manual smoke
   Browser/UI checks, public dev Chatwoot checks at chat.gmrahal.net, real
-  Meta-connected message checks, and optional live provider calls that require
-  credentials or human inspection.
+  Meta-connected message checks through the public-dev laptop harness, and
+  optional live provider calls that require credentials or human inspection.
 ```
 
 Never require real OpenRouter, WooCommerce, Chatwoot Cloud, or production

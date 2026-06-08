@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+
+wrangler tunnel run --log-level info wootpilot-local-dev

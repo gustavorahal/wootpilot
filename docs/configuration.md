@@ -182,11 +182,15 @@ live Chatwoot server:
 ```text
 WOOTPILOT_CHATWOOT_BASE_URL=https://chat.gmrahal.net
 WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
-WOOTPILOT_PUBLIC_BASE_URL=https://<your-tunnel-or-public-dev-url>
+WOOTPILOT_PUBLIC_BASE_URL=https://wootpilot-local-dev.gmrahal.net
 ```
 
 Chatwoot must be configured to send webhooks to
 `{WOOTPILOT_PUBLIC_BASE_URL}{WOOTPILOT_WEBHOOK_PATH}`.
+
+This public base URL is backed by the `wootpilot-local-dev` Cloudflare tunnel
+and managed through the public-dev laptop harness in
+`infra/public-dev-laptop`.
 
 ### Server-Side WootPilot, Public Chatwoot
 
@@ -246,5 +250,5 @@ client envs: /srv/apps/env/clients/*.env
 Use the public dev server for opt-in live back-and-forth tests with Meta. Use
 fixtures and mocked HTTP in default CI.
 
-For the step-by-step local tunnel workflow, see
-[Public Dev Laptop Loop](runbooks/public-dev-laptop-loop.md).
+For the local tunnel workflow and Chatwoot webhook sync commands, see
+[Public Dev Laptop Harness](../infra/public-dev-laptop/README.md).

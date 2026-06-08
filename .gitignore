@@ -8,3 +8,6 @@ infra/chatwoot-dev/.env
 .env.*
 !.env.example
 !.env.public-dev.example
+
+# Wrangler local cache/state.
+.wrangler/
