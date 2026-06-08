@@ -226,7 +226,7 @@ catalog_adapter = registry.require_capability(
 
 The WooCommerce connector adapter should use translators to convert raw
 WooCommerce payloads into shared domain resource snapshots such as
-[ProductSnapshot](domain-models/product-snapshots.md) and `ProductCategory`.
+`ProductSnapshot` and `ProductCategory`.
 Services and graph nodes must not receive raw WooCommerce API responses.
 
 ### Product Context Shape
@@ -282,9 +282,8 @@ policy-aware structured context before `RunSupportWorkflow` invokes the graph.
 }
 ```
 
-`price` must be a serialized [PriceSnapshot](domain-models/price-snapshots.md),
-not a float, a bare decimal, or a raw `Money` value. `availability` must be a
-serialized [AvailabilitySnapshot](domain-models/availability-snapshots.md).
+`price` must be a serialized `PriceSnapshot`, not a float, a bare decimal, or a
+raw `Money` value. `availability` must be a serialized `AvailabilitySnapshot`.
 `Money` carries the exact amount and currency; `PriceSnapshot` carries quote
 status, source, display text, capture time, and whether policy allows the price
 to be mentioned.

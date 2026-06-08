@@ -21,9 +21,9 @@ from wootpilot.workflow.graph import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-ARCHITECTURE_DOCS = ROOT / "docs" / "architecture"
-MERMAID_PATH = ARCHITECTURE_DOCS / "support-workflow-graph.mmd"
-PNG_PATH = ARCHITECTURE_DOCS / "support-workflow-graph.png"
+REFERENCE_DOCS = ROOT / "docs" / "reference"
+MERMAID_PATH = REFERENCE_DOCS / "support-workflow-graph.mmd"
+PNG_PATH = REFERENCE_DOCS / "support-workflow-graph.png"
 
 
 class DiagramModelPort:

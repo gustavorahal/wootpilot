@@ -84,20 +84,20 @@ Customer message
 
 ## Documentation
 
-- [WootPilot Initial Plan](docs/wootpilot-initial-plan.md)
+- [Documentation Index](docs/README.md)
+- [Conversation Behavior](docs/product/conversation-behavior.md)
+- [Operating Modes](docs/product/operating-modes.md)
 - [Architecture Overview](docs/architecture/overview.md)
-- [Architecture Vocabulary](docs/architecture/vocabulary.md)
-- [Chatwoot Channel Model](docs/architecture/channels.md)
-- [MVP Conversation Behavior](docs/architecture/mvp-conversation-behavior.md)
+- [Glossary](docs/reference/glossary.md)
+- [Chatwoot Channel](docs/architecture/chatwoot-channel.md)
 - [Connector Model](docs/architecture/connectors.md)
-- [Configuration](docs/configuration.md)
-- [Domain Models](docs/architecture/domain-models/overview.md)
-- [Policy And Agent Workflow](docs/architecture/policy-and-agent-workflow.md)
-- [Support Workflow Graph](docs/architecture/support-workflow-graph.png)
+- [Workflow Architecture](docs/architecture/workflow.md)
+- [Support Workflow Graph](docs/reference/support-workflow-graph.png)
+- [Configuration](docs/architecture/configuration.md)
 - [Persistence Model](docs/architecture/persistence.md)
 - [Observability](docs/architecture/observability.md)
-- [Implementation Slices](docs/implementation/milestones.md)
-- [Production Readiness](docs/production-readiness.md)
+- [ADR Index](docs/adr/README.md)
+- [Production Readiness](docs/architecture/production-readiness.md)
 
 ## Local Chatwoot
 
@@ -191,7 +191,7 @@ eligible for AI again.
 Copy [.env.public-dev.example](.env.public-dev.example) to `.env.local` to run
 WootPilot locally against this server. The implementation should read these
 values through `pydantic-settings` from `WOOTPILOT_*` environment variables; see
-[Configuration](docs/configuration.md).
+[Configuration](docs/architecture/configuration.md).
 
 For the full laptop tunnel loop, use the
 [Public Dev Laptop Harness](infra/public-dev-laptop/README.md):

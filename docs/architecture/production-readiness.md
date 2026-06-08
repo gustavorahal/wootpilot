@@ -42,6 +42,30 @@ That command runs the default release gate and verifies that
 `psycopg[binary]` and `langgraph-checkpoint-postgres` import through the
 `wootpilot[postgres]` extra.
 
+## Verification Strategy
+
+The default verification path should stay fast, deterministic, and provider-free:
+unit tests, ASGI route tests, repository tests, migration checks, linting,
+type-checking, fixture validation, mocked HTTP integrations, and golden
+conversation evals.
+
+Opt-in integration checks may start local services such as Chatwoot Docker
+Compose, Postgres, or the public-dev laptop tunnel. These checks prove wiring
+and operator readiness; they should not become the correctness contract for
+business behavior.
+
+Manual smoke checks cover browser/UI inspection, public-dev Chatwoot at
+`https://chat.gmrahal.net/`, Meta-connected message flow, and live provider
+calls that require credentials or human judgment.
+
+Never require real OpenRouter, WooCommerce, Chatwoot Cloud, or production
+credentials in default CI. Live checks should prove integration wiring; the
+correctness contract belongs in deterministic tests.
+
+For code changes, "done" means the app still starts, automated checks pass, new
+behavior has focused use-case coverage, schema changes include migrations, and
+any non-automated behavior has explicit manual verification steps.
+
 ## Runtime Profiles
 
 Local and public-dev laptop profile:

@@ -1,149 +1,38 @@
 # Architecture Overview
 
-## Proposed Repository Layout
+## Documentation Layout
 
 ```text
-wootpilot/
+docs/
   README.md
-  docs/
-    wootpilot-initial-plan.md
-      architecture/
-      overview.md
-      vocabulary.md
-      channels.md
-      connectors.md
-      domain-models/
-        overview.md
-        tenants.md
-        money.md
-        price-snapshots.md
-        availability-snapshots.md
-        product-snapshots.md
-        normalized-messages.md
-        conversation-state.md
-        triage-results.md
-        risk-signals.md
-        policy-decisions.md
-        agent-proposals.md
-        outbound-actions.md
-        connector-installations.md
-        context-snapshots.md
-        audit-records.md
-      mvp-conversation-behavior.md
-      policy-and-agent-workflow.md
-      langchain-langgraph.md
-      persistence.md
-      observability.md
+  product/
+    conversation-behavior.md
+  architecture/
+    overview.md
+    workflow.md
+    chatwoot-channel.md
+    connectors.md
+    persistence.md
     configuration.md
-    implementation/
-      milestones.md
-      slices/
-        00-runnable-skeleton.md
-        01-authenticated-webhook-intake.md
-        02-event-filtering-and-conversation-state.md
-        03-mock-product-context.md
-        04-shadow-workflow.md
-        05-openrouter-model-proposals.md
-        06-copilot-private-notes.md
-        07-limited-auto-public-replies.md
-        08-woocommerce-store-api.md
-        09-production-readiness.md
-  data/
-    mock-woocommerce/
-      catalog.demo-car-parts.json
-  infra/
-    chatwoot-dev/
-      compose.yml
-      chatwoot.env
-      README.md
-  scripts/
-    chatwoot-dev-up
-    chatwoot-dev-down
-    chatwoot-dev-reset
-    chatwoot-dev-logs
-  pyproject.toml
-  src/
-    wootpilot/
-      api/
-        main.py
-        routes/
-          health.py
-          webhooks.py
-        deps.py
-      ingress/
-        auth.py
-        replay.py
-        idempotency.py
-        webhook_pipeline.py
-      agents/
-        chatwoot_support_graph.py
-        checkpoints.py
-        model_adapter.py
-        prompts.py
-        schemas.py
-        state.py
-      domain/
-        tenants.py
-        conversation.py
-        money.py
-        price_snapshots.py
-        availability_snapshots.py
-        policy.py
-        triage.py
-        catalog.py
-        actions.py
-        audit.py
-        resources/
-          products.py
-          orders.py
-          customers.py
-      ports/
-        clock.py
-        ids.py
-        model_proposals.py
-        unit_of_work.py
-        channels.py
-        repositories.py
-      services/
-        handle_webhook_event.py
-        run_support_workflow.py
-        catalog_context_service.py
-        execute_outbound_action.py
-        policy_service.py
-      channels/
-        chatwoot/
-          adapter.py
-          client.py
-          schemas.py
-          translators.py
-      connectors/
-        base.py
-        capabilities.py
-        registry.py
-        woocommerce/
-          adapter.py
-          client.py
-          translators.py
-          raw_schemas.py
-        http_client.py
-      persistence/
-        database.py
-        profiles.py
-        models.py
-        repositories.py
-        translators.py
-        outbox.py
-      observability/
-        correlation.py
-        redaction.py
-      settings.py
-  .env.example
-  .env.public-dev.example
-  tests/
-    unit/
-    integration/
-    evals/
+    observability.md
+    production-readiness.md
+    langchain-langgraph.md
+  reference/
+    glossary.md
+    support-workflow-graph.mmd
+    support-workflow-graph.png
+  adr/
+    README.md
 ```
+
+The docs are split by lifecycle:
+
+- `product/` describes current user-visible behavior and operating modes.
+- `architecture/` describes current system design and engineering boundaries.
+- `reference/` contains lookup material such as vocabulary and generated
+  workflow graph artifacts.
+- `adr/` is reserved for short architectural decision records that explain why
+  durable choices were made.
 
 ## Layering
 
@@ -267,11 +156,12 @@ Connector packages should map raw external payloads into domain snapshots.
 Services that build context should consume those snapshots. Graph nodes should
 not depend on raw WooCommerce Store API fields or perform connector discovery.
 
-The domain model docs are the source of truth for shared vocabulary. If a concept
-appears in persistence, policy, connectors, and agent prompts, define it in
-`docs/architecture/domain-models/` before implementing it.
+Domain model documentation belongs close to the domain models in
+`src/wootpilot/domain/models/`. If a concept appears in persistence, policy,
+connectors, and agent prompts, document the intent on the model or enum rather
+than maintaining a parallel markdown reference that can drift from code.
 
-Use [Architecture Vocabulary](vocabulary.md) for code role names. Adapters own
+Use [Glossary](../reference/glossary.md) for code role names. Adapters own
 boundaries, translators convert representations, clients perform low-level API
 calls, repositories persist domain objects, registries select configured adapters
 or installations, and services orchestrate workflows.
@@ -285,7 +175,7 @@ The live MVP integration target is the public dev Chatwoot server at
 channel back-and-forth: customer message enters Chatwoot, Chatwoot notifies
 WootPilot, WootPilot writes through Chatwoot APIs, and human replies or control
 signals in Chatwoot affect later automation. See
-[MVP Conversation Behavior](mvp-conversation-behavior.md).
+[Conversation Behavior](../product/conversation-behavior.md).
 
 For implementation work, the repeatable full-stack testing ground is the
 public-dev laptop harness in
@@ -319,7 +209,7 @@ Services, adapters, graph builders, and repositories should receive typed
 settings or explicit constructor arguments. Domain models must never read
 environment variables.
 
-See [Configuration](../configuration.md) for the live-dev Chatwoot settings,
+See [Configuration](configuration.md) for the live-dev Chatwoot settings,
 including the difference between local API access through
 `https://chat.gmrahal.net` and server-side Docker network access through
 `http://chatwoot-web:3000`.

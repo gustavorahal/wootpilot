@@ -105,7 +105,7 @@ persistence, audit persistence, and outbound action execution should be owned by
 application use cases so they can be tested without replaying the whole graph.
 
 The MVP handoff contract is documented in
-[MVP Conversation Behavior](mvp-conversation-behavior.md). In short: WootPilot
+[MVP Conversation Behavior](../product/conversation-behavior.md). In short: WootPilot
 hands off by not sending public AI messages, writing private notes or labels when
 useful, and observing human replies or explicit pause/resume signals from
 Chatwoot before deciding whether a later customer turn is eligible for AI again.
@@ -151,10 +151,10 @@ build_missing_proposal_failure
 
 Current rendered topology:
 
-![Support workflow graph](support-workflow-graph.png)
+![Support workflow graph](../reference/support-workflow-graph.png)
 
 The Mermaid source is versioned at
-[support-workflow-graph.mmd](support-workflow-graph.mmd). Regenerate both files
+[support-workflow-graph.mmd](../reference/support-workflow-graph.mmd). Regenerate both files
 after graph routing changes:
 
 ```bash
