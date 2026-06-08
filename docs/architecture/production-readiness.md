@@ -73,8 +73,7 @@ Local and public-dev laptop profile:
 ```text
 WOOTPILOT_DB_URL=sqlite+aiosqlite:///./data/wootpilot-public-dev.db
 WOOTPILOT_CHECKPOINTER=sqlite
-WOOTPILOT_BOT_MODE=shadow
-WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED=false
+WOOTPILOT_AUTOMATION_MODE=public_reply
 ```
 
 SQLite enables WAL mode, foreign keys, and a busy timeout at connection time.
@@ -87,10 +86,10 @@ Production profile:
 ```text
 WOOTPILOT_DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
 WOOTPILOT_CHECKPOINTER=postgres
-WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED=true
+WOOTPILOT_AUTOMATION_MODE=public_reply
 ```
 
-Postgres is required for production public auto-send and multiple outbound
+Postgres is required for production public replies and multiple outbound
 workers. Queue workers compile the dequeue query with
 `FOR UPDATE SKIP LOCKED` on Postgres. Install the optional dependency profile
 before enabling `WOOTPILOT_CHECKPOINTER=postgres`:
@@ -146,7 +145,7 @@ The configured Chatwoot API token must be able to:
 
 - read account conversations for final public-send safety checks
 - create private notes
-- create public messages only when limited-auto is explicitly enabled
+- create public messages only when public-reply is explicitly enabled
 
 ## Worker Operation
 
@@ -165,7 +164,7 @@ state, and fresh Chatwoot conversation safety.
 
 Before rollback or maintenance:
 
-1. Set `WOOTPILOT_BOT_MODE=shadow`.
+1. Set `WOOTPILOT_AUTOMATION_MODE=observe`.
 2. Stop outbound workers.
 3. Confirm no queued actions remain:
 
@@ -177,7 +176,7 @@ sqlite3 ./data/wootpilot-public-dev.db \
 4. If queued public actions exist, inspect them manually before restarting
    workers. Private-note actions are lower risk but should still be idempotent.
 5. Apply rollback or migration changes.
-6. Restart the API in shadow mode and run `./scripts/public-dev-doctor`.
+6. Restart the API in observe mode and run `./scripts/public-dev-doctor`.
 
 ## Manual Smoke Matrix
 
@@ -185,14 +184,11 @@ The deterministic tests are the correctness contract. Live smoke tests only
 prove wiring:
 
 - signed Chatwoot webhook intake through the tunnel
-- shadow run creates an audited proposal and no outbound action
-- copilot mode creates one private note and ignores the echo webhook
-- limited-auto low-risk public send only after explicit approval
-- human public reply suppresses later public automation
+- observe run creates an audited proposal and no outbound action
+- assist mode creates one private note and ignores the echo webhook
+- public-reply low-risk public send only after explicit approval
+- human public reply suppresses later public replies
 - `wootpilot-paused` blocks automation
-- `wootpilot-auto-ok` permits a later eligible customer turn but does not bypass
-  deterministic policy, replyability, pause, resolved-state, or content-safety
-  rules
 
 Keep live public replies disabled unless a specific conversation and message are
 approved for testing.

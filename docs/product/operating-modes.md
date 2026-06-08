@@ -32,19 +32,19 @@ sending, the outbound executor re-checks bot mode, conversation state,
 replyability, assignment, human activity, status, content leakage, and
 price-claim safety.
 
-Limited auto should require explicit configuration and should not be the default
-for new tenants or local development.
+Public reply is the default alpha setup so development and public-dev exercise
+the full customer-visible flow. Production can still use deployment-level guards
+before enabling public sends.
 
 ## Configuration
 
 Set the active mode with:
 
 ```text
-WOOTPILOT_BOT_MODE=shadow
-WOOTPILOT_BOT_MODE=copilot
-WOOTPILOT_BOT_MODE=limited_auto
+WOOTPILOT_AUTOMATION_MODE=observe
+WOOTPILOT_AUTOMATION_MODE=assist
+WOOTPILOT_AUTOMATION_MODE=public_reply
 ```
 
-Public-dev templates default to `shadow` so live tests can prove webhook,
-context, model, policy, and audit behavior before WootPilot writes back to
-Chatwoot.
+Public-dev templates default to `public_reply` so live tests prove webhook,
+context, model, policy, audit, outbound queueing, and Chatwoot delivery together.

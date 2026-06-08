@@ -9,8 +9,8 @@ from wootpilot.application.workflow import RunSupportWorkflow
 from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
+    AutomationMode,
     AvailabilitySnapshot,
-    BotMode,
     CheckpointerProfile,
     ConversationState,
     ConversationStatus,
@@ -43,7 +43,7 @@ class PublicProposalPort:
         return ModelProposalResult(
             proposal=AgentProposal(
                 action_kind=AgentActionKind.public_message,
-                summary="Public proposal in shadow mode.",
+                summary="Public proposal in observe mode.",
                 public_message="Thanks, this part may fit.",
                 private_note="Suggested reply: Thanks, this part may fit.",
                 confidence=0.8,
@@ -78,7 +78,7 @@ class HiddenPriceProposalPort:
         )
 
 
-async def test_shadow_graph_returns_stable_proposed_decision() -> None:
+async def test_observe_graph_returns_stable_proposed_decision() -> None:
     graph = build_support_graph(model_port=FakeModelProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
@@ -105,14 +105,14 @@ async def test_shadow_graph_returns_stable_proposed_decision() -> None:
                 updated_at=now,
             ),
             "catalog_context": StructuredCatalogContext(query="TBI"),
-            "bot_mode": BotMode.shadow,
+            "automation_mode": AutomationMode.observe,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
     )
     assert result["workflow_decision"].status.value == "proposed"
 
 
-async def test_shadow_graph_keeps_public_proposal_as_non_sending_proposal() -> None:
+async def test_observe_graph_keeps_public_proposal_as_non_sending_proposal() -> None:
     graph = build_support_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
@@ -139,7 +139,7 @@ async def test_shadow_graph_keeps_public_proposal_as_non_sending_proposal() -> N
                 updated_at=now,
             ),
             "catalog_context": StructuredCatalogContext(query="TBI"),
-            "bot_mode": BotMode.shadow,
+            "automation_mode": AutomationMode.observe,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
     )
@@ -157,16 +157,16 @@ def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
     assert "continue_model_proposed_action" in mermaid
     assert "queue_private_review_note" in mermaid
     assert "route_final_decision" in mermaid
-    assert "shadow_observe_only" in mermaid
-    assert "queue_copilot_or_private_note" in mermaid
-    assert "queue_limited_auto_public_reply" in mermaid
+    assert "observe_only" in mermaid
+    assert "queue_assist_private_note" in mermaid
+    assert "queue_public_reply" in mermaid
     assert (
         WORKFLOW_NODE_DESCRIPTIONS["should_invoke"]
         == "Checks whether this message should run WootPilot."
     )
 
 
-async def test_limited_auto_graph_blocks_assigned_conversations() -> None:
+async def test_public_reply_graph_blocks_assigned_conversations() -> None:
     graph = build_support_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
@@ -194,7 +194,7 @@ async def test_limited_auto_graph_blocks_assigned_conversations() -> None:
                 updated_at=now,
             ),
             "catalog_context": StructuredCatalogContext(query="TBI"),
-            "bot_mode": BotMode.limited_auto,
+            "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
     )
@@ -203,7 +203,7 @@ async def test_limited_auto_graph_blocks_assigned_conversations() -> None:
     assert "conversation.assigned_to_human" in decision.rule_ids
 
 
-async def test_limited_auto_graph_blocks_resolved_conversations() -> None:
+async def test_public_reply_graph_blocks_resolved_conversations() -> None:
     graph = build_support_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
@@ -231,7 +231,7 @@ async def test_limited_auto_graph_blocks_resolved_conversations() -> None:
                 updated_at=now,
             ),
             "catalog_context": StructuredCatalogContext(query="TBI"),
-            "bot_mode": BotMode.limited_auto,
+            "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
     )
@@ -240,7 +240,7 @@ async def test_limited_auto_graph_blocks_resolved_conversations() -> None:
     assert "conversation.resolved" in decision.rule_ids
 
 
-async def test_limited_auto_allows_exact_mentionable_catalog_price() -> None:
+async def test_public_reply_allows_exact_mentionable_catalog_price() -> None:
     graph = build_support_graph(model_port=PriceProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
@@ -251,7 +251,7 @@ async def test_limited_auto_allows_exact_mentionable_catalog_price() -> None:
                 query="aircooled harness",
                 products=[_product(can_mention_price=True)],
             ),
-            "bot_mode": BotMode.limited_auto,
+            "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
     )
@@ -260,7 +260,7 @@ async def test_limited_auto_allows_exact_mentionable_catalog_price() -> None:
     assert decision.action_kind.value == "public_message"
 
 
-async def test_limited_auto_blocks_exact_price_without_mentionable_snapshot() -> None:
+async def test_public_reply_blocks_exact_price_without_mentionable_snapshot() -> None:
     graph = build_support_graph(model_port=HiddenPriceProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
@@ -271,7 +271,7 @@ async def test_limited_auto_blocks_exact_price_without_mentionable_snapshot() ->
                 query="hidden price product",
                 products=[_product(can_mention_price=False)],
             ),
-            "bot_mode": BotMode.limited_auto,
+            "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
     )
@@ -282,13 +282,13 @@ async def test_limited_auto_blocks_exact_price_without_mentionable_snapshot() ->
     assert "R$ 999,00" not in (decision.content or "")
 
 
-async def test_limited_auto_review_note_is_persisted_as_private_outbound_action(
+async def test_public_reply_review_note_is_persisted_as_private_outbound_action(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "workflow-review-note.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -349,7 +349,7 @@ async def test_local_workflow_trace_streaming_returns_final_graph_state(
     settings = Settings(
         env=RuntimeEnvironment.local,
         workflow_trace=True,
-        bot_mode=BotMode.shadow,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -389,9 +389,9 @@ async def test_local_workflow_trace_streaming_returns_final_graph_state(
         ).run(message, row_to_state(state_row))
 
     captured = capsys.readouterr()
-    assert decision.status.value == "proposed"
+    assert decision.status.value == "queued_action"
     assert "workflow" in captured.err
-    assert "build_shadow_decision" in captured.err
+    assert "build_private_note_action" in captured.err
     assert "Do you have this product?" in captured.err
 
 
@@ -404,7 +404,7 @@ async def test_persistent_checkpoints_do_not_replay_policy_state_between_message
         env=RuntimeEnvironment.local,
         workflow_trace=True,
         checkpointer=CheckpointerProfile.sqlite,
-        bot_mode=BotMode.shadow,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -453,8 +453,8 @@ async def test_persistent_checkpoints_do_not_replay_policy_state_between_message
         await session.commit()
 
     captured = capsys.readouterr()
-    assert first_decision.status.value == "proposed"
-    assert second_decision.status.value == "proposed"
+    assert first_decision.status.value == "queued_action"
+    assert second_decision.status.value == "queued_action"
     assert "conversation:v1:message:101" in captured.err
     assert "conversation:v1:message:102" in captured.err
 
@@ -472,7 +472,7 @@ async def test_sqlite_loaded_human_active_until_blocks_without_naive_datetime_er
         env=RuntimeEnvironment.local,
         workflow_trace=True,
         checkpointer=CheckpointerProfile.sqlite,
-        bot_mode=BotMode.shadow,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -521,6 +521,25 @@ async def test_sqlite_loaded_human_active_until_blocks_without_naive_datetime_er
 
     assert decision.status.value == "blocked_by_policy"
     assert "conversation.human_active" in decision.rule_ids
+
+
+async def test_assist_mode_ignores_human_active_window_for_private_notes() -> None:
+    graph = build_support_graph(model_port=PublicProposalPort())
+    now = datetime.now(UTC)
+    result = await graph.ainvoke(
+        {
+            "normalized_message": _message(now),
+            "conversation_state": _state(now).model_copy(
+                update={"human_active_until": now + timedelta(minutes=15)}
+            ),
+            "catalog_context": StructuredCatalogContext(query="TBI"),
+            "automation_mode": AutomationMode.assist,
+        },
+        config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
+    )
+    decision = result["workflow_decision"]
+    assert decision.status.value == "queued_action"
+    assert decision.action_kind.value == "private_note"
 
 
 async def _persist_inbound_message(

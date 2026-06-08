@@ -60,7 +60,7 @@ from wootpilot.domain.models.providers import (
     WebhookResultStatus,
 )
 from wootpilot.domain.models.runtime import (
-    BotMode,
+    AutomationMode,
     CatalogConnectorMode,
     CheckpointerProfile,
     ModelProvider,
@@ -76,7 +76,7 @@ __all__ = [
     "AttachmentMetadata",
     "AuditEventType",
     "AvailabilitySnapshot",
-    "BotMode",
+    "AutomationMode",
     "CatalogConnectorMode",
     "ChannelEvent",
     "CheckpointerProfile",

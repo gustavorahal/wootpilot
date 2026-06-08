@@ -9,7 +9,7 @@ async def test_golden_conversation_suite() -> None:
     cases = load_golden_cases(Path("tests/fixtures/golden/conversations.json"))
     assert {case.id for case in cases} == {
         "low_risk_faq_public",
-        "catalog_lookup_shadow",
+        "catalog_lookup_observe",
         "kit_escalation",
         "account_sensitive_request",
         "technical_support_escalation",

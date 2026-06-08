@@ -26,7 +26,7 @@ class AgentProposal(BaseModel):
 
     The model proposes content and risk reasons. WootPilot decides whether that
     proposal becomes a queued action, a private review note, a blocked decision,
-    or an audit-only shadow result. The model must not assign final send/failure
+    or an audit-only observe result. The model must not assign final send/failure
     status.
     """
 

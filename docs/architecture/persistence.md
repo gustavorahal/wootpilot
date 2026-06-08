@@ -4,7 +4,7 @@ WootPilot should support two persistence profiles:
 
 ```text
 sqlite
-  Local development, tests, demos, shadow mode, and early single-worker copilot
+  Local development, tests, demos, observe mode, and early single-worker assist
   deployments.
 
 postgres
@@ -69,7 +69,7 @@ agent_runs
   provider_account_id
   provider_conversation_id
   provider_message_id
-  bot_mode
+  automation_mode
   status
   summary
   model
@@ -236,7 +236,7 @@ SQLite requirements:
 - Use foreign keys explicitly.
 - Keep the outbound executor single-worker.
 - Avoid relying on row-level locking.
-- Treat limited auto replies on SQLite as local/demo only unless explicitly
+- Treat public replies on SQLite as local/demo only unless explicitly
   accepted by the operator.
 
 Suggested local URLs:
@@ -244,13 +244,12 @@ Suggested local URLs:
 ```text
 WOOTPILOT_DB_URL=sqlite+aiosqlite:///./data/wootpilot.db
 WOOTPILOT_CHECKPOINTER=sqlite
-WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED=false
 ```
 
 ### Postgres
 
 Postgres is required when WootPilot needs production-grade concurrent webhook
-processing, multiple outbound workers, or production limited auto replies.
+processing, multiple outbound workers, or production public replies.
 
 Postgres requirements:
 
@@ -265,7 +264,7 @@ Suggested production URLs:
 ```text
 WOOTPILOT_DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
 WOOTPILOT_CHECKPOINTER=postgres
-WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED=true
+WOOTPILOT_AUTOMATION_MODE=public_reply
 ```
 
 ## LangGraph Checkpoints
@@ -310,7 +309,7 @@ snapshots, connector snapshots, and audit records are explicit WootPilot domain
 data. Add a persistent LangGraph store later only for cross-thread semantic or
 preference memory that cannot be represented cleanly as domain state.
 
-MVP copilot workflows should complete after producing a Chatwoot private note.
+MVP assist workflows should complete after producing a Chatwoot private note.
 They should not pause on LangGraph interrupts for human approval.
 
 ## Idempotent Action Execution

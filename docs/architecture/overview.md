@@ -51,7 +51,7 @@ Chatwoot webhook
   -> LangGraph support workflow
   -> guarded action proposal
   -> idempotent outbound action execution
-  -> human-active or explicit resume signal observed through Chatwoot
+  -> human-active suppression observed through Chatwoot
 ```
 
 The agent graph should make workflow decisions from prepared inputs. It should
@@ -167,7 +167,7 @@ calls, repositories persist domain objects, registries select configured adapter
 or installations, and services orchestrate workflows.
 
 The MVP should stay API-only. Do not add an admin UI before webhook intake,
-product context, policy, private notes, and limited auto replies work through
+product context, policy, private notes, and public replies work through
 the API and local Chatwoot stack.
 
 The live MVP integration target is the public dev Chatwoot server at

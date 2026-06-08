@@ -85,7 +85,6 @@ class ConversationStateRow(Base):
     status: Mapped[str | None] = mapped_column(String(40), nullable=True)
     replyable: Mapped[bool] = mapped_column(Boolean, default=True)
     paused: Mapped[bool] = mapped_column(Boolean, default=False)
-    auto_ok: Mapped[bool] = mapped_column(Boolean, default=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
@@ -108,7 +107,7 @@ class AgentRunRow(Base):
         ForeignKey("conversation_messages.id")
     )
     raw_event_id: Mapped[str] = mapped_column(ForeignKey("raw_events.id"))
-    bot_mode: Mapped[str] = mapped_column(String(40))
+    automation_mode: Mapped[str] = mapped_column(String(40))
     status: Mapped[str] = mapped_column(String(60))
     workflow_decision: Mapped[dict[str, Any]] = mapped_column(JSON)
     model_metadata: Mapped[dict[str, Any]] = mapped_column(JSON)

@@ -17,7 +17,7 @@ from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
     AgentRunStatus,
-    BotMode,
+    AutomationMode,
     ConversationState,
     ModelProposalResult,
     NormalizedMessage,
@@ -82,21 +82,21 @@ class WorkflowBranch(StrEnum):
         "continue_action_policy_approved",
         "Continue because proposal validation passed.",
     )
-    shadow_observe_only = (
-        "shadow_observe_only",
-        "Shadow mode records the proposal only.",
+    observe_only = (
+        "observe_only",
+        "Observe mode records the proposal only.",
     )
     stop_missing_model_proposal = (
         "stop_missing_model_proposal",
         "Stop if an approved path somehow lacks a proposal.",
     )
-    queue_copilot_or_private_note = (
-        "queue_copilot_or_private_note",
-        "Copilot/non-public proposals become private notes.",
+    queue_assist_private_note = (
+        "queue_assist_private_note",
+        "Assist mode and non-public proposals become private notes.",
     )
-    queue_limited_auto_public_reply = (
-        "queue_limited_auto_public_reply",
-        "Limited auto may queue a public reply.",
+    queue_public_reply = (
+        "queue_public_reply",
+        "Public-reply mode may queue a customer-visible reply.",
     )
 
 
@@ -130,9 +130,9 @@ class WorkflowState(TypedDict):
         StructuredCatalogContext,
         "Product and catalog context loaded before model proposal.",
     ]
-    bot_mode: Annotated[
-        BotMode,
-        "Tenant/channel operating mode: shadow, copilot, or limited auto.",
+    automation_mode: Annotated[
+        AutomationMode,
+        "Tenant/channel automation mode: observe, assist, or public reply.",
     ]
     triage_result: NotRequired[
         Annotated[
@@ -184,7 +184,6 @@ def build_support_graph(
     clock: Clock | None = None,
     ids: IdGenerator | None = None,
     checkpointer=None,
-    suppress_public_auto_when_assigned: bool = True,
 ):
     clock = clock or Clock()
     ids = ids or IdGenerator()
@@ -219,8 +218,7 @@ def build_support_graph(
             message=state["normalized_message"],
             state=state["conversation_state"],
             triage=triage,
-            bot_mode=state["bot_mode"],
-            suppress_public_auto_when_assigned=suppress_public_auto_when_assigned,
+            automation_mode=state["automation_mode"],
             now=clock.now(),
             ids=ids,
         )
@@ -273,16 +271,16 @@ def build_support_graph(
             raise RuntimeError("validate_outbound_action requires triage_result")
         decision = validate_proposal(
             proposal=proposal,
-            bot_mode=state["bot_mode"],
+            automation_mode=state["automation_mode"],
             triage=triage,
             catalog_context=state["catalog_context"],
             now=clock.now(),
             ids=ids,
         )
         if decision.outcome is PolicyOutcome.block:
-            review_note = _limited_auto_review_note(
+            review_note = _public_reply_review_note(
                 proposal=proposal,
-                bot_mode=state["bot_mode"],
+                automation_mode=state["automation_mode"],
                 rule_ids=decision.rule_ids,
                 triage=triage,
             )
@@ -319,7 +317,7 @@ def build_support_graph(
 
         return {}
 
-    async def build_shadow_decision(state: WorkflowState) -> dict:
+    async def build_observe_decision(state: WorkflowState) -> dict:
         """Records a proposal without creating an outbound action."""
 
         proposal = state.get("agent_proposal")
@@ -411,16 +409,16 @@ def build_support_graph(
 
     def route_after_final_decision(state: WorkflowState) -> WorkflowBranch:
         proposal = state.get("agent_proposal")
-        if state["bot_mode"] is BotMode.shadow:
-            return WorkflowBranch.shadow_observe_only
+        if state["automation_mode"] is AutomationMode.observe:
+            return WorkflowBranch.observe_only
         if proposal is None:
             return WorkflowBranch.stop_missing_model_proposal
         if (
-            state["bot_mode"] is BotMode.copilot
+            state["automation_mode"] is AutomationMode.assist
             or proposal.action_kind is not AgentActionKind.public_message
         ):
-            return WorkflowBranch.queue_copilot_or_private_note
-        return WorkflowBranch.queue_limited_auto_public_reply
+            return WorkflowBranch.queue_assist_private_note
+        return WorkflowBranch.queue_public_reply
 
     _sync_node_descriptions(
         {
@@ -430,7 +428,7 @@ def build_support_graph(
             "llm_proposal": llm_proposal,
             "validate_outbound_action": validate_outbound_action,
             "route_final_decision": route_final_decision,
-            "build_shadow_decision": build_shadow_decision,
+            "build_observe_decision": build_observe_decision,
             "build_private_note_action": build_private_note_action,
             "build_public_message_action": build_public_message_action,
             "build_missing_proposal_failure": build_missing_proposal_failure_node,
@@ -444,7 +442,7 @@ def build_support_graph(
     graph.add_node("llm_proposal", llm_proposal)
     graph.add_node("validate_outbound_action", validate_outbound_action)
     graph.add_node("route_final_decision", route_final_decision)
-    graph.add_node("build_shadow_decision", build_shadow_decision)
+    graph.add_node("build_observe_decision", build_observe_decision)
     graph.add_node("build_private_note_action", build_private_note_action)
     graph.add_node("build_public_message_action", build_public_message_action)
     graph.add_node(
@@ -490,17 +488,15 @@ def build_support_graph(
         "route_final_decision",
         route_after_final_decision,
         {
-            WorkflowBranch.shadow_observe_only: "build_shadow_decision",
+            WorkflowBranch.observe_only: "build_observe_decision",
             WorkflowBranch.stop_missing_model_proposal: (
                 "build_missing_proposal_failure"
             ),
-            WorkflowBranch.queue_copilot_or_private_note: "build_private_note_action",
-            WorkflowBranch.queue_limited_auto_public_reply: (
-                "build_public_message_action"
-            ),
+            WorkflowBranch.queue_assist_private_note: "build_private_note_action",
+            WorkflowBranch.queue_public_reply: "build_public_message_action",
         },
     )
-    graph.add_edge("build_shadow_decision", END)
+    graph.add_edge("build_observe_decision", END)
     graph.add_edge("build_private_note_action", END)
     graph.add_edge("build_public_message_action", END)
     graph.add_edge("build_missing_proposal_failure", END)
@@ -518,21 +514,21 @@ def _sync_node_descriptions(nodes: dict[str, object]) -> None:
         WORKFLOW_NODE_DESCRIPTIONS[name] = description.splitlines()[0]
 
 
-def _limited_auto_review_note(
+def _public_reply_review_note(
     *,
     proposal: AgentProposal | None,
-    bot_mode: BotMode,
+    automation_mode: AutomationMode,
     rule_ids: list[PolicyRule],
     triage: TriageResult,
 ) -> str | None:
-    """Build a private handoff note when public auto-send is denied.
+    """Build a private handoff note when a public reply is denied.
 
     The unsafe public draft is intentionally not copied into the note. A human
     gets the review reason and model summary, while customer-visible text still
     requires human composition inside Chatwoot.
     """
 
-    if bot_mode is not BotMode.limited_auto or proposal is None:
+    if automation_mode is not AutomationMode.public_reply or proposal is None:
         return None
     if proposal.action_kind is not AgentActionKind.public_message:
         return None

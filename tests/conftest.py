@@ -17,7 +17,7 @@ def env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[dict[str, s
         "WOOTPILOT_DB_URL": f"sqlite+aiosqlite:///{tmp_path / 'test.db'}",
         "WOOTPILOT_CHATWOOT_WEBHOOK_SECRET": "test-secret",
         "WOOTPILOT_MODEL_PROVIDER": "fake",
-        "WOOTPILOT_BOT_MODE": "shadow",
+        "WOOTPILOT_AUTOMATION_MODE": "observe",
         "WOOTPILOT_MOCK_CATALOG_PATH": (
             "./data/mock-woocommerce/catalog.demo-car-parts.json"
         ),

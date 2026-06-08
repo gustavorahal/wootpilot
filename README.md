@@ -1,6 +1,6 @@
 # WootPilot
 
-WootPilot is an AI copilot infrastructure project for
+WootPilot is an AI assist infrastructure project for
 [Chatwoot](https://www.chatwoot.com/).
 
 The goal is to help small support teams run safe, auditable AI-assisted
@@ -35,11 +35,9 @@ testing is `https://chat.gmrahal.net/`.
   mock-catalog and public Store API profiles.
 - Run agent workflows through explicit, documented LangGraph nodes and named
   conditional branches.
-- Support shadow mode, copilot private notes, and limited low-risk auto replies.
-- Hand off to humans by suppressing public automation and surfacing private
+- Support observe mode, assist private notes, and guarded public replies.
+- Hand off to humans by suppressing public replies and surfacing private
   notes or handoff markers in Chatwoot.
-- Let humans explicitly hand a later customer turn back to AI through Chatwoot
-  labels or custom attributes such as `wootpilot-auto-ok`, subject to policy.
 - Persist audit records, context snapshots, outbound actions, and policy
   decisions.
 - Execute queued Chatwoot private notes and public replies with retry scheduling,

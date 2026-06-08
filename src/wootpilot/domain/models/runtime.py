@@ -5,20 +5,20 @@ from __future__ import annotations
 from enum import StrEnum
 
 
-class BotMode(StrEnum):
-    """Operating modes that control how far WootPilot may act on a turn.
+class AutomationMode(StrEnum):
+    """How far WootPilot may act on a customer turn.
 
-    - `shadow` proves webhook, context, model, policy, audit, and logging paths
-    without writing to Chatwoot. 
-    - `copilot` writes private notes for human review.
-    - `limited_auto` may write public replies, but only after deterministic policy
-    approves the exact content and the outbound executor re-checks channel
-    safety.
+    - `observe` runs the workflow, stores audit/proposal data, and writes
+      nothing back to Chatwoot.
+    - `assist` writes private notes for human review.
+    - `public_reply` may write customer-visible replies, but only after
+      deterministic policy approves the exact content and the outbound executor
+      re-checks channel safety.
     """
 
-    shadow = "shadow"
-    copilot = "copilot"
-    limited_auto = "limited_auto"
+    observe = "observe"
+    assist = "assist"
+    public_reply = "public_reply"
 
 
 class RuntimeEnvironment(StrEnum):

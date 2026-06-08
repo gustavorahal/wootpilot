@@ -8,7 +8,7 @@ from datetime import datetime
 from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
-    BotMode,
+    AutomationMode,
     ConversationState,
     ConversationStatus,
     NormalizedMessage,
@@ -56,8 +56,7 @@ def pre_model_policy(
     message: NormalizedMessage,
     state: ConversationState,
     triage: TriageResult,
-    bot_mode: BotMode,
-    suppress_public_auto_when_assigned: bool,
+    automation_mode: AutomationMode,
     now: datetime,
     ids: IdGenerator,
 ) -> PolicyDecision:
@@ -71,16 +70,14 @@ def pre_model_policy(
     if state.paused:
         rule_ids.append(PolicyRule.conversation_wootpilot_paused)
     if (
-        state.human_active_until
+        automation_mode is AutomationMode.public_reply
+        and state.human_active_until
         and state.human_active_until > now
-        and not state.auto_ok
     ):
         rule_ids.append(PolicyRule.conversation_human_active)
     if (
-        bot_mode is BotMode.limited_auto
-        and suppress_public_auto_when_assigned
+        automation_mode is AutomationMode.public_reply
         and (state.assigned_agent_id or state.assigned_team_id)
-        and not state.auto_ok
     ):
         rule_ids.append(PolicyRule.conversation_assigned_to_human)
     if "intent.human" in triage.risk_signals or "intent.agent" in triage.risk_signals:
@@ -95,7 +92,7 @@ def pre_model_policy(
         details={
             "intent": triage.intent,
             "risk_signals": triage.risk_signals,
-            "bot_mode": bot_mode.value,
+            "automation_mode": automation_mode.value,
             "assigned_agent_id": state.assigned_agent_id,
             "assigned_team_id": state.assigned_team_id,
         },
@@ -106,7 +103,7 @@ def pre_model_policy(
 def validate_proposal(
     *,
     proposal: AgentProposal | None,
-    bot_mode: BotMode,
+    automation_mode: AutomationMode,
     triage: TriageResult,
     catalog_context: StructuredCatalogContext,
     now: datetime,
@@ -116,7 +113,7 @@ def validate_proposal(
     if proposal is None:
         rule_ids.append(PolicyRule.model_no_proposal)
     elif (
-        bot_mode is BotMode.limited_auto
+        automation_mode is AutomationMode.public_reply
         and proposal.action_kind == AgentActionKind.public_message
     ):
         text = proposal.public_message or ""
@@ -138,7 +135,10 @@ def validate_proposal(
         stage=PolicyStage.post_model,
         outcome=outcome,
         rule_ids=rule_ids,
-        details={"bot_mode": bot_mode.value, "triage": triage.model_dump(mode="json")},
+        details={
+            "automation_mode": automation_mode.value,
+            "triage": triage.model_dump(mode="json"),
+        },
         created_at=now,
     )
 

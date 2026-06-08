@@ -148,7 +148,6 @@ class ChannelEvent(BaseModel):
     status: ConversationStatus | None = None
     replyable: bool | None = None
     paused: bool = False
-    auto_ok: bool = False
     assigned_agent_id: str | None = None
     assigned_team_id: str | None = None
     created_at: datetime

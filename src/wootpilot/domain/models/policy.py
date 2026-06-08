@@ -51,7 +51,6 @@ class PolicyRule(StrEnum):
         "public.price_requires_mentionable_snapshot"
     )
     mode_public_reply_not_enabled = "mode.public_reply_not_enabled"
-    production_public_auto_not_enabled = "production_public_auto_not_enabled"
     content_empty = "content.empty"
     unknown_action_kind = "unknown_action_kind"
 

@@ -9,7 +9,7 @@ from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from wootpilot.domain.models import (
-    BotMode,
+    AutomationMode,
     CatalogConnectorMode,
     CheckpointerProfile,
     ModelProvider,
@@ -37,11 +37,9 @@ class Settings(BaseSettings):
 
     db_url: str = "sqlite+aiosqlite:///./data/wootpilot.db"
     checkpointer: CheckpointerProfile = CheckpointerProfile.memory
-    limited_auto_production_allowed: bool = False
 
-    bot_mode: BotMode = BotMode.shadow
+    automation_mode: AutomationMode = AutomationMode.public_reply
     human_operator_active_ttl_seconds: int = 900
-    suppress_public_auto_when_assigned: bool = True
     webhook_replay_window_seconds: int = 300
     outbound_retry_delay_seconds: int = 60
     outbound_max_attempts: int = 3

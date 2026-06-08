@@ -89,7 +89,7 @@ AsyncSqliteSaver
   Local development, demos, and single-worker alpha workflows.
 
 AsyncPostgresSaver
-  Production workflows, concurrent workers, and any production public auto-send.
+  Production workflows, concurrent workers, and any production public replies.
 ```
 
 Every graph invocation that uses a checkpointer must pass a stable `thread_id`.
@@ -158,7 +158,7 @@ rules.
 
 LangGraph interrupts are the right primitive when the product needs to pause a
 graph, expose state to a reviewer, and later resume with `Command(resume=...)`.
-WootPilot should not use interrupts for MVP copilot mode because Chatwoot
+WootPilot should not use interrupts for MVP assist mode because Chatwoot
 private notes already provide the review surface and keep the graph run simple.
 
 Revisit interrupts only after WootPilot has a first-class approval UI or API.

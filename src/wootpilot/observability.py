@@ -109,7 +109,7 @@ def workflow_log_fields(
     tenant_id: str,
     channel_id: str,
     conversation_id: str,
-    bot_mode: str,
+    automation_mode: str,
     status: str,
     action_kind: str,
     rule_ids: list[str],
@@ -127,7 +127,7 @@ def workflow_log_fields(
         "tenant_id": tenant_id,
         "channel_id": channel_id,
         "conversation_id": conversation_id,
-        "bot_mode": bot_mode,
+        "automation_mode": automation_mode,
         "status": status,
         "action_kind": action_kind,
         "rule_ids": rule_ids,
@@ -176,7 +176,7 @@ def workflow_trace_start(
     channel_id: str,
     conversation_id: str,
     message_id: str,
-    bot_mode: str,
+    automation_mode: str,
     content: str,
 ) -> None:
     """Print a local-only workflow trace header for one graph invocation."""
@@ -192,7 +192,7 @@ def workflow_trace_start(
             "channel": channel_id,
             "conversation": conversation_id,
             "message": message_id,
-            "mode": bot_mode,
+            "mode": automation_mode,
             "content": content,
         },
     )

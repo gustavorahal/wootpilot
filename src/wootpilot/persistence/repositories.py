@@ -14,7 +14,7 @@ from wootpilot.domain.models import (
     AgentRunStatus,
     AttachmentMetadata,
     AuditEventType,
-    BotMode,
+    AutomationMode,
     ContextSnapshotKind,
     ConversationState,
     ConversationStatus,
@@ -90,7 +90,6 @@ def row_to_state(row: ConversationStateRow) -> ConversationState:
         status=ConversationStatus(row.status) if row.status else None,
         replyable=row.replyable,
         paused=row.paused,
-        auto_ok=row.auto_ok,
         updated_at=_utc_aware(row.updated_at),
     )
 
@@ -257,7 +256,6 @@ class Repository:
             conversation_id=conversation_id,
             replyable=True,
             paused=False,
-            auto_ok=False,
             updated_at=now,
         )
         self.session.add(row)
@@ -308,7 +306,7 @@ class Repository:
         id: str,
         normalized_message_id: str,
         raw_event_id: str,
-        bot_mode: BotMode,
+        automation_mode: AutomationMode,
         status: AgentRunStatus,
         workflow_decision: dict[str, Any],
         model_metadata: dict[str, Any],
@@ -319,7 +317,7 @@ class Repository:
                 id=id,
                 normalized_message_id=normalized_message_id,
                 raw_event_id=raw_event_id,
-                bot_mode=bot_mode.value,
+                automation_mode=automation_mode.value,
                 status=status.value,
                 workflow_decision=workflow_decision,
                 model_metadata=model_metadata,

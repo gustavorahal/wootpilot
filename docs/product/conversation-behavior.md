@@ -61,10 +61,10 @@ The MVP agent offers these behaviors:
 - Load structured WooCommerce product context from mock data or public Store API
   reads.
 - Produce an auditable agent proposal with a structured model response.
-- Run in shadow mode, copilot mode, or limited auto mode.
-- Write Chatwoot private notes in copilot mode for human review.
-- Send public replies only for low-risk cases in limited auto mode.
-- Stop public automation when deterministic policy says the case needs a human.
+- Run in observe mode, assist mode, or public reply mode.
+- Write Chatwoot private notes in assist mode for human review.
+- Send public replies only for low-risk cases in public reply mode.
+- Stop public replies when deterministic policy says the case needs a human.
 - Persist raw events, normalized messages, context snapshots, policy decisions,
   agent runs, outbound actions, and audit records.
 
@@ -100,7 +100,7 @@ Limited auto mode:
 
 ## Handoff To Humans
 
-In the MVP, "handoff" means WootPilot stops public automation and leaves the
+In the MVP, "handoff" means WootPilot stops public replies and leaves the
 conversation for a human in Chatwoot. Chatwoot remains the handoff surface.
 
 WootPilot should hand off when:
@@ -120,14 +120,14 @@ WootPilot should hand off when:
 Handoff actions by mode:
 
 ```text
-shadow
+observe
   Record the handoff decision only.
 
-copilot
+assist
   Write a private note explaining the suggested response, context, and risk
   reasons.
 
-limited_auto
+public_reply
   Prefer a private note and no public reply. A short public "someone will review
   this" message is allowed only when policy permits it and no human is already
   active.
@@ -146,27 +146,21 @@ human public reply
   suppressed for a configured window. The default window is 15 minutes.
 
 assignment
-  A human or team assignment can suppress public auto replies when configured.
+  A human or team assignment suppresses public replies.
 
 status
   Open means the customer is waiting. Pending can be used by teams to indicate
   bot/AI handling. Resolved means the case is done until the customer replies.
 
 labels or custom attributes
-  WootPilot-specific labels/custom attributes can pause or re-enable automation.
+  WootPilot-specific labels/custom attributes can pause automation.
 ```
 
 Suggested MVP labels:
 
 ```text
 wootpilot-paused
-  Do not send public AI replies. Private copilot notes may still be allowed.
-
-wootpilot-auto-ok
-  A human has explicitly allowed WootPilot to handle the next eligible customer
-  turn according to bot mode and policy. This clears recent-human and assignment
-  suppression for that turn, but it does not bypass deterministic policy,
-  replyability, pause, resolved-state, or content-safety rules.
+  Do not send public AI replies. Private assist notes may still be allowed.
 
 wootpilot-needs-human
   WootPilot detected a case that needs human review.
@@ -175,7 +169,7 @@ wootpilot-needs-human
 Labels are a product contract, not an implementation requirement for every
 slice. Early slices can model them as fixture fields or conversation state.
 Once the Chatwoot writer supports labels or custom attributes, WootPilot can
-write `wootpilot-needs-human` and read `wootpilot-paused` / `wootpilot-auto-ok`.
+write `wootpilot-needs-human` and read `wootpilot-paused`.
 
 ## Handoff Back To AI
 
@@ -184,10 +178,10 @@ The MVP should support conservative return-to-AI behavior.
 WootPilot may resume handling a conversation when all of these are true:
 
 - A new customer message arrives.
-- Bot mode for the tenant/inbox allows the relevant behavior.
+- Automation mode for the tenant/inbox allows the relevant behavior.
 - The conversation is replyable and not resolved in a way that blocks replies.
-- The human-active suppression window has expired, or a human explicitly added
-  `wootpilot-auto-ok`.
+- For public replies, the human-active suppression window has expired and the
+  conversation is not assigned to a human or team.
 - The conversation does not have `wootpilot-paused`.
 - Pre-model and post-model policy pass.
 
@@ -195,10 +189,9 @@ WootPilot should not automatically resume just because a human stopped typing or
 because time passed inside an existing customer turn. A new customer message is
 the clean MVP boundary for another AI decision.
 
-If a human wants to hand back immediately, they can use the explicit Chatwoot
-control signal, such as adding `wootpilot-auto-ok` or removing
-`wootpilot-paused`. The next customer message is then eligible for WootPilot,
-subject to policy.
+If a human wants WootPilot to resume, the sane default is to wait for the next
+eligible customer message after the human-active window expires, or remove
+`wootpilot-paused` if the conversation was manually paused.
 
 ## Public Dev Back-And-Forth
 
@@ -211,9 +204,8 @@ customer sends message through Meta-connected channel
   -> WootPilot records the event and decides a mode action
   -> WootPilot writes private note or public reply through Chatwoot API
   -> human can reply in Chatwoot
-  -> WootPilot observes the human reply and suppresses public automation
-  -> human can add an explicit resume signal
-  -> next customer message can be handled by WootPilot again
+  -> WootPilot observes the human reply and suppresses public replies
+  -> next eligible customer message can be handled after the suppression window
 ```
 
 This public loop should be an opt-in integration smoke test, not default CI.

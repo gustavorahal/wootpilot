@@ -228,8 +228,6 @@ def translate_channel_event(
         replyable=conversation.get("can_reply"),
         paused="wootpilot-paused" in label_set
         or bool(custom_attributes.get("wootpilot_paused")),
-        auto_ok="wootpilot-auto-ok" in label_set
-        or bool(custom_attributes.get("wootpilot_auto_ok")),
         assigned_agent_id=_assigned_agent_id(conversation),
         assigned_team_id=_assigned_team_id(conversation),
         created_at=_created_at(

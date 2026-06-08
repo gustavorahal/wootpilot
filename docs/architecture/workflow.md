@@ -25,7 +25,7 @@ proposal, WootPilot queues or writes the private note, and the run completes.
 Human review happens in Chatwoot.
 
 If a human replies publicly, WootPilot treats the conversation as human-active
-and suppresses public auto replies for the configured window. The default window
+and suppresses public replies for the configured window. The default window
 is 15 minutes.
 
 ### Limited Auto
@@ -66,7 +66,7 @@ Initial policy rules:
 - Hand off to a human when the customer explicitly asks for a person, manager,
   callback, cancellation, refund, discount, account change, or sensitive policy
   decision.
-- Do not resume public automation while a WootPilot pause label/custom attribute
+- Do not resume public replies while a WootPilot pause label/custom attribute
   is present.
 
 ## Ingress Before LangGraph
@@ -128,7 +128,7 @@ conversation_context
 human_operator_state
 triage_result
 catalog_context
-bot_mode
+automation_mode
 pre_model_policy_decision
 agent_proposal
 outbound_action_candidate
@@ -144,7 +144,7 @@ policy_gate
 llm_proposal
 validate_outbound_action
 route_final_decision
-build_shadow_decision
+build_observe_decision
 build_private_note_action
 build_public_message_action
 build_missing_proposal_failure
@@ -183,12 +183,11 @@ Branching:
 
 ```text
 ignored event -> audit decision -> done
-shadow mode -> llm proposal -> audit decision -> done
-copilot mode -> private note candidate -> guard -> queue note action
-limited auto safe -> public message candidate -> guard -> queue public action
+observe mode -> llm proposal -> audit decision -> done
+assist mode -> private note candidate -> guard -> queue note action
+public reply safe -> public message candidate -> guard -> queue public action
 risky or uncertain -> private note -> guard -> queue note action
 human active or paused -> optional private note -> done
-explicit resume signal on later customer turn -> policy gate
 ```
 
 Before a public send, the outbound executor must re-check the conversation id,
@@ -226,10 +225,10 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class BotMode(StrEnum):
-    shadow = "shadow"
-    copilot = "copilot"
-    limited_auto = "limited_auto"
+class AutomationMode(StrEnum):
+    observe = "observe"
+    assist = "assist"
+    public_reply = "public_reply"
 
 
 class AgentRunStatus(StrEnum):

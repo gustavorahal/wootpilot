@@ -66,9 +66,8 @@ WOOTPILOT_WEBHOOK_PATH
 
 WOOTPILOT_DB_URL
 WOOTPILOT_CHECKPOINTER
-WOOTPILOT_LIMITED_AUTO_PRODUCTION_ALLOWED
 
-WOOTPILOT_BOT_MODE
+WOOTPILOT_AUTOMATION_MODE
 WOOTPILOT_HUMAN_OPERATOR_ACTIVE_TTL_SECONDS
 WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS
 WOOTPILOT_OUTBOUND_MAX_ATTEMPTS
@@ -82,9 +81,9 @@ model-proposed text. It is ignored in `test` and `production`, where structured
 JSON logs and audit records remain the observability path.
 `WOOTPILOT_HUMAN_OPERATOR_ACTIVE_TTL_SECONDS` controls how long WootPilot treats
 a conversation as human-active after a human sends a public Chatwoot reply. The
-default is `900` seconds, or 15 minutes. During this window, public automation is
-blocked unless a human explicitly sets the `wootpilot-auto-ok` label or
-`wootpilot_auto_ok` custom attribute.
+default is `900` seconds, or 15 minutes. During this window, `public_reply`
+automation is blocked; `observe` and `assist` can still run because they do not
+send customer-visible messages.
 Retryable outbound channel failures are retried after
 `WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS` until `WOOTPILOT_OUTBOUND_MAX_ATTEMPTS`
 is reached, then the action is marked as a permanent failure.

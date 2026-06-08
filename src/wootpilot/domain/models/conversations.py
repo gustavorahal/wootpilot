@@ -19,9 +19,10 @@ class ConversationStatus(StrEnum):
 class ConversationState(BaseModel):
     """Current safety state for a provider conversation.
 
-    This model is intentionally conservative. `auto_ok` is the explicit escape
-    hatch that allows automation to continue despite assignment or recent human
-    activity; without it, WootPilot should assume a human is in control.
+    This model is intentionally conservative: it tracks whether a conversation
+    is replyable, paused, resolved, assigned, or recently touched by a human.
+    Those fields are used to block customer-visible automation while still
+    allowing internal assistance when appropriate.
 
     Chatwoot remains the system of record for conversation content and
     assignment. This state is WootPilot's local suppression view and should be
@@ -42,7 +43,6 @@ class ConversationState(BaseModel):
     status: ConversationStatus | None = None
     replyable: bool = True
     paused: bool = False
-    auto_ok: bool = False
     updated_at: datetime
 
     @field_validator("status", mode="before")

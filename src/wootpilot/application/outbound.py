@@ -10,12 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wootpilot.application.policy import public_price_policy_rule
 from wootpilot.domain.models import (
     AgentActionKind,
-    BotMode,
+    AutomationMode,
     ConversationStatus,
     OutboundActionStatus,
     PolicyRule,
     QueuedOutboundAction,
-    RuntimeEnvironment,
     StructuredCatalogContext,
 )
 from wootpilot.integrations.chatwoot import ChatwootClient
@@ -244,13 +243,8 @@ class ExecuteOutboundActions:
                 return PolicyRule.content_empty
             return None
         if action.action_kind is AgentActionKind.public_message:
-            if self.settings.bot_mode is not BotMode.limited_auto:
+            if self.settings.automation_mode is not AutomationMode.public_reply:
                 return PolicyRule.mode_public_reply_not_enabled
-            if (
-                self.settings.env is RuntimeEnvironment.production
-                and not self.settings.limited_auto_production_allowed
-            ):
-                return PolicyRule.production_public_auto_not_enabled
             if not action.content.strip():
                 return PolicyRule.content_empty
             lowered = action.content.lower()
@@ -280,17 +274,9 @@ class ExecuteOutboundActions:
                 return PolicyRule.conversation_wootpilot_paused
             now = self.clock.now()
             human_active_until = _aware(state.human_active_until)
-            if (
-                human_active_until
-                and human_active_until > now
-                and not state.auto_ok
-            ):
+            if human_active_until and human_active_until > now:
                 return PolicyRule.conversation_human_active
-            if (
-                self.settings.suppress_public_auto_when_assigned
-                and (state.assigned_agent_id or state.assigned_team_id)
-                and not state.auto_ok
-            ):
+            if state.assigned_agent_id or state.assigned_team_id:
                 return PolicyRule.conversation_assigned_to_human
             await self.repo.session.commit()
             channel_state = await self.chatwoot.get_conversation_safety(
@@ -304,14 +290,7 @@ class ExecuteOutboundActions:
                 return PolicyRule.channel_resolved
             if channel_state.paused:
                 return PolicyRule.channel_wootpilot_paused
-            if (
-                self.settings.suppress_public_auto_when_assigned
-                and (
-                    channel_state.assigned_agent_id
-                    or channel_state.assigned_team_id
-                )
-                and not state.auto_ok
-            ):
+            if channel_state.assigned_agent_id or channel_state.assigned_team_id:
                 return PolicyRule.channel_assigned_to_human
             return None
         return PolicyRule.unknown_action_kind

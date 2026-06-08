@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
-    BotMode,
+    AutomationMode,
     ConversationState,
     MessageAuthorType,
     MessageDirection,
@@ -30,7 +30,7 @@ class GoldenConversation(BaseModel):
     model_config = ConfigDict(strict=True)
 
     id: str
-    bot_mode: BotMode
+    automation_mode: AutomationMode
     message: str
     proposal_action_kind: AgentActionKind = AgentActionKind.public_message
     proposal_public_message: str | None = None
@@ -42,10 +42,10 @@ class GoldenConversation(BaseModel):
     expected_action_kind: str
     expected_rule_ids: list[str] = Field(default_factory=list)
 
-    @field_validator("bot_mode", mode="before")
+    @field_validator("automation_mode", mode="before")
     @classmethod
-    def parse_bot_mode(cls, value):
-        return BotMode(value) if isinstance(value, str) else value
+    def parse_automation_mode(cls, value):
+        return AutomationMode(value) if isinstance(value, str) else value
 
     @field_validator("proposal_action_kind", mode="before")
     @classmethod
@@ -96,7 +96,6 @@ async def run_golden_case(case: GoldenConversation) -> dict[str, Any]:
                 conversation_id=f"{case.id}-conversation",
                 replyable=case.state.get("replyable", True),
                 paused=case.state.get("paused", False),
-                auto_ok=case.state.get("auto_ok", False),
                 human_active_until=now if case.state.get("human_active") else None,
                 updated_at=now,
             ),
@@ -105,7 +104,7 @@ async def run_golden_case(case: GoldenConversation) -> dict[str, Any]:
                 products=[],
                 risk_signals=case.catalog_risk_signals,
             ),
-            "bot_mode": case.bot_mode,
+            "automation_mode": case.automation_mode,
         },
         config={
             "configurable": {

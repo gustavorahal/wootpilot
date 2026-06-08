@@ -20,7 +20,7 @@ def test_workflow_log_fields_flag_high_latency_without_content() -> None:
         tenant_id="tenant-1",
         channel_id="channel-1",
         conversation_id="conversation-1",
-        bot_mode="shadow",
+        automation_mode="observe",
         status="proposed",
         action_kind="none",
         rule_ids=["policy.safe"],

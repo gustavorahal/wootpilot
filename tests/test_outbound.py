@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 from wootpilot.application.outbound import ExecuteOutboundActions
 from wootpilot.domain.models import (
     AgentActionKind,
-    BotMode,
+    AutomationMode,
     OutboundActionStatus,
     RuntimeEnvironment,
 )
@@ -190,13 +190,13 @@ async def test_outbound_executor_sends_private_note(tmp_path: Path, caplog) -> N
     assert row.provider_message_id == "provider-123"
 
 
-async def test_limited_auto_executor_sends_public_message_when_state_is_safe(
+async def test_public_reply_executor_sends_public_message_when_state_is_safe(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "public-safe.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -255,7 +255,7 @@ async def test_outbound_executor_commits_executing_before_channel_calls(
     db_path = tmp_path / "public-transaction-boundary.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -290,13 +290,13 @@ async def test_outbound_executor_commits_executing_before_channel_calls(
     assert outbound_status(db_path) == ("sent", None)
 
 
-async def test_limited_auto_executor_sets_status_after_public_message_when_enabled(
+async def test_public_reply_executor_sets_status_after_public_message_when_enabled(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "public-status-update.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
         chatwoot_update_status_after_public_reply=True,
@@ -651,7 +651,7 @@ async def test_public_message_is_blocked_when_human_becomes_active(
     db_path = tmp_path / "public-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -713,7 +713,7 @@ async def test_public_message_is_blocked_when_conversation_is_paused(
     db_path = tmp_path / "public-paused-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -758,7 +758,7 @@ async def test_public_message_is_blocked_when_channel_is_not_replyable(
     db_path = tmp_path / "public-channel-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -819,7 +819,7 @@ async def test_public_message_is_blocked_when_channel_is_paused(
     db_path = tmp_path / "public-channel-paused-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -865,7 +865,7 @@ async def test_public_message_is_blocked_when_channel_id_mismatches(
     db_path = tmp_path / "public-channel-id-mismatch.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -911,7 +911,7 @@ async def test_public_message_is_blocked_when_conversation_is_assigned(
     db_path = tmp_path / "public-assigned-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -971,7 +971,7 @@ async def test_public_message_is_blocked_when_conversation_is_resolved(
     db_path = tmp_path / "public-resolved-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -1025,13 +1025,13 @@ async def test_public_message_is_blocked_when_conversation_is_resolved(
     assert row.failure_reason == "conversation.resolved"
 
 
-async def test_public_message_is_blocked_when_not_limited_auto(
+async def test_public_message_is_blocked_when_not_public_reply(
     tmp_path: Path,
 ) -> None:
-    db_path = tmp_path / "public-shadow-blocked.db"
+    db_path = tmp_path / "public-observe-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.shadow,
+        automation_mode=AutomationMode.observe,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -1069,58 +1069,13 @@ async def test_public_message_is_blocked_when_not_limited_auto(
     )
 
 
-async def test_public_message_is_blocked_in_production_without_override(
-    tmp_path: Path,
-) -> None:
-    db_path = tmp_path / "public-production-blocked.db"
-    settings = Settings(
-        env=RuntimeEnvironment.production,
-        bot_mode=BotMode.limited_auto,
-        limited_auto_production_allowed=False,
-        db_url=f"sqlite+aiosqlite:///{db_path}",
-        chatwoot_webhook_secret="secret",
-    )
-    await init_database(settings)
-    factory = make_session_factory(settings)
-    ids = IdGenerator()
-    now = Clock().now()
-    async with factory() as session:
-        await create_parent_agent_run(session, now)
-        repo = Repository(session)
-        await repo.get_or_create_state(
-            id=ids.new(),
-            tenant_id="1",
-            channel_id="2",
-            conversation_id="3",
-            now=now,
-        )
-        await queue_public_action(repo, ids, now)
-        await session.commit()
-
-    writer = FakeChatwootWriter()
-    async with factory() as session:
-        counts = await ExecuteOutboundActions(
-            settings=settings,
-            session=session,
-            chatwoot=writer,  # type: ignore[arg-type]
-        ).run_once()
-        await session.commit()
-
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
-    assert writer.calls == []
-    assert outbound_status(db_path) == (
-        "blocked_by_policy",
-        "production_public_auto_not_enabled",
-    )
-
-
 async def test_public_message_is_blocked_when_content_leaks_reasoning(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "public-content-leak-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -1164,7 +1119,7 @@ async def test_public_message_price_claim_is_blocked_without_safety_snapshot(
     db_path = tmp_path / "public-price-no-snapshot-blocked.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -1213,7 +1168,7 @@ async def test_public_message_price_claim_uses_queued_safety_snapshot(
     db_path = tmp_path / "public-price-snapshot-safe.db"
     settings = Settings(
         env=RuntimeEnvironment.test,
-        bot_mode=BotMode.limited_auto,
+        automation_mode=AutomationMode.public_reply,
         db_url=f"sqlite+aiosqlite:///{db_path}",
         chatwoot_webhook_secret="secret",
     )
@@ -1320,7 +1275,7 @@ async def create_parent_agent_run(session, now) -> None:
             id="agent-run-1",
             normalized_message_id="message-1",
             raw_event_id="raw-event-1",
-            bot_mode="shadow",
+            automation_mode="observe",
             status="queued_action",
             workflow_decision={},
             model_metadata={},

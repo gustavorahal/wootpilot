@@ -11,7 +11,9 @@ from sqlalchemy import create_engine, text
 from wootpilot.domain.models import AgentRunStatus, WorkflowDecision
 
 
-def test_valid_customer_message_stores_and_runs_shadow(client: TestClient, env) -> None:
+def test_valid_customer_message_stores_and_runs_observe(
+    client: TestClient, env
+) -> None:
     payload = customer_message_payload(
         content="Tenho interesse em chicote aircooled",
         attachments=[

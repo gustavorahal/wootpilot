@@ -113,7 +113,6 @@ class HandleWebhookEvent:
                         "status": state.status.value if state.status else None,
                         "replyable": state.replyable,
                         "paused": state.paused,
-                        "auto_ok": state.auto_ok,
                         "assigned_agent_id": state.assigned_agent_id,
                         "assigned_team_id": state.assigned_team_id,
                     },
@@ -238,7 +237,6 @@ class HandleWebhookEvent:
                 "status": channel_event.status,
                 "can_reply": channel_event.replyable,
                 "paused": channel_event.paused,
-                "auto_ok": channel_event.auto_ok,
                 "assigned_agent_id": channel_event.assigned_agent_id,
                 "assigned_team_id": channel_event.assigned_team_id,
             },
@@ -259,11 +257,6 @@ class HandleWebhookEvent:
             bool(metadata.get("paused"))
             or "wootpilot-paused" in labels
             or bool(attributes.get("wootpilot_paused"))
-        )
-        row.auto_ok = (
-            bool(metadata.get("auto_ok"))
-            or "wootpilot-auto-ok" in labels
-            or bool(attributes.get("wootpilot_auto_ok"))
         )
         if metadata.get("status") is not None:
             row.status = str(metadata["status"])

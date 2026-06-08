@@ -21,7 +21,7 @@ from wootpilot.settings import Settings
 
 
 class FakeModelProposalPort(ModelProposalPort):
-    """Deterministic adapter used by default CI and local shadow smoke tests."""
+    """Deterministic adapter used by default CI and local observe smoke tests."""
 
     async def propose(
         self,

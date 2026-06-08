@@ -28,6 +28,12 @@ These rules apply to this entire repository.
 - Use `./scripts/release-check` before release-oriented changes or when touching packaging, migrations, deployment, security-sensitive code, or public-dev tooling.
 - If any expected validation is skipped, say exactly what was skipped and why.
 
+## Database Changes
+
+- Do not add ad hoc schema upgrades to application startup.
+- Any schema change that affects persisted tables must be represented as a proper Alembic migration.
+- If Alembic is not configured yet, pause and propose adding Alembic rather than hiding migration logic in application code.
+
 ## Commits
 
 - Commit messages must be explanatory, not just a short one-line message.

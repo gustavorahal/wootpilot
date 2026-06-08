@@ -12,7 +12,7 @@ from wootpilot.domain.models import (
     AgentActionKind,
     AgentRunStatus,
     AuditEventType,
-    BotMode,
+    AutomationMode,
     ContextSnapshotKind,
     ConversationState,
     NormalizedMessage,
@@ -93,15 +93,12 @@ class RunSupportWorkflow:
                 clock=self.clock,
                 ids=self.ids,
                 checkpointer=checkpointer,
-                suppress_public_auto_when_assigned=(
-                    self.settings.suppress_public_auto_when_assigned
-                ),
             )
             graph_input = {
                 "normalized_message": message,
                 "conversation_state": state,
                 "catalog_context": context,
-                "bot_mode": self.settings.bot_mode,
+                "automation_mode": self.settings.automation_mode,
             }
             graph_config = {"configurable": {"thread_id": thread_id}}
             result = await self._invoke_graph(
@@ -121,7 +118,7 @@ class RunSupportWorkflow:
             id=agent_run_id,
             normalized_message_id=message.id,
             raw_event_id=message.raw_event_id,
-            bot_mode=self.settings.bot_mode,
+            automation_mode=self.settings.automation_mode,
             status=decision.status,
             workflow_decision=decision.model_dump(mode="json"),
             model_metadata=model_metadata,
@@ -169,7 +166,7 @@ class RunSupportWorkflow:
                 tenant_id=message.tenant_id,
                 channel_id=message.channel_id,
                 conversation_id=message.conversation_id,
-                bot_mode=self.settings.bot_mode.value,
+                automation_mode=self.settings.automation_mode.value,
                 status=decision.status.value,
                 action_kind=decision.action_kind.value,
                 rule_ids=[item.value for item in decision.rule_ids],
@@ -203,7 +200,7 @@ class RunSupportWorkflow:
             channel_id=message.channel_id,
             conversation_id=message.conversation_id,
             message_id=message.message_id,
-            bot_mode=self.settings.bot_mode.value,
+            automation_mode=self.settings.automation_mode.value,
             content=message.content,
         )
         result = dict(graph_input)
@@ -238,7 +235,7 @@ class RunSupportWorkflow:
             return
         if (
             decision.action_kind is AgentActionKind.public_message
-            and self.settings.bot_mode is not BotMode.limited_auto
+            and self.settings.automation_mode is not AutomationMode.public_reply
         ):
             return
         key = (
