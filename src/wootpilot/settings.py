@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     env: RuntimeEnvironment = RuntimeEnvironment.local
     log_level: str = "info"
+    workflow_trace: bool = True
     model_high_latency_ms: int = 10000
     public_base_url: AnyHttpUrl = "http://localhost:8000"  # type: ignore[assignment]
     webhook_path: str = "/webhooks/chatwoot"
@@ -39,7 +40,7 @@ class Settings(BaseSettings):
     limited_auto_production_allowed: bool = False
 
     bot_mode: BotMode = BotMode.shadow
-    human_operator_active_ttl_seconds: int = 1800
+    human_operator_active_ttl_seconds: int = 900
     suppress_public_auto_when_assigned: bool = True
     webhook_replay_window_seconds: int = 300
     outbound_retry_delay_seconds: int = 60

@@ -191,7 +191,8 @@ prove wiring:
 - human public reply suppresses later public automation
 - `wootpilot-paused` blocks automation
 - `wootpilot-auto-ok` permits a later eligible customer turn but does not bypass
-  deterministic policy
+  deterministic policy, replyability, pause, resolved-state, or content-safety
+  rules
 
 Keep live public replies disabled unless a specific conversation and message are
 approved for testing.

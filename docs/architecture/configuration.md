@@ -60,6 +60,7 @@ belong in infra env-example directories.
 ```text
 WOOTPILOT_ENV
 WOOTPILOT_LOG_LEVEL
+WOOTPILOT_WORKFLOW_TRACE
 WOOTPILOT_PUBLIC_BASE_URL
 WOOTPILOT_WEBHOOK_PATH
 
@@ -75,6 +76,15 @@ WOOTPILOT_OUTBOUND_MAX_ATTEMPTS
 
 `WOOTPILOT_PUBLIC_BASE_URL` is the URL Chatwoot uses to call WootPilot webhooks.
 It is not necessarily the same as the Chatwoot URL.
+`WOOTPILOT_WORKFLOW_TRACE=true` prints a local-only developer LangGraph node
+trace in `local` and `public_dev` environments, including customer messages and
+model-proposed text. It is ignored in `test` and `production`, where structured
+JSON logs and audit records remain the observability path.
+`WOOTPILOT_HUMAN_OPERATOR_ACTIVE_TTL_SECONDS` controls how long WootPilot treats
+a conversation as human-active after a human sends a public Chatwoot reply. The
+default is `900` seconds, or 15 minutes. During this window, public automation is
+blocked unless a human explicitly sets the `wootpilot-auto-ok` label or
+`wootpilot_auto_ok` custom attribute.
 Retryable outbound channel failures are retried after
 `WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS` until `WOOTPILOT_OUTBOUND_MAX_ATTEMPTS`
 is reached, then the action is marked as a permanent failure.

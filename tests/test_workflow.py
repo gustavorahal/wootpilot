@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
@@ -11,6 +11,7 @@ from wootpilot.domain.models import (
     AgentProposal,
     AvailabilitySnapshot,
     BotMode,
+    CheckpointerProfile,
     ConversationState,
     ConversationStatus,
     MessageAuthorType,
@@ -338,6 +339,219 @@ async def test_limited_auto_review_note_is_persisted_as_private_outbound_action(
     assert action.status == "queued"
     assert "needs human review" in action.content
     assert "R$ 999,00" not in action.content
+
+
+async def test_local_workflow_trace_streaming_returns_final_graph_state(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    db_path = tmp_path / "workflow-trace.db"
+    settings = Settings(
+        env=RuntimeEnvironment.local,
+        workflow_trace=True,
+        bot_mode=BotMode.shadow,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    clock = Clock()
+    ids = IdGenerator()
+    now = clock.now()
+    message = _message(now)
+    async with factory() as session:
+        repo = Repository(session)
+        raw, _ = await repo.insert_raw_event(
+            id="raw-1",
+            provider=Provider.chatwoot,
+            provider_event_id="delivery-1",
+            event_type="message_created",
+            payload_hash="hash",
+            payload={},
+            status=RawEventStatus.processed,
+            received_at=now,
+        )
+        message = message.model_copy(update={"raw_event_id": raw.id})
+        await repo.insert_message(message)
+        state_row = await repo.get_or_create_state(
+            id="state-1",
+            tenant_id=message.tenant_id,
+            channel_id=message.channel_id,
+            conversation_id=message.conversation_id,
+            now=now,
+        )
+        decision = await RunSupportWorkflow(
+            settings=settings,
+            session=session,
+            model_port=FakeModelProposalPort(),
+            clock=clock,
+            ids=ids,
+        ).run(message, row_to_state(state_row))
+
+    captured = capsys.readouterr()
+    assert decision.status.value == "proposed"
+    assert "workflow" in captured.err
+    assert "build_shadow_decision" in captured.err
+    assert "Do you have this product?" in captured.err
+
+
+async def test_persistent_checkpoints_do_not_replay_policy_state_between_messages(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    db_path = tmp_path / "workflow-checkpoint-turns.db"
+    settings = Settings(
+        env=RuntimeEnvironment.local,
+        workflow_trace=True,
+        checkpointer=CheckpointerProfile.sqlite,
+        bot_mode=BotMode.shadow,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    clock = Clock()
+    ids = IdGenerator()
+    now = clock.now()
+
+    async with factory() as session:
+        repo = Repository(session)
+        state_row = await repo.get_or_create_state(
+            id="state-1",
+            tenant_id="t1",
+            channel_id="c1",
+            conversation_id="v1",
+            now=now,
+        )
+        workflow = RunSupportWorkflow(
+            settings=settings,
+            session=session,
+            model_port=FakeModelProposalPort(),
+            clock=clock,
+            ids=ids,
+        )
+
+        first = await _persist_inbound_message(
+            repo=repo,
+            now=now,
+            raw_id="raw-1",
+            message_id="m1",
+            provider_message_id="101",
+            content="Do you have this product?",
+        )
+        first_decision = await workflow.run(first, row_to_state(state_row))
+
+        second = await _persist_inbound_message(
+            repo=repo,
+            now=now,
+            raw_id="raw-2",
+            message_id="m2",
+            provider_message_id="102",
+            content="Do you have another product?",
+        )
+        second_decision = await workflow.run(second, row_to_state(state_row))
+        await session.commit()
+
+    captured = capsys.readouterr()
+    assert first_decision.status.value == "proposed"
+    assert second_decision.status.value == "proposed"
+    assert "conversation:v1:message:101" in captured.err
+    assert "conversation:v1:message:102" in captured.err
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with engine.connect() as conn:
+        count = conn.execute(text("select count(*) from policy_decisions")).scalar_one()
+    assert count == 2
+
+
+async def test_sqlite_loaded_human_active_until_blocks_without_naive_datetime_error(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "workflow-human-active.db"
+    settings = Settings(
+        env=RuntimeEnvironment.local,
+        workflow_trace=True,
+        checkpointer=CheckpointerProfile.sqlite,
+        bot_mode=BotMode.shadow,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    clock = Clock()
+    ids = IdGenerator()
+    now = clock.now()
+
+    async with factory() as session:
+        repo = Repository(session)
+        row = await repo.get_or_create_state(
+            id="state-1",
+            tenant_id="t1",
+            channel_id="c1",
+            conversation_id="v1",
+            now=now,
+        )
+        row.human_active_until = now + timedelta(minutes=30)
+        await session.commit()
+
+    async with factory() as session:
+        repo = Repository(session)
+        row = await repo.get_or_create_state(
+            id="state-ignored",
+            tenant_id="t1",
+            channel_id="c1",
+            conversation_id="v1",
+            now=now,
+        )
+        message = await _persist_inbound_message(
+            repo=repo,
+            now=now,
+            raw_id="raw-1",
+            message_id="m1",
+            provider_message_id="101",
+            content="Do you have this product?",
+        )
+        decision = await RunSupportWorkflow(
+            settings=settings,
+            session=session,
+            model_port=FakeModelProposalPort(),
+            clock=clock,
+            ids=ids,
+        ).run(message, row_to_state(row))
+
+    assert decision.status.value == "blocked_by_policy"
+    assert "conversation.human_active" in decision.rule_ids
+
+
+async def _persist_inbound_message(
+    *,
+    repo: Repository,
+    now: datetime,
+    raw_id: str,
+    message_id: str,
+    provider_message_id: str,
+    content: str,
+) -> NormalizedMessage:
+    raw, _ = await repo.insert_raw_event(
+        id=raw_id,
+        provider=Provider.chatwoot,
+        provider_event_id=f"delivery-{provider_message_id}",
+        event_type="message_created",
+        payload_hash=f"hash-{provider_message_id}",
+        payload={},
+        status=RawEventStatus.processed,
+        received_at=now,
+    )
+    message = _message(now).model_copy(
+        update={
+            "id": message_id,
+            "raw_event_id": raw.id,
+            "message_id": provider_message_id,
+            "content": content,
+        }
+    )
+    await repo.insert_message(message)
+    return message
 
 
 def _message(now: datetime) -> NormalizedMessage:

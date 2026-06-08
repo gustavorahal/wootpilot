@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 from collections.abc import Mapping
 from enum import Enum
 from typing import Any
@@ -165,6 +166,147 @@ def outbound_log_fields(
         "provider_message_id": provider_message_id,
         "failure_reason": failure_reason,
     }
+
+
+def workflow_trace_start(
+    *,
+    enabled: bool,
+    thread_id: str,
+    tenant_id: str,
+    channel_id: str,
+    conversation_id: str,
+    message_id: str,
+    bot_mode: str,
+    content: str,
+) -> None:
+    """Print a local-only workflow trace header for one graph invocation."""
+
+    if not enabled:
+        return
+    _trace_line(
+        "start",
+        "workflow",
+        {
+            "thread": thread_id,
+            "tenant": tenant_id,
+            "channel": channel_id,
+            "conversation": conversation_id,
+            "message": message_id,
+            "mode": bot_mode,
+            "content": content,
+        },
+    )
+
+
+def workflow_trace_update(*, enabled: bool, node: str, update: Any) -> None:
+    """Print one developer-facing LangGraph node update."""
+
+    if not enabled:
+        return
+    _trace_line("step", node, _workflow_update_summary(update))
+
+
+def workflow_trace_complete(
+    *,
+    enabled: bool,
+    status: str,
+    action_kind: str,
+    rule_ids: list[str],
+) -> None:
+    """Print a local-only workflow trace footer for one graph invocation."""
+
+    if not enabled:
+        return
+    _trace_line(
+        "done",
+        "workflow",
+        {"status": status, "action": action_kind, "rules": rule_ids},
+    )
+
+
+def workflow_trace_enabled(*, env: str, enabled: bool) -> bool:
+    """Return whether pretty graph tracing should be printed locally.
+
+    The guard keeps content-rich graph tracing out of tests and production even
+    if the setting is accidentally left true. Production should continue relying
+    on structured JSON logs and durable audit records.
+    """
+
+    return enabled and env in {"local", "public_dev"}
+
+
+def _workflow_update_summary(update: Any) -> dict[str, Any]:
+    """Return a developer-facing summary of one LangGraph state update.
+
+    This intentionally includes customer and model-visible text in local and
+    public-dev traces. The caller gates this helper behind `workflow_trace_enabled`
+    so it is not used in test or production environments.
+    """
+
+    if not isinstance(update, Mapping):
+        return {"update": type(update).__name__}
+    summary: dict[str, Any] = {}
+    if triage := update.get("triage_result"):
+        summary["intent"] = getattr(triage, "intent", None)
+        summary["risks"] = getattr(triage, "risk_signals", [])
+    if policy := update.get("pre_model_policy_decision") or update.get(
+        "post_model_policy_decision"
+    ):
+        summary["policy"] = _enum_value(getattr(policy, "outcome", None))
+        summary["rules"] = [
+            _enum_value(item) for item in getattr(policy, "rule_ids", [])
+        ]
+    if proposal := update.get("agent_proposal"):
+        summary["proposal_action"] = _enum_value(
+            getattr(proposal, "action_kind", None)
+        )
+        summary["confidence"] = getattr(proposal, "confidence", None)
+        summary["risks"] = getattr(proposal, "risk_reasons", [])
+        summary["public_message"] = getattr(proposal, "public_message", None)
+        summary["private_note"] = getattr(proposal, "private_note", None)
+        summary["summary"] = getattr(proposal, "summary", None)
+    if decision := update.get("workflow_decision"):
+        summary["status"] = _enum_value(getattr(decision, "status", None))
+        summary["action"] = _enum_value(getattr(decision, "action_kind", None))
+        summary["rules"] = [
+            _enum_value(item) for item in getattr(decision, "rule_ids", [])
+        ]
+        summary["content"] = getattr(decision, "content", None)
+        summary["summary"] = getattr(decision, "summary", None)
+    if metadata := update.get("model_metadata"):
+        if isinstance(metadata, Mapping):
+            summary["model_provider"] = metadata.get("provider")
+            summary["model"] = metadata.get("model")
+            summary["structured_method"] = metadata.get("structured_method")
+            summary["latency_ms"] = metadata.get("latency_ms")
+    if catalog := update.get("catalog_context"):
+        summary["products"] = len(getattr(catalog, "products", []) or [])
+        summary["catalog_risks"] = getattr(catalog, "risk_signals", [])
+        summary["snapshot"] = getattr(catalog, "snapshot_id", None)
+    return {key: value for key, value in summary.items() if value not in (None, [])}
+
+
+def _trace_line(kind: str, label: str, fields: Mapping[str, Any]) -> None:
+    icon = {"start": "->", "step": "=>", "done": "OK"}.get(kind, "--")
+    color = {"start": "36", "step": "34", "done": "32"}.get(kind, "0")
+    payload = {
+        str(key): _json_safe(value)
+        for key, value in fields.items()
+        if value not in (None, [], "")
+    }
+    prefix = f"{icon} {label:<28}"
+    if sys.stderr.isatty():
+        prefix = f"\033[{color}m{prefix}\033[0m"
+    print(prefix.rstrip(), file=sys.stderr)
+    if payload:
+        print(
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True),
+            file=sys.stderr,
+        )
+
+
+def _enum_value(value: Any) -> Any:
+    return value.value if isinstance(value, Enum) else value
 
 
 def _level(value: str) -> int:

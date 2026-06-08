@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import and_, or_, select
@@ -67,7 +67,7 @@ def row_to_message(row: ConversationMessageRow) -> NormalizedMessage:
             AttachmentMetadata.model_validate(attachment)
             for attachment in row.attachments
         ],
-        created_at=row.created_at,
+        created_at=_utc_aware(row.created_at),
         metadata=row.message_metadata,
     )
 
@@ -80,16 +80,18 @@ def row_to_state(row: ConversationStateRow) -> ConversationState:
         tenant_id=row.tenant_id,
         channel_id=row.channel_id,
         conversation_id=row.conversation_id,
-        human_active_until=row.human_active_until,
-        last_human_public_message_at=row.last_human_public_message_at,
-        last_customer_message_at=row.last_customer_message_at,
+        human_active_until=_utc_aware_optional(row.human_active_until),
+        last_human_public_message_at=_utc_aware_optional(
+            row.last_human_public_message_at
+        ),
+        last_customer_message_at=_utc_aware_optional(row.last_customer_message_at),
         assigned_agent_id=row.assigned_agent_id,
         assigned_team_id=row.assigned_team_id,
         status=ConversationStatus(row.status) if row.status else None,
         replyable=row.replyable,
         paused=row.paused,
         auto_ok=row.auto_ok,
-        updated_at=row.updated_at,
+        updated_at=_utc_aware(row.updated_at),
     )
 
 
@@ -108,6 +110,24 @@ def row_to_outbound_action(row: OutboundActionRow) -> QueuedOutboundAction:
         status=OutboundActionStatus(row.status),
         attempt_count=row.attempt_count,
     )
+
+
+def _utc_aware(value: datetime) -> datetime:
+    """Return a timezone-aware UTC datetime from persisted timestamp values.
+
+    SQLite does not preserve `tzinfo` even when SQLAlchemy columns are declared
+    as `DateTime(timezone=True)`. WootPilot's domain layer uses UTC-aware
+    datetimes, so repository hydration restores that contract before policy code
+    compares timestamps from the database with the application clock.
+    """
+
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
+def _utc_aware_optional(value: datetime | None) -> datetime | None:
+    return _utc_aware(value) if value is not None else None
 
 
 class Repository:

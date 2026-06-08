@@ -7,6 +7,8 @@ from wootpilot.observability import (
     JsonEventFormatter,
     log_event,
     workflow_log_fields,
+    workflow_trace_enabled,
+    workflow_trace_update,
 )
 
 
@@ -74,3 +76,53 @@ def test_log_event_attaches_safe_structured_fields(caplog) -> None:
     record = caplog.records[-1]
     assert record.wootpilot_event == "outbound_action_completed"
     assert record.wootpilot_fields == {"action_id": "a1", "status": "sent"}
+
+
+def test_workflow_trace_enabled_only_for_local_profiles() -> None:
+    assert workflow_trace_enabled(env="local", enabled=True) is True
+    assert workflow_trace_enabled(env="public_dev", enabled=True) is True
+    assert workflow_trace_enabled(env="test", enabled=True) is False
+    assert workflow_trace_enabled(env="production", enabled=True) is False
+    assert workflow_trace_enabled(env="local", enabled=False) is False
+
+
+def test_workflow_trace_update_prints_developer_content(capsys) -> None:
+    class Proposal:
+        action_kind = "public_message"
+        confidence = 0.9
+        risk_reasons = []
+        public_message = "Customer-visible generated reply"
+        private_note = "Internal suggested note"
+
+    workflow_trace_update(
+        enabled=True,
+        node="llm_proposal",
+        update={"agent_proposal": Proposal()},
+    )
+
+    captured = capsys.readouterr()
+    assert "llm_proposal" in captured.err
+    assert '"proposal_action": "public_message"' in captured.err
+    assert "Customer-visible generated reply" in captured.err
+    assert "Internal suggested note" in captured.err
+
+
+def test_workflow_trace_update_pretty_prints_json_payload(capsys) -> None:
+    workflow_trace_update(
+        enabled=True,
+        node="metadata",
+        update={
+            "model_metadata": {
+                "provider": "openrouter",
+                "model": "openai/gpt-4.1-mini",
+                "structured_method": "function_calling",
+                "latency_ms": 1234,
+            }
+        },
+    )
+
+    captured = capsys.readouterr()
+    assert "metadata" in captured.err
+    assert '{\n  "latency_ms": 1234,' in captured.err
+    assert '"model": "openai/gpt-4.1-mini"' in captured.err
+    assert '"model_provider": "openrouter"' in captured.err

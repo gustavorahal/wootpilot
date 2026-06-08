@@ -25,7 +25,8 @@ proposal, WootPilot queues or writes the private note, and the run completes.
 Human review happens in Chatwoot.
 
 If a human replies publicly, WootPilot treats the conversation as human-active
-and suppresses public auto replies for the configured window.
+and suppresses public auto replies for the configured window. The default window
+is 15 minutes.
 
 ### Limited Auto
 

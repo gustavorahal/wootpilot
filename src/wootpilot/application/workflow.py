@@ -23,7 +23,14 @@ from wootpilot.domain.models import (
     WorkflowDecision,
 )
 from wootpilot.domain.ports import ModelProposalPort
-from wootpilot.observability import log_event, workflow_log_fields
+from wootpilot.observability import (
+    log_event,
+    workflow_log_fields,
+    workflow_trace_complete,
+    workflow_trace_enabled,
+    workflow_trace_start,
+    workflow_trace_update,
+)
 from wootpilot.persistence.repositories import Repository
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
@@ -79,10 +86,7 @@ class RunSupportWorkflow:
             created_at=self.clock.now(),
         )
 
-        thread_id = (
-            f"tenant:{message.tenant_id}:channel:{message.channel_id}:"
-            f"conversation:{message.conversation_id}"
-        )
+        thread_id = _workflow_thread_id(message)
         async with checkpointer_from_settings(self.settings) as checkpointer:
             graph = build_support_graph(
                 model_port=self.model_port,
@@ -93,14 +97,19 @@ class RunSupportWorkflow:
                     self.settings.suppress_public_auto_when_assigned
                 ),
             )
-            result = await graph.ainvoke(
-                {
-                    "normalized_message": message,
-                    "conversation_state": state,
-                    "catalog_context": context,
-                    "bot_mode": self.settings.bot_mode,
-                },
-                config={"configurable": {"thread_id": thread_id}},
+            graph_input = {
+                "normalized_message": message,
+                "conversation_state": state,
+                "catalog_context": context,
+                "bot_mode": self.settings.bot_mode,
+            }
+            graph_config = {"configurable": {"thread_id": thread_id}}
+            result = await self._invoke_graph(
+                graph=graph,
+                graph_input=graph_input,
+                graph_config=graph_config,
+                thread_id=thread_id,
+                message=message,
             )
         decision: WorkflowDecision = result["workflow_decision"]
         pre_policy: PolicyDecision | None = result.get("pre_model_policy_decision")
@@ -171,6 +180,53 @@ class RunSupportWorkflow:
         )
         return decision
 
+    async def _invoke_graph(
+        self,
+        *,
+        graph,
+        graph_input: dict,
+        graph_config: dict,
+        thread_id: str,
+        message: NormalizedMessage,
+    ) -> dict:
+        trace_enabled = workflow_trace_enabled(
+            env=self.settings.env.value,
+            enabled=self.settings.workflow_trace,
+        )
+        if not trace_enabled:
+            return await graph.ainvoke(graph_input, config=graph_config)
+
+        workflow_trace_start(
+            enabled=True,
+            thread_id=thread_id,
+            tenant_id=message.tenant_id,
+            channel_id=message.channel_id,
+            conversation_id=message.conversation_id,
+            message_id=message.message_id,
+            bot_mode=self.settings.bot_mode.value,
+            content=message.content,
+        )
+        result = dict(graph_input)
+        async for chunk in graph.astream(
+            graph_input,
+            config=graph_config,
+            stream_mode=["updates", "values"],
+        ):
+            stream_mode, payload = chunk
+            if stream_mode == "values":
+                result = dict(payload)
+                continue
+            for node, update in payload.items():
+                workflow_trace_update(enabled=True, node=node, update=update)
+        decision = result["workflow_decision"]
+        workflow_trace_complete(
+            enabled=True,
+            status=decision.status.value,
+            action_kind=decision.action_kind.value,
+            rule_ids=[item.value for item in decision.rule_ids],
+        )
+        return result
+
     async def _queue_action(
         self,
         agent_run_id: str,
@@ -207,3 +263,19 @@ class RunSupportWorkflow:
             idempotency_key=key,
             created_at=self.clock.now(),
         )
+
+
+def _workflow_thread_id(message: NormalizedMessage) -> str:
+    """Return the LangGraph checkpoint scope for one support workflow turn.
+
+    WootPilot stores long-lived Chatwoot conversation state in application
+    tables. The LangGraph checkpoint is narrower: it captures execution state
+    for the graph run triggered by one normalized inbound message. Including the
+    provider message id prevents per-turn artifacts such as policy decision ids
+    from being replayed into the next customer message in the same conversation.
+    """
+
+    return (
+        f"tenant:{message.tenant_id}:channel:{message.channel_id}:"
+        f"conversation:{message.conversation_id}:message:{message.message_id}"
+    )

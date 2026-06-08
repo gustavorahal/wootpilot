@@ -93,11 +93,13 @@ AsyncPostgresSaver
 ```
 
 Every graph invocation that uses a checkpointer must pass a stable `thread_id`.
-For WootPilot, derive it from tenant, channel, and conversation identifiers so
-Chatwoot conversation history does not leak across tenants:
+For WootPilot, derive it from tenant, channel, conversation, and inbound message
+identifiers. Conversation history belongs in WootPilot application tables; the
+LangGraph checkpoint captures one graph execution and should not carry old
+per-message policy or decision objects into a later turn:
 
 ```text
-tenant:{tenant_id}:channel:{channel_id}:conversation:{conversation_id}
+tenant:{tenant_id}:channel:{channel_id}:conversation:{conversation_id}:message:{message_id}
 ```
 
 Checkpoint tables are framework-owned operational state. They should be

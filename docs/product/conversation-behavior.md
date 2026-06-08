@@ -143,7 +143,7 @@ The MVP should treat these Chatwoot-side signals as human control:
 ```text
 human public reply
   A human agent sent a customer-visible message. Public auto replies are
-  suppressed for a configured window.
+  suppressed for a configured window. The default window is 15 minutes.
 
 assignment
   A human or team assignment can suppress public auto replies when configured.
@@ -164,7 +164,9 @@ wootpilot-paused
 
 wootpilot-auto-ok
   A human has explicitly allowed WootPilot to handle the next eligible customer
-  turn according to bot mode and policy.
+  turn according to bot mode and policy. This clears recent-human and assignment
+  suppression for that turn, but it does not bypass deterministic policy,
+  replyability, pause, resolved-state, or content-safety rules.
 
 wootpilot-needs-human
   WootPilot detected a case that needs human review.

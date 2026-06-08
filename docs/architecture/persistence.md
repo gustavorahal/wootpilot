@@ -293,11 +293,13 @@ checkpointers. SQLite is enough to start, but production graph state should move
 to Postgres with the rest of production persistence.
 
 Every checkpointed graph invocation must pass a stable LangGraph `thread_id`.
-Use a tenant/channel/conversation-derived value so checkpoint state stays scoped
-to the same Chatwoot conversation without crossing tenant boundaries:
+WootPilot scopes this id to one inbound message inside a Chatwoot conversation:
+tenant and channel prevent cross-account leakage, conversation keeps the trace
+human-readable, and message prevents per-turn artifacts such as policy decision
+ids from being replayed into the next customer message.
 
 ```text
-tenant:{tenant_id}:channel:{channel_id}:conversation:{conversation_id}
+tenant:{tenant_id}:channel:{channel_id}:conversation:{conversation_id}:message:{message_id}
 ```
 
 Checkpoint tables are framework-owned operational state. WootPilot audit and

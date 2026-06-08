@@ -137,7 +137,11 @@ https://wootpilot-local-dev.gmrahal.net/webhooks/chatwoot
 
 The WootPilot terminal is also where local JSON logs appear, including
 `webhook_handled`, `webhook_authentication_failed`, and
-`support_workflow_completed` events.
+`support_workflow_completed` events. In `local` and `public_dev` environments,
+`WOOTPILOT_WORKFLOW_TRACE=true` also prints a developer LangGraph node trace so
+you can see steps such as `should_invoke`, `policy_gate`, `llm_proposal`, and
+`route_final_decision` as they complete, including the customer message and
+model-proposed text.
 
 Build the application container:
 
