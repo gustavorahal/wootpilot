@@ -71,9 +71,9 @@ any non-automated behavior has explicit manual verification steps.
 Local and public-dev laptop profile:
 
 ```text
-WOOTPILOT_DB_URL=sqlite+aiosqlite:///./data/wootpilot-public-dev.db
-WOOTPILOT_CHECKPOINTER=sqlite
-WOOTPILOT_AUTOMATION_MODE=public_reply
+DB_URL=sqlite+aiosqlite:///./data/wootpilot-public-dev.db
+CHECKPOINTER=sqlite
+AUTOMATION_MODE=public_reply
 ```
 
 SQLite enables WAL mode, foreign keys, and a busy timeout at connection time.
@@ -84,15 +84,15 @@ application transactions.
 Production profile:
 
 ```text
-WOOTPILOT_DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
-WOOTPILOT_CHECKPOINTER=postgres
-WOOTPILOT_AUTOMATION_MODE=public_reply
+DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
+CHECKPOINTER=postgres
+AUTOMATION_MODE=public_reply
 ```
 
 Postgres is required for production public replies and multiple outbound
 workers. Queue workers compile the dequeue query with
 `FOR UPDATE SKIP LOCKED` on Postgres. Install the optional dependency profile
-before enabling `WOOTPILOT_CHECKPOINTER=postgres`:
+before enabling `CHECKPOINTER=postgres`:
 
 ```sh
 uv sync --extra postgres
@@ -114,9 +114,9 @@ client envs: /srv/apps/env/clients/*.env
 If WootPilot is deployed server-side beside Chatwoot, use:
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL=http://chatwoot-web:3000
-WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
-WOOTPILOT_PUBLIC_BASE_URL=https://wootpilot.gmrahal.net
+CHATWOOT_BASE_URL=http://chatwoot-web:3000
+CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
+PUBLIC_BASE_URL=https://wootpilot.gmrahal.net
 ```
 
 The internal Chatwoot URL keeps API calls on the Docker network while public
@@ -164,7 +164,7 @@ state, and fresh Chatwoot conversation safety.
 
 Before rollback or maintenance:
 
-1. Set `WOOTPILOT_AUTOMATION_MODE=observe`.
+1. Set `AUTOMATION_MODE=observe`.
 2. Stop outbound workers.
 3. Confirm no queued actions remain:
 

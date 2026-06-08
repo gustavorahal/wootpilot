@@ -243,7 +243,7 @@ def test_store_api_settings_require_base_url() -> None:
     try:
         catalog_connector_from_settings(settings)
     except ValueError as exc:
-        assert "WOOTPILOT_WOOCOMMERCE_STORE_API_BASE_URL" in str(exc)
+        assert "WOOCOMMERCE_STORE_API_BASE_URL" in str(exc)
     else:  # pragma: no cover
         raise AssertionError("store_api mode should require a Store API base URL")
 

@@ -204,7 +204,7 @@ Prefer modern Python patterns:
 ## Configuration Boundary
 
 Only the app composition layer should read environment variables. Implement
-`src/wootpilot/settings.py` with `pydantic-settings` and a `WOOTPILOT_` prefix.
+`src/wootpilot/settings.py` with `pydantic-settings`.
 Services, adapters, graph builders, and repositories should receive typed
 settings or explicit constructor arguments. Domain models must never read
 environment variables.

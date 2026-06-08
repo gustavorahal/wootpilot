@@ -32,7 +32,7 @@ def test_valid_customer_message_stores_and_runs_observe(
     assert data["status"] == "processed"
     assert data["workflow_status"] == "proposed"
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         assert conn.scalar(text("select count(*) from raw_events")) == 1
@@ -78,7 +78,7 @@ def test_invalid_signature_rejected_and_stores_nothing(
     assert log_record.wootpilot_fields["reason"] == "invalid Chatwoot signature"
     assert isinstance(log_record.wootpilot_fields["latency_ms"], int)
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         assert conn.scalar(text("select count(*) from raw_events")) == 0
@@ -92,7 +92,7 @@ def test_duplicate_delivery_does_not_duplicate_message(client: TestClient, env) 
     assert first.json()["status"] == "processed"
     assert second.json()["status"] == "duplicate"
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         assert conn.scalar(text("select count(*) from raw_events")) == 1
@@ -115,7 +115,7 @@ def test_same_message_with_new_delivery_preserves_duplicate_raw_event(
     assert second.json()["status"] == "duplicate"
     assert second.json()["raw_event_id"] != first.json()["raw_event_id"]
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         assert conn.scalar(text("select count(*) from raw_events")) == 2
@@ -134,7 +134,7 @@ def test_ingress_state_is_committed_before_workflow_runs(
     env,
     monkeypatch,
 ) -> None:
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     observed = {}
 
     class ObservingWorkflow:
@@ -196,7 +196,7 @@ def test_private_note_echo_is_stored_but_does_not_invoke_workflow(
     assert response.status_code == 200
     assert response.json()["status"] == "ignored"
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         assert conn.scalar(text("select count(*) from raw_events")) == 1
@@ -213,7 +213,7 @@ def test_assignment_signal_is_stored_in_conversation_state(
     response = client.post("/webhooks/chatwoot", content=body, headers=headers)
     assert response.status_code == 200
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         row = conn.execute(
@@ -240,7 +240,7 @@ def test_conversation_update_event_updates_state_without_model_run(
     assert response.json()["status"] == "processed"
     assert "channel_event_id" in response.json()
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         state = conn.execute(
@@ -271,7 +271,7 @@ def test_conversation_status_event_marks_resolved_not_replyable(
     response = client.post("/webhooks/chatwoot", content=body, headers=headers)
     assert response.status_code == 200
 
-    db_path = env["WOOTPILOT_DB_URL"].removeprefix("sqlite+aiosqlite:///")
+    db_path = env["DB_URL"].removeprefix("sqlite+aiosqlite:///")
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
         state = conn.execute(

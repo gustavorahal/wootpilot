@@ -49,9 +49,9 @@ for path in [
         "api_access_token=",
         "api-access-token=",
         "sk-or-",
-        "WOOTPILOT_OPENROUTER_API_KEY=sk-",
-        "WOOTPILOT_CHATWOOT_API_TOKEN=ey",
-        "WOOTPILOT_CHATWOOT_WEBHOOK_SECRET=whsec_",
+        "OPENROUTER_API_KEY=sk-",
+        "CHATWOOT_API_TOKEN=ey",
+        "CHATWOOT_WEBHOOK_SECRET=whsec_",
     ]
     found = [item for item in forbidden if item in text]
     if found:

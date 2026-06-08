@@ -41,9 +41,9 @@ before enabling public sends.
 Set the active mode with:
 
 ```text
-WOOTPILOT_AUTOMATION_MODE=observe
-WOOTPILOT_AUTOMATION_MODE=assist
-WOOTPILOT_AUTOMATION_MODE=public_reply
+AUTOMATION_MODE=observe
+AUTOMATION_MODE=assist
+AUTOMATION_MODE=public_reply
 ```
 
 Public-dev templates default to `public_reply` so live tests prove webhook,

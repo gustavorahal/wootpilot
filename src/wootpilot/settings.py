@@ -1,4 +1,4 @@
-"""Runtime configuration loaded from WOOTPILOT_* environment variables."""
+"""Runtime configuration loaded from environment variables."""
 
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ class Settings(BaseSettings):
     """Runtime settings are injected into services instead of read globally."""
 
     model_config = SettingsConfigDict(
-        env_prefix="WOOTPILOT_",
         env_file=(".env", ".env.local"),
         extra="ignore",
     )

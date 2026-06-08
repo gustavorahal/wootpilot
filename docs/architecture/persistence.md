@@ -242,8 +242,8 @@ SQLite requirements:
 Suggested local URLs:
 
 ```text
-WOOTPILOT_DB_URL=sqlite+aiosqlite:///./data/wootpilot.db
-WOOTPILOT_CHECKPOINTER=sqlite
+DB_URL=sqlite+aiosqlite:///./data/wootpilot.db
+CHECKPOINTER=sqlite
 ```
 
 ### Postgres
@@ -262,9 +262,9 @@ Postgres requirements:
 Suggested production URLs:
 
 ```text
-WOOTPILOT_DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
-WOOTPILOT_CHECKPOINTER=postgres
-WOOTPILOT_AUTOMATION_MODE=public_reply
+DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
+CHECKPOINTER=postgres
+AUTOMATION_MODE=public_reply
 ```
 
 ## LangGraph Checkpoints

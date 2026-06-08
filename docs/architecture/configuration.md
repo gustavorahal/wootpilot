@@ -11,10 +11,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Runtime configuration loaded from WOOTPILOT_* environment variables."""
+    """Runtime configuration loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_prefix="WOOTPILOT_",
         env_file=(".env", ".env.local"),
         extra="ignore",
     )
@@ -58,86 +57,86 @@ belong in infra env-example directories.
 ## Core Variables
 
 ```text
-WOOTPILOT_ENV
-WOOTPILOT_LOG_LEVEL
-WOOTPILOT_WORKFLOW_TRACE
-WOOTPILOT_PUBLIC_BASE_URL
-WOOTPILOT_WEBHOOK_PATH
+ENV
+LOG_LEVEL
+WORKFLOW_TRACE
+PUBLIC_BASE_URL
+WEBHOOK_PATH
 
-WOOTPILOT_DB_URL
-WOOTPILOT_CHECKPOINTER
+DB_URL
+CHECKPOINTER
 
-WOOTPILOT_AUTOMATION_MODE
-WOOTPILOT_HUMAN_OPERATOR_ACTIVE_TTL_SECONDS
-WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS
-WOOTPILOT_OUTBOUND_MAX_ATTEMPTS
+AUTOMATION_MODE
+HUMAN_OPERATOR_ACTIVE_TTL_SECONDS
+OUTBOUND_RETRY_DELAY_SECONDS
+OUTBOUND_MAX_ATTEMPTS
 ```
 
-`WOOTPILOT_PUBLIC_BASE_URL` is the URL Chatwoot uses to call WootPilot webhooks.
+`PUBLIC_BASE_URL` is the URL Chatwoot uses to call WootPilot webhooks.
 It is not necessarily the same as the Chatwoot URL.
-`WOOTPILOT_WORKFLOW_TRACE=true` prints a local-only developer LangGraph node
+`WORKFLOW_TRACE=true` prints a local-only developer LangGraph node
 trace in `local` and `public_dev` environments, including customer messages and
 model-proposed text. It is ignored in `test` and `production`, where structured
 JSON logs and audit records remain the observability path.
-`WOOTPILOT_HUMAN_OPERATOR_ACTIVE_TTL_SECONDS` controls how long WootPilot treats
+`HUMAN_OPERATOR_ACTIVE_TTL_SECONDS` controls how long WootPilot treats
 a conversation as human-active after a human sends a public Chatwoot reply. The
 default is `900` seconds, or 15 minutes. During this window, `public_reply`
 automation is blocked; `observe` and `assist` can still run because they do not
 send customer-visible messages.
 Retryable outbound channel failures are retried after
-`WOOTPILOT_OUTBOUND_RETRY_DELAY_SECONDS` until `WOOTPILOT_OUTBOUND_MAX_ATTEMPTS`
+`OUTBOUND_RETRY_DELAY_SECONDS` until `OUTBOUND_MAX_ATTEMPTS`
 is reached, then the action is marked as a permanent failure.
 
 ## Chatwoot Variables
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL
-WOOTPILOT_CHATWOOT_PUBLIC_URL
-WOOTPILOT_CHATWOOT_ACCOUNT_ID
-WOOTPILOT_CHATWOOT_API_TOKEN
-WOOTPILOT_CHATWOOT_WEBHOOK_SECRET
-WOOTPILOT_CHATWOOT_WEBHOOK_SIGNATURE_MODE
-WOOTPILOT_CHATWOOT_WEBHOOK_SIGNATURE_HEADER
-WOOTPILOT_CHATWOOT_WEBHOOK_TIMESTAMP_HEADER
-WOOTPILOT_CHATWOOT_WEBHOOK_DELIVERY_HEADER
-WOOTPILOT_CHATWOOT_UPDATE_STATUS_AFTER_PUBLIC_REPLY
-WOOTPILOT_CHATWOOT_PUBLIC_REPLY_STATUS
-WOOTPILOT_CHATWOOT_MARK_NEEDS_HUMAN_ON_PRIVATE_REVIEW
-WOOTPILOT_CHATWOOT_NEEDS_HUMAN_LABEL
+CHATWOOT_BASE_URL
+CHATWOOT_PUBLIC_URL
+CHATWOOT_ACCOUNT_ID
+CHATWOOT_API_TOKEN
+CHATWOOT_WEBHOOK_SECRET
+CHATWOOT_WEBHOOK_SIGNATURE_MODE
+CHATWOOT_WEBHOOK_SIGNATURE_HEADER
+CHATWOOT_WEBHOOK_TIMESTAMP_HEADER
+CHATWOOT_WEBHOOK_DELIVERY_HEADER
+CHATWOOT_UPDATE_STATUS_AFTER_PUBLIC_REPLY
+CHATWOOT_PUBLIC_REPLY_STATUS
+CHATWOOT_MARK_NEEDS_HUMAN_ON_PRIVATE_REVIEW
+CHATWOOT_NEEDS_HUMAN_LABEL
 ```
 
-Use `WOOTPILOT_CHATWOOT_BASE_URL` for API calls from WootPilot to Chatwoot.
-Use `WOOTPILOT_CHATWOOT_PUBLIC_URL` only for links, logs, and manual
+Use `CHATWOOT_BASE_URL` for API calls from WootPilot to Chatwoot.
+Use `CHATWOOT_PUBLIC_URL` only for links, logs, and manual
 verification instructions.
-When `WOOTPILOT_CHATWOOT_UPDATE_STATUS_AFTER_PUBLIC_REPLY=true`, WootPilot sets
-the conversation to `WOOTPILOT_CHATWOOT_PUBLIC_REPLY_STATUS` after a successful
+When `CHATWOOT_UPDATE_STATUS_AFTER_PUBLIC_REPLY=true`, WootPilot sets
+the conversation to `CHATWOOT_PUBLIC_REPLY_STATUS` after a successful
 public reply. The default target is `pending`, and the feature is disabled by
 default to keep live test traffic conservative.
-When `WOOTPILOT_CHATWOOT_MARK_NEEDS_HUMAN_ON_PRIVATE_REVIEW=true`, WootPilot
-adds `WOOTPILOT_CHATWOOT_NEEDS_HUMAN_LABEL` after a private note produced by a
+When `CHATWOOT_MARK_NEEDS_HUMAN_ON_PRIVATE_REVIEW=true`, WootPilot
+adds `CHATWOOT_NEEDS_HUMAN_LABEL` after a private note produced by a
 human-review path. The label writer first reads existing labels and merges the
 WootPilot label because Chatwoot's labels endpoint replaces the full label set.
 
 For local disposable Chatwoot:
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL=http://localhost:3000
-WOOTPILOT_CHATWOOT_PUBLIC_URL=http://localhost:3000
+CHATWOOT_BASE_URL=http://localhost:3000
+CHATWOOT_PUBLIC_URL=http://localhost:3000
 ```
 
 For local WootPilot talking to the public dev Chatwoot:
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL=https://chat.gmrahal.net
-WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
+CHATWOOT_BASE_URL=https://chat.gmrahal.net
+CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
 ```
 
 For WootPilot deployed as a container on the same GMR Docker network as
 Chatwoot:
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL=http://chatwoot-web:3000
-WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
+CHATWOOT_BASE_URL=http://chatwoot-web:3000
+CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
 ```
 
 This internal URL follows the existing GMR platform Compose setup, where Caddy
@@ -149,10 +148,10 @@ available on the internal Docker network.
 Chatwoot should call:
 
 ```text
-{WOOTPILOT_PUBLIC_BASE_URL}{WOOTPILOT_WEBHOOK_PATH}
+{PUBLIC_BASE_URL}{WEBHOOK_PATH}
 ```
 
-For local WootPilot, `WOOTPILOT_PUBLIC_BASE_URL` must be a tunnel or other
+For local WootPilot, `PUBLIC_BASE_URL` must be a tunnel or other
 public URL reachable by `https://chat.gmrahal.net`.
 
 For server-side WootPilot, use a real public route such as:
@@ -189,12 +188,12 @@ signature header: X-Chatwoot-Signature
 timestamp header: X-Chatwoot-Timestamp
 delivery header:  X-Chatwoot-Delivery
 signature body:   "{timestamp}.{raw_json_body}"
-algorithm:        HMAC-SHA256 with WOOTPILOT_CHATWOOT_WEBHOOK_SECRET
+algorithm:        HMAC-SHA256 with CHATWOOT_WEBHOOK_SECRET
 header format:    sha256={hex_digest}
 ```
 
 The webhook secret is generated by Chatwoot when the account webhook is created.
-Copy that value into `.env.local` as `WOOTPILOT_CHATWOOT_WEBHOOK_SECRET` for
+Copy that value into `.env.local` as `CHATWOOT_WEBHOOK_SECRET` for
 laptop tunnel testing. Use the same value in `/srv/apps/env/clients/wootpilot.env`
 if WootPilot is later deployed server-side.
 
@@ -206,13 +205,13 @@ Use this when developing WootPilot on your machine while testing against the
 live Chatwoot server:
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL=https://chat.gmrahal.net
-WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
-WOOTPILOT_PUBLIC_BASE_URL=https://wootpilot-local-dev.gmrahal.net
+CHATWOOT_BASE_URL=https://chat.gmrahal.net
+CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
+PUBLIC_BASE_URL=https://wootpilot-local-dev.gmrahal.net
 ```
 
 Chatwoot must be configured to send webhooks to
-`{WOOTPILOT_PUBLIC_BASE_URL}{WOOTPILOT_WEBHOOK_PATH}`.
+`{PUBLIC_BASE_URL}{WEBHOOK_PATH}`.
 
 This public base URL is backed by the `wootpilot-local-dev` Cloudflare tunnel
 and managed through the public-dev laptop harness in
@@ -224,9 +223,9 @@ Use this when WootPilot is deployed as a container on the same GMR platform host
 as Chatwoot:
 
 ```text
-WOOTPILOT_CHATWOOT_BASE_URL=http://chatwoot-web:3000
-WOOTPILOT_CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
-WOOTPILOT_PUBLIC_BASE_URL=https://wootpilot.gmrahal.net
+CHATWOOT_BASE_URL=http://chatwoot-web:3000
+CHATWOOT_PUBLIC_URL=https://chat.gmrahal.net
+PUBLIC_BASE_URL=https://wootpilot.gmrahal.net
 ```
 
 In this profile, WootPilot API calls stay on the Docker internal network while
@@ -235,24 +234,24 @@ Chatwoot webhooks and human browser access use public HTTPS.
 ## Model Variables
 
 ```text
-WOOTPILOT_MODEL_PROVIDER=openrouter
-WOOTPILOT_OPENROUTER_API_KEY
-WOOTPILOT_OPENROUTER_MODEL
+MODEL_PROVIDER=openrouter
+OPENROUTER_API_KEY
+OPENROUTER_MODEL
 ```
 
-Default CI must not require `WOOTPILOT_OPENROUTER_API_KEY`. Provider calls
+Default CI must not require `OPENROUTER_API_KEY`. Provider calls
 should be mocked unless an opt-in live smoke test is being run.
 
 ## Catalog Variables
 
 ```text
-WOOTPILOT_CATALOG_CONNECTOR_MODE=mock
-WOOTPILOT_MOCK_CATALOG_PATH=./data/mock-woocommerce/catalog.demo-car-parts.json
-WOOTPILOT_WOOCOMMERCE_STORE_API_BASE_URL
+CATALOG_CONNECTOR_MODE=mock
+MOCK_CATALOG_PATH=./data/mock-woocommerce/catalog.demo-car-parts.json
+WOOCOMMERCE_STORE_API_BASE_URL
 ```
 
 The MVP should default to the committed mock catalog. Public Store API reads can
-be enabled later by setting `WOOTPILOT_CATALOG_CONNECTOR_MODE=store_api`.
+be enabled later by setting `CATALOG_CONNECTOR_MODE=store_api`.
 
 ## Public Dev Chatwoot
 

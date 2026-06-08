@@ -49,8 +49,8 @@ class CatalogConnectorRegistry:
             )
             if not base_url:
                 raise ValueError(
-                    "WOOTPILOT_WOOCOMMERCE_STORE_API_BASE_URL is required when "
-                    "WOOTPILOT_CATALOG_CONNECTOR_MODE=store_api"
+                    "WOOCOMMERCE_STORE_API_BASE_URL is required when "
+                    "CATALOG_CONNECTOR_MODE=store_api"
                 )
             return StoreApiCatalog(base_url=base_url)
         if mode is CatalogConnectorMode.mock:

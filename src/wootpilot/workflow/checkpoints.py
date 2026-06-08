@@ -18,7 +18,7 @@ class CheckpointerConfigurationError(RuntimeError):
 async def checkpointer_from_settings(
     settings: Settings,
 ) -> AsyncIterator[object | None]:
-    """Yield the LangGraph checkpointer selected by `WOOTPILOT_CHECKPOINTER`.
+    """Yield the LangGraph checkpointer selected by `CHECKPOINTER`.
 
     Memory is useful for unit tests, SQLite for local/alpha async runtime, and
     Postgres for production. Postgres is optional in local installs so the error
@@ -48,7 +48,7 @@ async def checkpointer_from_settings(
             )
         except ModuleNotFoundError as exc:
             raise CheckpointerConfigurationError(
-                "WOOTPILOT_CHECKPOINTER=postgres requires "
+                "CHECKPOINTER=postgres requires "
                 "langgraph-checkpoint-postgres"
             ) from exc
         async with AsyncPostgresSaver.from_conn_string(settings.db_url) as saver:
@@ -63,5 +63,5 @@ def _sqlite_checkpoint_path(db_url: str) -> Path:
             app_path = Path(db_url.removeprefix(prefix))
             return app_path.with_name(f"{app_path.stem}-checkpoints{app_path.suffix}")
     raise CheckpointerConfigurationError(
-        "WOOTPILOT_CHECKPOINTER=sqlite requires a sqlite database URL"
+        "CHECKPOINTER=sqlite requires a sqlite database URL"
     )

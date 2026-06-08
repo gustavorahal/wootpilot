@@ -13,12 +13,12 @@ from wootpilot.settings import reset_settings_cache
 @pytest.fixture
 def env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[dict[str, str]]:
     values = {
-        "WOOTPILOT_ENV": "test",
-        "WOOTPILOT_DB_URL": f"sqlite+aiosqlite:///{tmp_path / 'test.db'}",
-        "WOOTPILOT_CHATWOOT_WEBHOOK_SECRET": "test-secret",
-        "WOOTPILOT_MODEL_PROVIDER": "fake",
-        "WOOTPILOT_AUTOMATION_MODE": "observe",
-        "WOOTPILOT_MOCK_CATALOG_PATH": (
+        "ENV": "test",
+        "DB_URL": f"sqlite+aiosqlite:///{tmp_path / 'test.db'}",
+        "CHATWOOT_WEBHOOK_SECRET": "test-secret",
+        "MODEL_PROVIDER": "fake",
+        "AUTOMATION_MODE": "observe",
+        "MOCK_CATALOG_PATH": (
             "./data/mock-woocommerce/catalog.demo-car-parts.json"
         ),
     }
