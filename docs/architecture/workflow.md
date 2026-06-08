@@ -95,9 +95,9 @@ build_missing_proposal_failure
 ```
 
 The graph does not perform database writes, connector reads, or Chatwoot writes.
-`RunSupportWorkflow` loads catalog context, stores the context snapshot, invokes
-the graph, persists policy decisions and audit records, and queues outbound
-actions after the graph returns.
+`RunCustomerSupportWorkflow` loads catalog context, stores the context snapshot,
+invokes the graph, persists policy decisions and audit records, and queues
+outbound actions after the graph returns.
 
 Current rendered topology:
 

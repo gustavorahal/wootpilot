@@ -160,7 +160,7 @@ def test_ingress_state_is_committed_before_workflow_runs(
             )
 
     monkeypatch.setattr(
-        "wootpilot.application.webhooks.RunSupportWorkflow",
+        "wootpilot.application.webhooks.RunCustomerSupportWorkflow",
         ObservingWorkflow,
     )
 

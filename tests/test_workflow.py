@@ -5,7 +5,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
-from wootpilot.application.workflow import RunSupportWorkflow
+from wootpilot.application.workflow import RunCustomerSupportWorkflow
 from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
@@ -319,7 +319,7 @@ async def test_public_reply_review_note_is_persisted_as_private_outbound_action(
             conversation_id=message.conversation_id,
             now=now,
         )
-        decision = await RunSupportWorkflow(
+        decision = await RunCustomerSupportWorkflow(
             settings=settings,
             session=session,
             model_port=HiddenPriceProposalPort(),
@@ -380,7 +380,7 @@ async def test_local_workflow_trace_streaming_returns_final_graph_state(
             conversation_id=message.conversation_id,
             now=now,
         )
-        decision = await RunSupportWorkflow(
+        decision = await RunCustomerSupportWorkflow(
             settings=settings,
             session=session,
             model_port=FakeModelProposalPort(),
@@ -423,7 +423,7 @@ async def test_persistent_checkpoints_do_not_replay_policy_state_between_message
             conversation_id="v1",
             now=now,
         )
-        workflow = RunSupportWorkflow(
+        workflow = RunCustomerSupportWorkflow(
             settings=settings,
             session=session,
             model_port=FakeModelProposalPort(),
@@ -511,7 +511,7 @@ async def test_sqlite_loaded_human_active_until_blocks_without_naive_datetime_er
             provider_message_id="101",
             content="Do you have this product?",
         )
-        decision = await RunSupportWorkflow(
+        decision = await RunCustomerSupportWorkflow(
             settings=settings,
             session=session,
             model_port=FakeModelProposalPort(),

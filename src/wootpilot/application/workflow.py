@@ -1,4 +1,4 @@
-"""Application service that prepares and persists support workflow runs."""
+"""Application service for one customer-support workflow turn."""
 
 from __future__ import annotations
 
@@ -40,8 +40,16 @@ from wootpilot.workflow.graph import build_support_graph
 logger = logging.getLogger(__name__)
 
 
-class RunSupportWorkflow:
-    """Coordinates durable preparation, graph invocation, and persistence."""
+class RunCustomerSupportWorkflow:
+    """Run WootPilot's customer-support decision workflow for one message.
+
+    This use case is the boundary between durable application state and the
+    LangGraph graph. It gathers the catalog snapshot for the inbound customer
+    message, invokes the graph with prepared domain objects, then persists the
+    resulting policy decisions, audit record, and queued outbound action. The
+    graph decides what WootPilot proposes; this service records why that
+    proposal happened and prepares any effect for the outbound executor.
+    """
 
     def __init__(
         self,

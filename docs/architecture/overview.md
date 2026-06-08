@@ -68,9 +68,10 @@ runtime settings and repositories, and call application use cases.
 raw events, deduplicates provider deliveries, translates Chatwoot payloads,
 updates `ConversationState`, and commits durable ingress state before model work.
 
-`RunSupportWorkflow` owns one customer turn. It loads catalog context, stores
-the context snapshot used by the run, invokes the LangGraph workflow, persists
-policy decisions and audit records, and queues any resulting outbound action.
+`RunCustomerSupportWorkflow` owns one customer turn. It loads catalog context,
+stores the context snapshot used by the run, invokes the LangGraph workflow,
+persists policy decisions and audit records, and queues any resulting outbound
+action.
 
 `ExecuteOutboundActions` owns effects back to Chatwoot. It claims queued actions,
 performs final deterministic checks, sends through `ChatwootClient`, and records

@@ -70,8 +70,8 @@ stored in WootPilot tables instead.
 
 ## Streaming
 
-`RunSupportWorkflow` uses LangGraph streaming for local/public-dev workflow
-visibility when `WORKFLOW_TRACE=true`. It streams both:
+`RunCustomerSupportWorkflow` uses LangGraph streaming for local/public-dev
+workflow visibility when `WORKFLOW_TRACE=true`. It streams both:
 
 - `updates`, for node-by-node terminal trace output;
 - `values`, to capture the final graph state.

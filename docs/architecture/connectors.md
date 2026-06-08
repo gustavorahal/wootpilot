@@ -26,9 +26,9 @@ store_api
 ```
 
 Both modes return WootPilot-owned domain snapshots instead of raw provider
-payloads. `RunSupportWorkflow` calls the selected catalog connector before the
-graph is invoked, stores the resulting context snapshot, and passes the compact
-context into the graph state.
+payloads. `RunCustomerSupportWorkflow` calls the selected catalog connector
+before the graph is invoked, stores the resulting context snapshot, and passes
+the compact context into the graph state.
 
 ## Snapshot Vocabulary
 

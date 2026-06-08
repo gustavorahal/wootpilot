@@ -9,7 +9,7 @@ from typing import Any, NotRequired, TypedDict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wootpilot.application.workflow import RunSupportWorkflow
+from wootpilot.application.workflow import RunCustomerSupportWorkflow
 from wootpilot.domain.models import (
     AuditEventType,
     ChannelEvent,
@@ -176,7 +176,7 @@ class HandleWebhookEvent:
         # keeps duplicate delivery and conversation suppression state durable
         # even if the later workflow call fails or times out.
         await self.session.commit()
-        workflow = RunSupportWorkflow(
+        workflow = RunCustomerSupportWorkflow(
             settings=self.settings,
             session=self.session,
             model_port=model_port_from_settings(self.settings),
