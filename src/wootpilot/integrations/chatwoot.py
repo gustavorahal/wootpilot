@@ -544,7 +544,7 @@ class ChatwootClient:
             logger,
             "chatwoot_api_call_completed",
             level=level,
-            provider=Provider.chatwoot.value,
+            provider=Provider.chatwoot,
             operation=operation,
             account_id=self.settings.chatwoot_account_id,
             conversation_id=conversation_id,

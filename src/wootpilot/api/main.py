@@ -74,7 +74,7 @@ async def chatwoot_webhook(
             logger,
             "webhook_authentication_failed",
             level=logging.WARNING,
-            provider=Provider.chatwoot.value,
+            provider=Provider.chatwoot,
             status_code=exc.status_code,
             reason=str(exc.detail),
             latency_ms=round((time.perf_counter() - started) * 1000),
@@ -85,7 +85,7 @@ async def chatwoot_webhook(
     log_event(
         logger,
         "webhook_handled",
-        provider=Provider.chatwoot.value,
+        provider=Provider.chatwoot,
         status=result.get("status"),
         raw_event_id=result.get("raw_event_id"),
         normalized_message_id=result.get("normalized_message_id"),
