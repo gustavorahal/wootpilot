@@ -1,7 +1,7 @@
 # Production Readiness
 
-This checklist records the minimum checks and operator notes for taking the
-current WootPilot MVP from local/public-dev validation toward an alpha release.
+This checklist records the minimum checks and operator notes for operating the
+current WootPilot alpha beyond a single local test loop.
 
 ## Default Release Check
 
@@ -23,7 +23,7 @@ The default gate runs:
 - a lightweight secret-marker review for committed fixtures and env templates
 
 Run the public-dev readiness check when `.env.local` is configured for
-`https://chat.gmrahal.net` and the laptop tunnel should be verified:
+`https://chat.gmrahal.net` and the laptop tunnel needs verification:
 
 ```sh
 ./scripts/release-check --public-dev
@@ -44,23 +44,23 @@ That command runs the default release gate and verifies that
 
 ## Verification Strategy
 
-The default verification path should stay fast, deterministic, and provider-free:
+The default verification path stays fast, deterministic, and provider-free:
 unit tests, ASGI route tests, repository tests, migration checks, linting,
 type-checking, fixture validation, mocked HTTP integrations, and golden
 conversation evals.
 
 Opt-in integration checks may start local services such as Chatwoot Docker
 Compose, Postgres, or the public-dev laptop tunnel. These checks prove wiring
-and operator readiness; they should not become the correctness contract for
+and operator readiness; deterministic tests remain the correctness contract for
 business behavior.
 
 Manual smoke checks cover browser/UI inspection, public-dev Chatwoot at
 `https://chat.gmrahal.net/`, Meta-connected message flow, and live provider
 calls that require credentials or human judgment.
 
-Never require real OpenRouter, WooCommerce, Chatwoot Cloud, or production
-credentials in default CI. Live checks should prove integration wiring; the
-correctness contract belongs in deterministic tests.
+Default CI does not require real OpenRouter, WooCommerce, Chatwoot Cloud, or
+production credentials. Live checks prove integration wiring; deterministic
+tests prove product behavior.
 
 For code changes, "done" means the app still starts, automated checks pass, new
 behavior has focused use-case coverage, schema changes include migrations, and
@@ -89,8 +89,8 @@ CHECKPOINTER=postgres
 AUTOMATION_MODE=public_reply
 ```
 
-Postgres is required for production public replies and multiple outbound
-workers. Queue workers compile the dequeue query with
+Postgres is the production database target for public replies and multiple
+outbound workers. Queue workers compile the dequeue query with
 `FOR UPDATE SKIP LOCKED` on Postgres. Install the optional dependency profile
 before enabling `CHECKPOINTER=postgres`:
 
@@ -145,7 +145,7 @@ The configured Chatwoot API token must be able to:
 
 - read account conversations for final public-send safety checks
 - create private notes
-- create public messages only when public-reply is explicitly enabled
+- create public messages
 
 ## Worker Operation
 
@@ -157,8 +157,8 @@ uv run wootpilot execute-outbound --limit 10
 
 On Postgres, multiple workers may run because queued rows are selected with
 `FOR UPDATE SKIP LOCKED`. Public message execution still performs final checks
-for bot mode, content leakage, local human-active state, local pause/replyable
-state, and fresh Chatwoot conversation safety.
+for automation mode, content leakage, local human-active state, local
+pause/replyable state, and fresh Chatwoot conversation safety.
 
 ## Rollback And Queue Draining
 
@@ -174,7 +174,7 @@ sqlite3 ./data/wootpilot-public-dev.db \
 ```
 
 4. If queued public actions exist, inspect them manually before restarting
-   workers. Private-note actions are lower risk but should still be idempotent.
+   workers. Private-note actions are lower risk but remain idempotent.
 5. Apply rollback or migration changes.
 6. Restart the API in observe mode and run `./scripts/public-dev-doctor`.
 
@@ -186,9 +186,9 @@ prove wiring:
 - signed Chatwoot webhook intake through the tunnel
 - observe run creates an audited proposal and no outbound action
 - assist mode creates one private note and ignores the echo webhook
-- public-reply low-risk public send only after explicit approval
+- public-reply low-risk public send reaches the customer
 - human public reply suppresses later public replies
 - `wootpilot-paused` blocks automation
 
-Keep live public replies disabled unless a specific conversation and message are
-approved for testing.
+Use `observe` when intentionally freezing customer-visible automation during
+maintenance or investigation.

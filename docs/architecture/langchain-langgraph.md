@@ -1,60 +1,35 @@
-# LangChain And LangGraph Guidance
+# LangChain And LangGraph
 
-This document records how WootPilot should use LangChain and LangGraph. The
-goal is to benefit from the current framework APIs without turning the product
-into a generic autonomous-agent platform.
+WootPilot uses LangGraph as the workflow runtime and LangChain at the model
+adapter boundary.
 
-## Framework Roles
+## Current Roles
 
-Use LangGraph as the workflow runtime. WootPilot needs explicit durable support
-flows, deterministic policy gates, auditable state, and safe handoff between
-model proposals and outbound execution. Those are graph concerns.
+LangGraph owns the explicit support workflow:
 
-Use LangChain for model integration primitives that are directly useful:
+- node execution;
+- conditional routing;
+- checkpointing;
+- streaming updates for local terminal traces;
+- generated topology diagrams.
 
-- Chat model adapters such as `ChatOpenRouter`.
-- Structured output helpers and provider/tool strategy selection.
-- Message and runnable abstractions when they simplify model adapter code.
-- Optional middleware only when it fits an already-defined WootPilot use case.
+LangChain owns model integration concerns:
 
-Do not start with a broad LangChain agent that owns the whole support workflow.
-LangChain `create_agent` is useful inside `ModelProposalPort` when its
-structured output and middleware features reduce adapter code, but the top-level
-workflow should remain a WootPilot `StateGraph`.
+- `ChatOpenRouter`;
+- structured output;
+- provider/tool fallback strategy;
+- model metadata and usage extraction.
 
-## Version And Feature Floor
-
-When implementation starts, prefer the current stable LangChain and LangGraph v1
-lines. The planned feature floor is:
-
-```text
-langchain >= 1.2
-langgraph >= 1.2
-langchain-openrouter
-langgraph-checkpoint-sqlite
-langgraph-checkpoint-postgres
-```
-
-This floor is intentional because current docs describe:
-
-- LangChain structured output strategy selection with `ProviderStrategy`,
-  `ToolStrategy`, and `strict` provider-schema support.
-- LangGraph node-level `retry_policy` and `error_handler` hooks.
-- Current checkpoint and store APIs for durable execution and memory.
-
-If dependency availability lags on Python 3.14, keep CI on Python 3.13 until the
-feature floor is installable.
+The top-level support workflow is not a broad autonomous LangChain agent. It is a
+WootPilot-owned `StateGraph` with deterministic policy and explicit state keys.
 
 ## Graph Shape
 
-Build the support workflow as a typed `StateGraph`.
+The support graph is defined in
+[`src/wootpilot/workflow/graph.py`](../../src/wootpilot/workflow/graph.py). It
+uses `TypedDict` state and Pydantic domain models at the boundaries.
 
-Use `TypedDict` for graph state unless runtime validation inside the graph
-itself becomes valuable. Domain models should stay Pydantic v2 objects at the
-application boundaries. Graph nodes should return partial state updates instead
-of mutating state in place.
-
-The first graph should use explicit nodes:
+Current nodes:
 
 ```text
 should_invoke
@@ -62,115 +37,73 @@ triage_message
 policy_gate
 llm_proposal
 validate_outbound_action
-build_workflow_decision
+route_final_decision
+build_observe_decision
+build_private_note_action
+build_public_message_action
+build_missing_proposal_failure
 ```
 
-Conditional routing can use normal conditional edges for simple branches. Use
-LangGraph `Command` when a node needs to update state and route together, such
-as routing exhausted model failures to a blocked or retryable workflow decision.
+Conditional route names are descriptive `WorkflowBranch` enum values so the
+generated graph diagram reads as product documentation.
 
-Do not use subgraphs for the MVP. Add subgraphs only when a real nested workflow
-emerges, such as a future multi-step returns workflow or specialist product
-research workflow. If subgraphs are added later, prefer per-invocation subgraph
-persistence unless that subgraph truly needs memory across calls on the same
-thread.
+## Checkpointing
 
-## Durable Execution
-
-Compile graphs with a checkpointer outside short pure-unit tests.
-
-Use these profiles:
+Checkpointer profile is configured with `CHECKPOINTER`:
 
 ```text
-InMemorySaver
-  Unit tests, experiments, and fixtures.
-
-AsyncSqliteSaver
-  Local development, demos, and single-worker alpha workflows.
-
-AsyncPostgresSaver
-  Production workflows, concurrent workers, and any production public replies.
+memory
+sqlite
+postgres
 ```
 
-Every graph invocation that uses a checkpointer must pass a stable `thread_id`.
-For WootPilot, derive it from tenant, channel, conversation, and inbound message
-identifiers. Conversation history belongs in WootPilot application tables; the
-LangGraph checkpoint captures one graph execution and should not carry old
-per-message policy or decision objects into a later turn:
+When a persistent checkpointer is used, WootPilot passes a message-scoped
+`thread_id`:
 
 ```text
 tenant:{tenant_id}:channel:{channel_id}:conversation:{conversation_id}:message:{message_id}
 ```
 
-Checkpoint tables are framework-owned operational state. They should be
-configured next to, but not treated as, WootPilot's audit ledger. Application
-tables remain the source of truth for raw events, normalized messages, policy
-decisions, context snapshots, agent runs, and outbound actions.
+This keeps per-turn policy decisions and workflow outputs from leaking into the
+next message in the same Chatwoot conversation. Long-lived conversation state is
+stored in WootPilot tables instead.
 
-## Stores And Memory
+## Streaming
 
-Do not use LangGraph long-term memory for the MVP support path. WootPilot's
-first memory-like data should be explicit domain state: conversation state,
-context snapshots, connector snapshots, and audit records.
+`RunSupportWorkflow` uses LangGraph streaming for local/public-dev workflow
+visibility when `WORKFLOW_TRACE=true`. It streams both:
 
-Add a LangGraph store later only when WootPilot needs cross-thread semantic or
-preference memory that is not already a domain model. If added, namespace store
-items by tenant and customer/contact, and prefer a persistent Postgres-backed
-store in production. Keep customer facts auditable and avoid silently mixing
-memory into public responses without policy visibility.
+- `updates`, for node-by-node terminal trace output;
+- `values`, to capture the final graph state.
+
+The final state is used by persistence code exactly as a normal `ainvoke` result.
 
 ## Model Proposals
 
-`ModelProposalPort` owns prompts, model selection, structured-output strategy,
-retry mapping, usage capture, provider metadata, and provider-specific errors.
-The domain layer consumes only `AgentProposal` and WootPilot result types.
+`ModelProposalPort` is the boundary between the graph and model providers. The
+OpenRouter adapter validates structured model output into a WootPilot-owned
+proposal schema before creating a domain `AgentProposal`.
 
-For OpenRouter, prefer `langchain-openrouter` and `ChatOpenRouter`. Use
-`with_structured_output(AgentProposalSchema, method="json_schema")` when the
-selected model supports JSON Schema well. Fall back to tool/function-calling
-structured output only when model support requires it. Capture the raw model
-message or response metadata alongside the parsed Pydantic object so token
-usage, model id, provider routing, and safety/debug metadata remain available.
+Model output is a proposal only. Deterministic policy and outbound execution
+decide whether the proposal becomes a private note, public reply, audit-only
+observation, or blocked run.
 
-If LangChain `create_agent` is used inside the adapter, use
-`response_format=AgentProposalSchema` or an explicit `ProviderStrategy` /
-`ToolStrategy`. Do not expose the resulting agent state directly to domain
-services; translate the final `structured_response` into WootPilot domain
-models.
+## Boundaries
 
-## Retries And Errors
+LangGraph owns workflow orchestration. It does not own WootPilot's long-term
+conversation memory, audit ledger, connector reads, or Chatwoot writes.
 
-Use LangGraph node-level retry policies only for transient graph node failures.
-For the MVP, the main candidate is `llm_proposal`, where provider timeouts,
-rate limits, and temporary 5xx responses can retry safely.
+LangChain owns provider-facing model calls. It does not decide final action
+status; it returns structured proposals that WootPilot policy and outbound code
+validate deterministically.
 
-After retries are exhausted, use a node-level `error_handler` or adapter result
-type to route into a durable workflow decision instead of letting exceptions
-erase context. Persist enough metadata for operators to distinguish retryable
-provider failures from permanent schema, policy, or authentication failures.
+## Not Currently Used
 
-Do not retry deterministic policy failures, validation failures caused by unsafe
-content, or outbound sends inside the graph. Public and private Chatwoot writes
-belong to the outbound action executor, which has its own idempotency and retry
-rules.
+WootPilot does not currently use:
 
-## Human Review
+- LangGraph subgraphs;
+- LangGraph stores or long-term memory;
+- LangGraph interrupts for human approval;
+- a top-level LangChain `create_agent` support agent.
 
-LangGraph interrupts are the right primitive when the product needs to pause a
-graph, expose state to a reviewer, and later resume with `Command(resume=...)`.
-WootPilot should not use interrupts for MVP assist mode because Chatwoot
-private notes already provide the review surface and keep the graph run simple.
-
-Revisit interrupts only after WootPilot has a first-class approval UI or API.
-At that point, use a persistent checkpointer, stable `thread_id`, and a review
-payload that contains only redacted decision context.
-
-## Observability
-
-Use WootPilot's local audit records and structured logs as the MVP baseline.
-LangSmith remains optional until operators need trace visualization, hosted
-debugging, or evaluation workflows that exceed the local audit trail.
-
-When streaming graph events for tests or future UI, treat state keys as a
-contract. Document stable output keys next to the graph definition and avoid
-coupling clients to incidental internal state.
+Human review happens in Chatwoot through private notes and labels.

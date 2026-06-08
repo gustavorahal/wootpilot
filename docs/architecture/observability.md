@@ -1,54 +1,55 @@
 # Observability
 
-The MVP observability baseline should be self-contained: structured application
-logs plus durable audit records in WootPilot's database. LangSmith and
-OpenTelemetry are useful future integrations, but the first release should not
-require a hosted observability service or an optional tracing configuration path.
+WootPilot currently uses structured JSON logs, local developer workflow traces,
+and durable audit records. There is no required hosted tracing service.
 
-Minimum useful telemetry:
+## Structured Logs
 
-- Webhook latency.
-- End-to-end workflow latency.
-- Model latency.
-- Model provider and model id.
-- Tool and channel API latency.
-- Connector read latency.
-- Connector action latency.
-- Token usage.
-- Estimated cost.
-- Policy decision.
-- Bot mode.
-- Outbound action type.
-- Outbound success/failure.
-- Connector capability used.
-- Connector action proposed/executed/blocked.
-- Human handoff rate.
-- Public auto-reply rate.
-- Private-note suggestion rate.
-- Webhook authentication failures.
-- Replay and duplicate-event rejections.
-- Outbox queue age, retry count, and permanent failure count.
-- Final pre-send policy recheck result.
-- Price mention policy decisions.
+Application logs are emitted as JSON through
+[`src/wootpilot/observability.py`](../../src/wootpilot/observability.py). Key
+events include:
 
-Sensitive fields should be redacted before logs, audit summaries, and any future
-external traces:
+- `webhook_authentication_failed`;
+- `webhook_handled`;
+- `support_workflow_completed`;
+- Chatwoot API latency events;
+- outbound execution completion events.
 
-- API keys.
-- Authorization headers.
-- Phone numbers.
-- Emails.
-- Personal documents.
-- Access tokens.
-- Refresh tokens.
-- Full raw customer payloads where not required.
-- Connector credentials references when they expose secret names that should not
-  be broadly visible.
-- Raw price display text if tenant policy treats pricing as sensitive.
+Workflow completion logs include correlation identifiers and operational fields:
 
-Every workflow log entry should carry correlation identifiers: raw event id,
-normalized message id, agent run id, context snapshot ids, outbound action id,
-and provider message id when available. That correlation is more useful than
-logging full payloads, and it keeps auditability separate from unnecessary data
-exposure. These identifiers also keep the design compatible with future
-LangSmith or OpenTelemetry integrations without making either part of the MVP.
+- raw event id;
+- normalized message id;
+- agent run id;
+- tenant/channel/conversation ids;
+- automation mode;
+- workflow status and action kind;
+- policy rule ids and risk reasons;
+- model provider/model metadata;
+- latency and high-latency flag.
+
+Customer message bodies and generated response text are not included in normal
+structured workflow logs.
+
+## Local Workflow Trace
+
+`WORKFLOW_TRACE=true` enables a developer-facing LangGraph trace in `local` and
+`public_dev` environments. It is ignored in `test` and `production`.
+
+Trace output prints graph node progress and pretty JSON payloads. Unlike normal
+logs, this local trace intentionally includes customer messages and model-visible
+text so a developer can debug end-to-end Chatwoot tests from the terminal.
+
+## Audit Records
+
+Audit records persist product-relevant explanations in the database. They connect
+raw events, normalized messages, agent runs, policy decisions, context snapshots,
+and outbound actions.
+
+Audit records are the durable operator ledger. Logs are operational telemetry;
+they are not the source of truth for explaining a workflow run.
+
+## Sensitive Data
+
+The code avoids logging raw provider payloads, API tokens, webhook secrets, and
+normal customer/model text in structured logs. Local workflow traces are
+content-rich by design and are limited to local/public-dev profiles.

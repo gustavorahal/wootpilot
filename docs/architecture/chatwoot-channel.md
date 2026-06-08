@@ -1,126 +1,91 @@
 # Chatwoot Channel Model
 
-WootPilot should integrate with Chatwoot as its primary support channel.
-Chatwoot is not a connector because WootPilot is centered around Chatwoot; it is
-the conversation platform and handoff surface.
+Chatwoot is WootPilot's primary support channel, not a connector. Chatwoot owns
+the customer conversation, agent UI, Meta/WhatsApp channel setup, contact
+identity, and message delivery. WootPilot receives Chatwoot webhooks and writes
+back through Chatwoot APIs.
 
-For MVP live testing, use the public dev Chatwoot server:
+The public-dev Chatwoot server used for live testing is:
 
 ```text
 https://chat.gmrahal.net/
 ```
 
-This server is expected to be reachable by Meta channel infrastructure. Meta
-WhatsApp Cloud or other Meta channel traffic should enter Chatwoot first.
-Chatwoot then notifies WootPilot through account webhooks. WootPilot should not
-add a separate direct Meta connector for the MVP. Chatwoot owns the Meta channel
-setup, conversation thread, contact identity, agent UI, and delivery back to the
-customer.
+## Inbound Translation
 
-Required Chatwoot inputs:
-
-- Provider event id.
-- Event timestamp.
-- Account id.
-- Inbox id.
-- Conversation id.
-- Message id.
-- Contact id.
-- Sender type.
-- Message direction.
-- Message visibility.
-- Message content.
-- Attachments metadata.
-- Conversation status.
-- Conversation replyability or lock state when available.
-- Labels or custom attributes used as WootPilot pause/resume controls.
-- Assignment and assignee metadata when available.
-
-Chatwoot may send message events and conversation-level events. Version 1 only
-needs to invoke the agent for eligible customer message events, but the channel
-translator should leave room for a small domain envelope such as:
+The Chatwoot adapter in
+[`src/wootpilot/integrations/chatwoot.py`](../../src/wootpilot/integrations/chatwoot.py)
+translates raw webhook payloads into domain objects:
 
 ```text
-ChannelEvent
-  message_created
-  conversation_updated
-  assignment_changed
-  unknown
+message_created -> NormalizedMessage
+conversation_created / conversation_updated / conversation_status_changed -> ChannelEvent
 ```
 
-`message_created` events can carry a `NormalizedMessage`. Conversation or
-assignment events can update `ConversationState` without invoking the LLM. This
-keeps the message model focused while still letting WootPilot react to human
-activity and replyability changes.
+`HandleWebhookEvent` verifies Chatwoot signatures before translation. Invalid
+signatures are rejected before persistence or model work.
 
-Inbound webhooks must be authenticated before translation. Account webhooks in
-the target Chatwoot version include a generated secret and signed request
-headers. Verify `X-Chatwoot-Signature` and `X-Chatwoot-Timestamp` before parsing
-or translating payloads. Do not run the agent for unauthenticated production
-webhooks.
+Translated messages preserve provider identity:
 
-The Chatwoot channel adapter should use translators to convert raw Chatwoot
-webhook DTOs into `NormalizedMessage` domain objects and outbound
-`OutboundAction` domain objects into Chatwoot create-message DTOs. Translators
-are the only channel code that should understand both Chatwoot payload shape and
-WootPilot domain shape.
+- tenant/account id;
+- inbox/channel id;
+- provider conversation id;
+- provider message id;
+- provider contact id;
+- direction;
+- visibility;
+- author type;
+- attachments metadata;
+- conversation status, replyability, labels, attributes, and assignment when
+  present.
 
-Required Chatwoot outputs:
+Only public inbound customer messages invoke WootPilot. Private notes, outbound
+messages, bot echoes, human-agent public replies, and non-message events are
+stored or reflected in conversation state without invoking the model.
 
-- Public message.
-- Private note.
-- Labels for WootPilot state such as `wootpilot-needs-human`, when supported by
-  the channel writer.
-- Custom attributes for WootPilot pause/resume state, when labels are not the
-  best Chatwoot primitive.
-- Optional assignment or team handoff in later versions.
+## Conversation State
 
-Outbound execution should depend on two small channel-facing ports:
+Conversation events and message metadata update `ConversationState`. WootPilot
+tracks:
 
-```text
-ChannelWriter
-  Sends public messages, private notes, labels, and later assignment/handoff
-  commands through the selected channel adapter.
+- replyability;
+- open/resolved status;
+- `wootpilot-paused`;
+- assigned agent/team ids;
+- last customer message time;
+- last human public message time;
+- human-active suppression deadline.
 
-ConversationSafetyReader
-  Re-reads replyability, lock state, assignment/human activity signals, and the
-  target conversation identity immediately before public sends.
-```
+The `wootpilot-paused` label blocks automation. A human public reply suppresses
+future `public_reply` automation for the configured TTL. Assignment also blocks
+`public_reply`.
 
-`ConversationState` is WootPilot's local suppression state. It should be used
-for fast workflow decisions, but public outbound execution should also consult
-fresh channel state through `ConversationSafetyReader` when the channel supports
-it.
+## Outbound Writes
 
-The first version should support one Chatwoot account cleanly, but the data model
-should include tenant/account boundaries from the start.
+WootPilot writes to Chatwoot through `ChatwootClient`:
 
-The channel adapter should target Chatwoot-compatible webhooks and APIs rather
-than a Cloud-only or self-hosted-only integration. MVP slices should validate
-against the local self-hosted Chatwoot stack first, with Chatwoot Cloud treated
-as a compatibility target for production readiness.
+- private notes;
+- public messages;
+- optional status updates after public replies;
+- optional `wootpilot-needs-human` label merging after private review notes.
 
-Manual MVP verification should also exercise the public dev Chatwoot server and
-Meta-connected channel path:
+Public replies are re-checked immediately before sending by reading fresh
+Chatwoot conversation safety state. This final check protects against assignment,
+resolution, pause labels, replyability changes, and conversation-id mismatches
+that happen after a workflow queued an action.
+
+## Local And Public-Dev Flow
+
+Live public-dev traffic follows this path:
 
 ```text
 Meta-connected customer message
-  -> https://chat.gmrahal.net/ conversation
-  -> WootPilot webhook
-  -> WootPilot Chatwoot API write
+  -> Chatwoot conversation at https://chat.gmrahal.net/
+  -> signed Chatwoot webhook to WootPilot
+  -> WootPilot workflow and outbound queue
+  -> Chatwoot API write
   -> customer-visible reply or private note in Chatwoot
 ```
 
-Every translated `NormalizedMessage` should preserve:
-
-- `tenant_id`
-- `provider`
-- `provider_account_id`
-- `provider_inbox_id`
-- `provider_conversation_id`
-- `provider_message_id`
-- `provider_contact_id`
-
-Do not rely on conversation id alone as a globally unique identifier. Chatwoot
-Cloud, self-hosted Chatwoot, imports, tests, and future multi-account setups can
-all make that assumption fragile.
+Conversation ids are not treated as globally unique. WootPilot scopes state and
+audit data by tenant/account, channel/inbox, and conversation identifiers.

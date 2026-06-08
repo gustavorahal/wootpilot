@@ -1,9 +1,8 @@
 # Configuration
 
-WootPilot should read runtime configuration from environment variables using
-`pydantic-settings`.
-
-The implementation entry point should be `src/wootpilot/settings.py`:
+WootPilot reads runtime configuration from environment variables using
+`pydantic-settings`. The implementation entry point is
+[`src/wootpilot/settings.py`](../../src/wootpilot/settings.py):
 
 ```python
 from functools import cache
@@ -24,9 +23,9 @@ def get_settings() -> Settings:
     return Settings()
 ```
 
-Application code should receive `Settings` through FastAPI dependencies,
-service constructors, or test fixtures. Domain models must not read environment
-variables directly.
+Application code receives `Settings` through FastAPI dependencies, service
+constructors, or test fixtures. Domain models do not read environment variables
+directly.
 
 ## Where Values Live
 
@@ -145,7 +144,7 @@ available on the internal Docker network.
 
 ## Webhook Configuration
 
-Chatwoot should call:
+Chatwoot calls:
 
 ```text
 {PUBLIC_BASE_URL}{WEBHOOK_PATH}
@@ -164,8 +163,8 @@ Do not put the Chatwoot API token in the webhook URL. Chatwoot account webhooks
 already have a generated secret and send signed requests when the secret is
 present.
 
-For MVP testing, configure a Chatwoot webhook for these event families when the
-Chatwoot UI/API supports them:
+For local and public-dev testing, configure a Chatwoot webhook for these event
+families when the Chatwoot UI/API supports them:
 
 ```text
 message_created
@@ -181,7 +180,7 @@ updates, including status or assignment-related changes when Chatwoot emits them
 through `conversation_updated`, update local suppression, replyability, and
 pause/resume state without invoking the model.
 
-The native Chatwoot webhook signature should be verified as:
+The native Chatwoot webhook signature is verified as:
 
 ```text
 signature header: X-Chatwoot-Signature
@@ -239,8 +238,8 @@ OPENROUTER_API_KEY
 OPENROUTER_MODEL
 ```
 
-Default CI must not require `OPENROUTER_API_KEY`. Provider calls
-should be mocked unless an opt-in live smoke test is being run.
+Default CI does not require `OPENROUTER_API_KEY`. Provider calls are mocked
+unless an opt-in live smoke test is being run.
 
 ## Catalog Variables
 
@@ -250,8 +249,8 @@ MOCK_CATALOG_PATH=./data/mock-woocommerce/catalog.demo-car-parts.json
 WOOCOMMERCE_STORE_API_BASE_URL
 ```
 
-The MVP should default to the committed mock catalog. Public Store API reads can
-be enabled later by setting `CATALOG_CONNECTOR_MODE=store_api`.
+The default catalog is the committed mock catalog. Public Store API reads are
+enabled by setting `CATALOG_CONNECTOR_MODE=store_api`.
 
 ## Public Dev Chatwoot
 

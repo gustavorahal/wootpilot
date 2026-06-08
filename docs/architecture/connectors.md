@@ -1,307 +1,94 @@
 # Connector Model
 
-WootPilot should use the term **connectors** for external small-business systems
-that provide business context or business actions around Chatwoot conversations.
-Chatwoot itself should be modeled as a channel because it is the primary support
-platform WootPilot is built around.
+WootPilot uses **connectors** for external business systems that provide context
+around a Chatwoot conversation. Chatwoot itself is not modeled as a connector; it
+is the primary support channel.
 
-The connector architecture should be designed for both reads and writes, but the
-first WooCommerce implementation should be read-only. Read capabilities provide
-normalized resource snapshots. Write capabilities should create proposed
-connector actions that pass through policy, audit, and explicit execution before
-mutating any external system.
+The current connector implementation is product-catalog read only. It gives the
+support workflow compact product context for customer questions such as parts,
+availability, pricing, and fitment.
 
-Use `Snapshot` suffixes for normalized external resource data:
+## Current Catalog Boundary
 
-```text
-ProductSnapshot
-OrderSnapshot
-CustomerSnapshot
-```
+The application depends on the `ProductCatalogConnector` protocol in
+[`src/wootpilot/domain/ports.py`](../../src/wootpilot/domain/ports.py). The
+runtime connector is selected by
+[`catalog_connector_from_settings`](../../src/wootpilot/catalog/factory.py).
 
-These objects represent point-in-time observations from external systems of
-record, not canonical entities owned by WootPilot. A product price, stock level,
-order status, or customer profile can change after the agent run. Persisting the
-compact snapshots used by each run preserves causality for audits and debugging.
-
-Raw connector API payloads should stay inside connector packages. Application
-services should consume only normalized snapshots, and agent context should
-receive only compact, policy-aware context.
-
-Connector adapters own connector boundaries. Connector clients perform raw API
-calls, connector translators convert provider DTOs into domain snapshots, and the
-connector registry selects configured adapters/installations. Registries should
-not translate provider payloads.
-
-Connector packages should expose resource-oriented capability protocols. Workflow
-services compose those resources into support-specific context.
-
-Adapters should present capability protocols to the application layer. Clients
-and raw DTOs remain internal to the connector package, and translators are used
-inside the adapter to turn provider responses into domain snapshots before
-anything crosses into services.
-
-## Capabilities
-
-Initial capability names:
-
-```python
-from enum import StrEnum
-
-
-class ConnectorCapability(StrEnum):
-    product_catalog_read = "product_catalog_read"
-    order_read = "order_read"
-    customer_read = "customer_read"
-    order_note_write = "order_note_write"
-    order_status_update = "order_status_update"
-    refund_create = "refund_create"
-    coupon_create = "coupon_create"
-    customer_tag_write = "customer_tag_write"
-```
-
-Reads can be moderately coarse-grained. `product_catalog_read` covers product
-search, category listing, and product lookup for version 1. Writes should be
-fine-grained because policy and audit need to know exactly which business
-mutation was proposed.
-
-Prefer separate protocols per capability rather than one large connector base
-class with many optional methods:
-
-```python
-from typing import Protocol
-
-
-class ProductCatalogConnector(Protocol):
-    async def search_products(
-        self,
-        query: ProductSearchQuery,
-    ) -> list[ProductSnapshot]:
-        ...
-
-    async def get_product(self, external_product_id: str) -> ProductSnapshot | None:
-        ...
-
-    async def get_product_by_sku(self, sku: str) -> ProductSnapshot | None:
-        ...
-
-    async def list_categories(self) -> list[ProductCategory]:
-        ...
-```
-
-Each connector implementation declares supported capabilities. Each
-tenant-scoped connector installation declares enabled capabilities. Effective
-capabilities are the intersection of:
-
-```text
-supported_capabilities
-enabled_capabilities
-policy_allowed_capabilities
-```
-
-## Installation Configuration
-
-Connector configuration should be tenant-scoped from day one, even if version 1
-only configures one default tenant operationally. Environment variables may seed
-the default tenant connector installation for local development.
-
-Conceptual installation model:
-
-```text
-connector_installations
-  id
-  tenant_id
-  connector_key
-  display_name
-  enabled
-  supported_capabilities
-  enabled_capabilities
-  config_json
-  credentials_ref
-  created_at
-  updated_at
-```
-
-Vocabulary:
-
-```text
-connector_key
-  Stable connector type, such as woocommerce.
-
-connector_installation_id
-  Tenant-scoped configured instance, such as demo-store.
-
-display_name
-  Human-readable label, such as Demo WooCommerce Store.
-```
-
-The model should support multiple installations of the same connector per tenant,
-even though version 1 should configure only one WooCommerce installation for the
-default tenant. Workflow config should explicitly select which connector
-installation a service uses. Avoid automatic "find any connector with this
-capability" behavior in the agent path because multi-store and multi-brand
-setups can become ambiguous.
-
-Credentials should not live inside `config_json`. Store non-secret settings in
-config and use `credentials_ref` for secrets:
-
-```text
-config_json
-  base_url
-  mode
-  timeout
-  selected_capabilities
-
-credentials_ref
-  env:WOOCOMMERCE_DEFAULT
-  secret-manager:...
-  vault:...
-```
-
-For version 1, `credentials_ref` can resolve to environment variables. Later it
-can resolve to a proper secret store without changing installation records.
-
-Connector reads should be audited when their data influences an agent decision.
-The durable audit trail should preserve context snapshots, not every low-level
-HTTP request. Connector writes should be represented as proposed connector
-actions, then validated, executed, and audited through a shared action pipeline.
-Chatwoot outbound messages and connector business mutations should use the same
-guardrail philosophy but separate persistence tables.
-
-## WooCommerce Connector
-
-WootPilot should support WooCommerce as the first business-context connector.
-
-The first implementation should include two modes behind the same
-`ProductCatalogConnector` capability:
+Supported modes:
 
 ```text
 mock
   Reads data/mock-woocommerce/catalog.demo-car-parts.json.
 
 store_api
-  Reads public WooCommerce Store API endpoints such as:
-  /wp-json/wc/store/v1/products
-  /wp-json/wc/store/v1/products/categories
+  Reads public WooCommerce Store API product endpoints.
 ```
 
-Do not implement authenticated WooCommerce REST API support in version 1. The
-connector interfaces should leave room for authenticated capabilities such as
-`order_read`, `customer_read`, `order_note_write`, `refund_create`, and
-`coupon_create`, but those capabilities should remain disabled and unimplemented
-initially.
+Both modes return WootPilot-owned domain snapshots instead of raw provider
+payloads. `RunSupportWorkflow` calls the selected catalog connector before the
+graph is invoked, stores the resulting context snapshot, and passes the compact
+context into the graph state.
 
-The committed local fixture path is:
+## Snapshot Vocabulary
+
+Catalog domain models live in
+[`src/wootpilot/domain/models/catalog.py`](../../src/wootpilot/domain/models/catalog.py).
+The important distinction is that WootPilot stores **snapshots**, not canonical
+commerce entities.
+
+```text
+ProductSnapshot
+  Point-in-time product observation from the configured catalog source.
+
+ProductCategory
+  Category or grouping information from the catalog source.
+
+PriceSnapshot
+  Price observation plus policy metadata that says whether the model may mention
+  the price to the customer.
+
+AvailabilitySnapshot
+  Stock observation plus policy metadata that says whether the model may mention
+  availability or quantity.
+
+CatalogContext
+  The compact, policy-aware context used by a single workflow run.
+```
+
+Snapshots preserve causality. If a price, stock level, or product page changes
+after a reply was generated, the audit trail still records what WootPilot saw at
+decision time.
+
+## Mock Catalog
+
+The committed mock fixture is:
 
 ```text
 data/mock-woocommerce/catalog.demo-car-parts.json
 ```
 
-It contains:
+It contains fictionalized demo car-parts data with categories, tags, stock
+status, prices, kits, product URLs, and WooCommerce-like fields. This is the
+default local and test catalog source.
 
-- Products clearly marked as mock or test data;
-- categories, tags, stock status, prices, kits, and WooCommerce Store API
-  product fields;
-- product types covering TBI, kits, modules, harnesses, sensors, ignition, fuel,
-  and addons.
+## WooCommerce Store API
 
-The public repository should not include client-specific product data, source
-paths, or real storefront URLs. Demo fixtures should be fictionalized before
-being committed.
+`CATALOG_CONNECTOR_MODE=store_api` enables public WooCommerce Store API reads
+using `WOOCOMMERCE_STORE_API_BASE_URL`.
 
-### Product Catalog Capability
+The implementation reads public product data. It does not currently implement
+authenticated WooCommerce REST API operations such as order lookup, customer
+lookup, refunds, coupons, or order notes.
 
-`RunSupportWorkflow` should depend on `CatalogContextService`, not directly on
-WooCommerce or connector discovery. `CatalogContextService` should use the
-connector registry to resolve the tenant's configured product catalog adapter
-before the graph is invoked.
+## Design Rules In Current Code
 
-```python
-catalog_adapter = registry.require_capability(
-    tenant_id=tenant_id,
-    connector_installation_id=workflow_config.catalog_connector_installation_id,
-    capability=ConnectorCapability.product_catalog_read,
-)
-```
+Raw connector payloads stay inside connector code. Application services consume
+domain snapshots, and graph nodes consume compact catalog context.
 
-The WooCommerce connector adapter should use translators to convert raw
-WooCommerce payloads into shared domain resource snapshots such as
-`ProductSnapshot` and `ProductCategory`.
-Services and graph nodes must not receive raw WooCommerce API responses.
+Connector reads are represented in audit records through `context_snapshots`.
+The audit trail records the product context that influenced the workflow rather
+than every low-level HTTP request.
 
-### Product Context Shape
-
-The LLM should not receive raw WooCommerce API responses. A
-`CatalogContextService` should convert adapter results into compact,
-policy-aware structured context before `RunSupportWorkflow` invokes the graph.
-
-```json
-{
-  "generatedAt": "2026-06-07T00:00:00Z",
-  "query": "tbi 60 ford",
-  "candidateProducts": [
-    {
-      "id": "1399",
-      "name": "TBI 60mm FORD",
-      "sku": "TBIFORD60",
-      "productType": "tbi",
-      "publicUrl": "https://example-store.test/products/tbi-60mm-ford",
-      "price": {
-        "kind": "exact",
-        "source": "woocommerce_store_api",
-        "capturedAt": "2026-06-07T00:00:00Z",
-        "money": {
-          "amountMinor": 358000,
-          "currency": "BRL",
-          "decimalPlaces": 2
-        },
-        "rangeMin": null,
-        "rangeMax": null,
-        "displayText": "R$ 3.580,00",
-        "taxInclusive": null,
-        "priceListId": null,
-        "canMention": true,
-        "mentionPolicyReason": null
-      },
-      "availability": {
-        "status": "in_stock",
-        "source": "woocommerce_store_api",
-        "capturedAt": "2026-06-07T00:00:00Z",
-        "quantity": 5,
-        "quantityVisible": true,
-        "canMention": true,
-        "mentionPolicyReason": null,
-        "uncertaintyReasons": []
-      },
-      "fitmentHints": ["Maverick", "Galaxie", "Landau", "F100", "Mustang"],
-      "riskSignals": ["compatibility_requires_human_review"]
-    }
-  ],
-  "missingInformation": [],
-  "riskSignals": ["compatibility_requires_human_review"]
-}
-```
-
-`price` must be a serialized `PriceSnapshot`, not a float, a bare decimal, or a
-raw `Money` value. `availability` must be a serialized `AvailabilitySnapshot`.
-`Money` carries the exact amount and currency; `PriceSnapshot` carries quote
-status, source, display text, capture time, and whether policy allows the price
-to be mentioned.
-
-### WooCommerce Policy Rules
-
-WooCommerce context should exercise the same safety rules expected from a real
-support deployment.
-
-- The agent may send a public product name and public URL for a single safe
-  product match.
-- The agent may mention exact public WooCommerce prices by default when
-  `price.canMention=true`.
-- The agent may mention availability only when `availability.canMention=true`.
-- Kit products, quote placeholders, hidden-price products, or any price snapshot
-  with `kind=quote_required` must never be described as free.
-- Fitment hints are search aids, not final compatibility claims.
-- Any final kit composition, installation promise, warranty claim, or
-  performance claim requires human review.
-- Multiple product candidates should produce a private note or a public
-  clarifying question, depending on bot mode.
+There is no persisted connector installation registry in the current schema.
+The active catalog source is selected from environment-backed settings.
