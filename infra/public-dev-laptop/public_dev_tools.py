@@ -135,7 +135,11 @@ def request_json(
     body = None
     headers = {
         "Accept": "application/json",
-        "api_access_token": token,
+        "User-Agent": "WootPilotPublicDevHarness/1.0",
+        # Use the hyphenated form for public Cloudflare/Caddy paths. Rails still
+        # exposes it to Chatwoot as api_access_token, while underscore headers can
+        # be stripped before they reach the app.
+        "api-access-token": token,
     }
     if payload is not None:
         body = json.dumps(payload).encode("utf-8")
@@ -357,7 +361,11 @@ def check_chatwoot_root(
 ) -> None:
     base_url = config.get("WOOTPILOT_CHATWOOT_BASE_URL").rstrip("/")
     try:
-        with urllib.request.urlopen(base_url, timeout=10) as response:
+        request = urllib.request.Request(
+            base_url,
+            headers={"User-Agent": "WootPilotPublicDevHarness/1.0"},
+        )
+        with urllib.request.urlopen(request, timeout=10) as response:
             if response.status < 500:
                 passes.append(f"Chatwoot is reachable at {base_url}")
             else:

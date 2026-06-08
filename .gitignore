@@ -2,6 +2,7 @@ data/*
 !data/mock-woocommerce/
 !data/mock-woocommerce/catalog.demo-car-parts.json
 infra/chatwoot-dev/.env
+__pycache__/
 
 # Local WootPilot runtime configuration. Commit only .env*.example templates.
 .env
