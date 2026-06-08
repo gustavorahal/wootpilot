@@ -287,19 +287,36 @@ Supported checkpointer profiles:
 
 ```text
 memory
-  Tests and short-lived experiments only.
+  Tests and short-lived experiments only, using LangGraph `InMemorySaver`.
 
 sqlite
   Local development and single-worker alpha workflows using
-  langgraph-checkpoint-sqlite.
+  langgraph-checkpoint-sqlite, preferably `AsyncSqliteSaver` in the async app.
 
 postgres
-  Production workflows using langgraph-checkpoint-postgres.
+  Production workflows using langgraph-checkpoint-postgres, preferably
+  `AsyncPostgresSaver`.
 ```
 
 Thread memory, time travel debugging, and fault-tolerant graph resumes depend on
 checkpointers. SQLite is enough to start, but production graph state should move
 to Postgres with the rest of production persistence.
+
+Every checkpointed graph invocation must pass a stable LangGraph `thread_id`.
+Use a tenant/channel/conversation-derived value so checkpoint state stays scoped
+to the same Chatwoot conversation without crossing tenant boundaries:
+
+```text
+tenant:{tenant_id}:channel:{channel_id}:conversation:{conversation_id}
+```
+
+Checkpoint tables are framework-owned operational state. WootPilot audit and
+decision tables remain the product source of truth.
+
+Do not add a LangGraph store for MVP memory. Conversation state, context
+snapshots, connector snapshots, and audit records are explicit WootPilot domain
+data. Add a persistent LangGraph store later only for cross-thread semantic or
+preference memory that cannot be represented cleanly as domain state.
 
 MVP copilot workflows should complete after producing a Chatwoot private note.
 They should not pause on LangGraph interrupts for human approval.

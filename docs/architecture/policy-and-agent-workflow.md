@@ -99,6 +99,11 @@ application use cases so they can be tested without replaying the whole graph.
 
 The first graph should be explicit and boring in the best way.
 
+Implement it as a typed LangGraph `StateGraph`. Prefer `TypedDict` graph state
+with Pydantic v2 domain models at the application boundaries. Nodes should
+return partial state updates and leave database writes, connector reads, and
+Chatwoot writes to application services.
+
 State:
 
 ```text
@@ -124,6 +129,12 @@ llm_proposal
 validate_outbound_action
 build_workflow_decision
 ```
+
+Use conditional edges for simple branches. Use LangGraph `Command` only when a
+node needs to update state and route together, such as sending an exhausted
+provider failure to a blocked workflow decision. Add node-level retry policy to
+transient external reads such as `llm_proposal`; do not retry deterministic
+policy or validation failures.
 
 `RunSupportWorkflow` should load human operator state, build catalog context,
 persist the context snapshots used by the run, invoke the graph, persist the
@@ -164,6 +175,15 @@ computed after deterministic checks and channel API results.
 OpenRouter is the MVP model provider. Model adapter code should sit behind
 `ModelProposalPort` so prompts, structured output handling, retries, usage
 capture, and provider errors stay outside domain services and graph state.
+
+Prefer the current LangChain structured-output APIs rather than parsing JSON
+from free-form text. For model-level calls, use
+`ChatOpenRouter.with_structured_output(...)`; for an adapter that benefits from
+LangChain's agent wrapper, use `create_agent(..., response_format=...)` with an
+explicit Pydantic schema or strategy. Choose provider-native JSON Schema output
+when the selected OpenRouter model supports it well, otherwise fall back to
+tool/function-calling structured output. Always validate into a WootPilot-owned
+schema before creating a domain `AgentProposal`.
 
 Initial proposal and status schema:
 

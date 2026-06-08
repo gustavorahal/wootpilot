@@ -11,6 +11,11 @@
 - Add Postgres migrations in CI.
 - Add Postgres row-level queue locking for outbound action workers.
 - Add LangGraph checkpointer factory for memory, SQLite, and Postgres profiles.
+- Use async saver implementations for the FastAPI runtime: `AsyncSqliteSaver`
+  locally and `AsyncPostgresSaver` in production.
+- Add a review for whether LangSmith, LangGraph interrupts, subgraphs, or
+  persistent LangGraph stores have become useful. Keep them deferred unless a
+  concrete product workflow needs them.
 - Add golden conversation evals.
 - Add cost and latency tracking.
 - Add structured log review for failed, blocked, and high-latency workflows.
@@ -27,6 +32,8 @@
 - Postgres profile uses row-level queue locking for outbound action workers.
 - LangGraph memory, SQLite, and Postgres checkpointer factories select the
   expected backend.
+- Checkpointed graph runs pass tenant/channel/conversation-scoped `thread_id`
+  values.
 - Golden conversations cover low-risk FAQ, catalog lookup, kit escalation,
   account-sensitive requests, technical support escalation, prompt injection,
   requests for private/internal information, hidden prices, quote-required

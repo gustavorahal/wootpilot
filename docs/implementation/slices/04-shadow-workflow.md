@@ -13,6 +13,10 @@
 - Add pre-model policy gate.
 - Add LangGraph workflow that receives prepared normalized message,
   conversation state, bot mode, policy inputs, and catalog context.
+- Implement the workflow as a typed `StateGraph` with explicit nodes and stable
+  state keys documented next to the graph state type.
+- Add a LangGraph checkpointer factory with `InMemorySaver` for tests; keep the
+  interface ready for SQLite/Postgres profiles added later.
 - Add an in-memory or fake `ModelProposalPort` for deterministic workflow tests.
 - Persist agent run, policy decisions, context snapshot links, and audit records.
 - Keep graph nodes free of connector reads, database writes, and Chatwoot writes.
@@ -24,6 +28,8 @@
 - Pre-model policy blocks ineligible messages before model proposal.
 - Policy decision rule ids and outcomes are stable.
 - Graph receives prepared conversation/catalog context.
+- Graph invocation uses a stable tenant/channel/conversation `thread_id` when a
+  checkpointer is enabled.
 - LangGraph workflow does not perform connector reads, database writes, or
   Chatwoot writes.
 - Audit records link raw event, normalized message, agent run, policy decision,

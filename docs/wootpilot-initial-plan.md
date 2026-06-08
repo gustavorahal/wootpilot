@@ -17,9 +17,9 @@ The design goal is a practical production-ready foundation:
 
 - Chatwoot-native integration through webhooks and APIs.
 - WooCommerce product-context integration for ecommerce support conversations.
-- Python-first AI stack using LangGraph, OpenRouter as the first model provider,
-  and Pydantic. Add broader LangChain dependencies only when they provide a
-  clear workflow benefit.
+- Python-first AI stack using LangGraph as the workflow runtime, OpenRouter as
+  the first model provider, Pydantic v2 for domain validation, and narrowly
+  scoped LangChain components for chat models and structured output.
 - Deterministic policy before and after model calls.
 - Human-in-the-loop by default for risky support, sales, billing, technical, or
   account-specific claims.
@@ -155,6 +155,7 @@ Detailed architecture:
 - [Connector Model](architecture/connectors.md)
 - [Domain Models](architecture/domain-models/overview.md)
 - [Policy And Agent Workflow](architecture/policy-and-agent-workflow.md)
+- [LangChain And LangGraph Guidance](architecture/langchain-langgraph.md)
 - [Persistence Model](architecture/persistence.md)
 - [Observability](architecture/observability.md)
 
@@ -177,10 +178,13 @@ Runtime and API:
 
 Agent and LLM infrastructure:
 
-- LangGraph
-- LangChain, only for components that are directly useful
+- LangGraph v1 as the explicit stateful workflow runtime
+- LangChain v1, only for components that are directly useful
 - OpenRouter as the MVP model provider
 - `langchain-openrouter` for LangChain/LangGraph chat model integration
+- LangChain structured output APIs through `with_structured_output`,
+  `response_format`, `ProviderStrategy`, or `ToolStrategy`, selected per model
+  capability inside `ModelProposalPort`
 - Direct HTTPX calls to OpenRouter only if the dedicated integration blocks a
   required MVP feature
 
@@ -227,6 +231,8 @@ Build the first release as an API-only service with:
 - OpenRouter-backed model proposals.
 - SQLAlchemy/Alembic persistence with SQLite first and Postgres as the production
   target.
+- LangGraph checkpointers configured per environment, with stable tenant/channel
+  conversation thread ids.
 - Chatwoot API client.
 - Connector registry with tenant-scoped WooCommerce `mock` and `store_api`
   product catalog modes.

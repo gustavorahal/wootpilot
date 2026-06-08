@@ -30,6 +30,7 @@ wootpilot/
         context-snapshots.md
         audit-records.md
       policy-and-agent-workflow.md
+      langchain-langgraph.md
       persistence.md
       observability.md
     implementation/
@@ -75,6 +76,7 @@ wootpilot/
       agents/
         chatwoot_support_graph.py
         checkpoints.py
+        model_adapter.py
         prompts.py
         schemas.py
         state.py
@@ -164,6 +166,13 @@ tenant installation to use, write to Chatwoot, or persist database rows.
 Application services should handle those details and pass compact structured
 context into the graph.
 
+Use LangGraph as the top-level workflow runtime, not a generic agent loop. The
+graph should be a typed `StateGraph` with explicit nodes and stable state keys.
+LangChain belongs at the model boundary: chat model adapters, structured output,
+messages, and optional middleware when it fits a defined use case. See
+[LangChain And LangGraph Guidance](langchain-langgraph.md) for the framework
+feature choices that implementation should follow.
+
 Application services should be organized around a few durable use cases, not one
 service per tiny operation. Version 1 should start with these use-case modules:
 
@@ -236,6 +245,12 @@ sent, or call Chatwoot APIs. Outbound execution should happen through a small us
 case that performs final policy checks, re-reads human operator and replyability
 state through a channel-facing safety port, sends through the channel writer,
 and records the result idempotently.
+
+Graph nodes should return partial state updates rather than mutating state.
+Use LangGraph node-level retry policies for transient LLM/provider reads, and
+route exhausted failures into durable WootPilot decisions instead of letting
+exceptions discard run context. Do not retry policy failures or Chatwoot writes
+inside the graph.
 
 Connector packages should map raw external payloads into domain snapshots.
 Services that build context should consume those snapshots. Graph nodes should
