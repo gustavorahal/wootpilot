@@ -42,7 +42,9 @@ async def checkpointer_from_settings(
         return
     if profile == "postgres":
         try:
-            from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+            from langgraph.checkpoint.postgres.aio import (  # pyright: ignore[reportMissingImports]
+                AsyncPostgresSaver,
+            )
         except ModuleNotFoundError as exc:
             raise CheckpointerConfigurationError(
                 "WOOTPILOT_CHECKPOINTER=postgres requires "

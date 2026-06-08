@@ -142,7 +142,23 @@ triage_message
 policy_gate
 llm_proposal
 validate_outbound_action
-build_workflow_decision
+route_final_decision
+build_shadow_decision
+build_private_note_action
+build_public_message_action
+build_missing_proposal_failure
+```
+
+Current rendered topology:
+
+![Support workflow graph](support-workflow-graph.png)
+
+The Mermaid source is versioned at
+[support-workflow-graph.mmd](support-workflow-graph.mmd). Regenerate both files
+after graph routing changes:
+
+```bash
+uv run python scripts/render-support-workflow-graph.py
 ```
 
 Use conditional edges for simple branches. Use LangGraph `Command` only when a

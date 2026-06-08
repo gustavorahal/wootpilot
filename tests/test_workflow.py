@@ -24,7 +24,10 @@ from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.persistence.repositories import Repository, row_to_state
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
-from wootpilot.workflow.graph import build_support_graph
+from wootpilot.workflow.graph import (
+    WORKFLOW_NODE_DESCRIPTIONS,
+    build_support_graph,
+)
 
 
 class PublicProposalPort:
@@ -134,6 +137,25 @@ async def test_shadow_graph_keeps_public_proposal_as_non_sending_proposal() -> N
     )
     assert result["workflow_decision"].status.value == "proposed"
     assert result["workflow_decision"].action_kind.value == "none"
+
+
+def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
+    graph = build_support_graph(model_port=PublicProposalPort())
+
+    mermaid = graph.get_graph().draw_mermaid()
+
+    assert "eligible_customer_public_turn" in mermaid
+    assert "stop_pre_model_policy_block" in mermaid
+    assert "continue_model_proposed_action" in mermaid
+    assert "queue_private_review_note" in mermaid
+    assert "route_final_decision" in mermaid
+    assert "shadow_observe_only" in mermaid
+    assert "queue_copilot_or_private_note" in mermaid
+    assert "queue_limited_auto_public_reply" in mermaid
+    assert (
+        WORKFLOW_NODE_DESCRIPTIONS["should_invoke"]
+        == "Checks whether this message should run WootPilot."
+    )
 
 
 async def test_limited_auto_graph_blocks_assigned_conversations() -> None:

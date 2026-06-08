@@ -21,6 +21,13 @@ These rules apply to this entire repository.
 - Avoid documentation that merely restates obvious implementation details. The goal is educational clarity, not noise.
 - Treat code as something future contributors will learn from: it should be readable on its own, and documented where context would otherwise be lost.
 
+## Validation
+
+- For Python code changes, run `./scripts/dev-check` before calling the work done unless the change is docs-only or there is a clear blocker.
+- For narrow edits, targeted checks are fine while iterating, but the final validation should include Ruff, Pyright, and pytest.
+- Use `./scripts/release-check` before release-oriented changes or when touching packaging, migrations, deployment, security-sensitive code, or public-dev tooling.
+- If any expected validation is skipped, say exactly what was skipped and why.
+
 ## Commits
 
 - Commit messages must be explanatory, not just a short one-line message.
