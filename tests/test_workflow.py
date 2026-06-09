@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import runpy
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -32,10 +33,7 @@ from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.persistence.repositories import Repository, row_to_state
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
-from wootpilot.workflow.graph import (
-    WORKFLOW_NODE_DESCRIPTIONS,
-    build_support_graph,
-)
+from wootpilot.workflow.graph import build_support_graph
 
 
 class PublicProposalPort:
@@ -148,7 +146,10 @@ async def test_observe_graph_keeps_public_proposal_as_non_sending_proposal() -> 
 
 
 def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    script = runpy.run_path("scripts/render-support-workflow-graph.py")
+    model_port = script["DiagramModelPort"]()
+    script["sync_node_descriptions_for_diagram"](model_port)
+    graph = build_support_graph(model_port=model_port)
 
     mermaid = graph.get_graph().draw_mermaid()
 
@@ -161,7 +162,7 @@ def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
     assert "queue_assist_private_note" in mermaid
     assert "queue_public_reply" in mermaid
     assert (
-        WORKFLOW_NODE_DESCRIPTIONS["should_invoke"]
+        script["WORKFLOW_NODE_DESCRIPTIONS"]["should_invoke"]
         == "Checks whether this message should run WootPilot."
     )
 

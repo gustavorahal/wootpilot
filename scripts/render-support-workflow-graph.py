@@ -8,22 +8,24 @@ image files more reliably than Mermaid diagrams.
 from __future__ import annotations
 
 from html import escape
+from inspect import getdoc
 from pathlib import Path
 
 from langchain_core.runnables.graph import MermaidDrawMethod
 from langchain_core.runnables.graph_mermaid import draw_mermaid_png
 
 from wootpilot.domain.models import ModelProposalResult
-from wootpilot.workflow.graph import (
-    WORKFLOW_BRANCH_DESCRIPTIONS,
-    WORKFLOW_NODE_DESCRIPTIONS,
-    build_support_graph,
-)
+from wootpilot.time import Clock, IdGenerator
+from wootpilot.workflow.branches import WORKFLOW_BRANCH_DESCRIPTIONS
+from wootpilot.workflow.graph import build_support_graph
+from wootpilot.workflow.nodes import SupportWorkflowNodes
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DOCS = ROOT / "docs" / "reference"
 MERMAID_PATH = REFERENCE_DOCS / "support-workflow-graph.mmd"
 PNG_PATH = REFERENCE_DOCS / "support-workflow-graph.png"
+WORKFLOW_NODE_DESCRIPTIONS: dict[str, str] = {}
+"""Node descriptions used only while rendering workflow documentation."""
 
 
 class DiagramModelPort:
@@ -34,7 +36,9 @@ class DiagramModelPort:
 
 
 def main() -> None:
-    graph = build_support_graph(model_port=DiagramModelPort()).get_graph()
+    model_port = DiagramModelPort()
+    sync_node_descriptions_for_diagram(model_port)
+    graph = build_support_graph(model_port=model_port).get_graph()
     mermaid = _annotate_mermaid(graph.draw_mermaid())
     MERMAID_PATH.write_text(mermaid, encoding="utf-8")
     PNG_PATH.write_bytes(
@@ -57,6 +61,33 @@ def _annotate_mermaid(mermaid: str) -> str:
         rich_label = f'-. "{branch}<br/>{escape(description, quote=False)}" .->'
         annotated = annotated.replace(label, rich_label)
     return annotated + "\n"
+
+
+def sync_node_descriptions_for_diagram(model_port: DiagramModelPort) -> None:
+    """Refresh Mermaid node descriptions from workflow node docstrings."""
+
+    nodes = SupportWorkflowNodes(
+        model_port=model_port,
+        clock=Clock(),
+        ids=IdGenerator(),
+    )
+    WORKFLOW_NODE_DESCRIPTIONS.clear()
+    for name, node in {
+        "should_invoke": nodes.should_invoke,
+        "triage_message": nodes.triage_message,
+        "policy_gate": nodes.policy_gate,
+        "llm_proposal": nodes.llm_proposal,
+        "validate_outbound_action": nodes.validate_outbound_action,
+        "route_final_decision": nodes.route_final_decision,
+        "build_observe_decision": nodes.build_observe_decision,
+        "build_private_note_action": nodes.build_private_note_action,
+        "build_public_message_action": nodes.build_public_message_action,
+        "build_missing_proposal_failure": nodes.build_missing_proposal_failure,
+    }.items():
+        description = getdoc(node)
+        if description is None:
+            raise RuntimeError(f"Support workflow node {name!r} needs a docstring")
+        WORKFLOW_NODE_DESCRIPTIONS[name] = description.splitlines()[0]
 
 
 def _annotate_node_line(line: str) -> str:

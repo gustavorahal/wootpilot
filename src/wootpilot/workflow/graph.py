@@ -2,8 +2,7 @@
 
 The workflow package is split by reading concern:
 
-- Workflow vocabulary lives in `state.py`, `branches.py`, and graph
-  description constants.
+- Workflow vocabulary lives in `state.py` and `branches.py`.
 - Node behavior lives in `nodes.py`: what each workflow step does.
 - Routing behavior lives in `routing.py`: which path comes next.
 - Decision construction lives in `decisions.py`: how final outcomes are shaped.
@@ -15,8 +14,6 @@ decision helpers.
 """
 
 from __future__ import annotations
-
-from inspect import getdoc
 
 from langgraph.graph import END, StateGraph
 
@@ -38,15 +35,10 @@ from wootpilot.workflow.state import WorkflowState
 
 __all__ = [
     "WORKFLOW_BRANCH_DESCRIPTIONS",
-    "WORKFLOW_NODE_DESCRIPTIONS",
     "WorkflowBranch",
     "WorkflowState",
     "build_support_graph",
 ]
-
-WORKFLOW_NODE_DESCRIPTIONS: dict[str, str] = {}
-"""Human-readable node descriptions populated from graph node docstrings."""
-
 
 def build_support_graph(
     *,
@@ -66,20 +58,6 @@ def build_support_graph(
         model_port=model_port,
         clock=clock or Clock(),
         ids=ids or IdGenerator(),
-    )
-    _sync_node_descriptions(
-        {
-            "should_invoke": nodes.should_invoke,
-            "triage_message": nodes.triage_message,
-            "policy_gate": nodes.policy_gate,
-            "llm_proposal": nodes.llm_proposal,
-            "validate_outbound_action": nodes.validate_outbound_action,
-            "route_final_decision": nodes.route_final_decision,
-            "build_observe_decision": nodes.build_observe_decision,
-            "build_private_note_action": nodes.build_private_note_action,
-            "build_public_message_action": nodes.build_public_message_action,
-            "build_missing_proposal_failure": nodes.build_missing_proposal_failure,
-        }
     )
 
     graph = StateGraph(WorkflowState)
@@ -149,14 +127,3 @@ def build_support_graph(
     graph.add_edge("build_public_message_action", END)
     graph.add_edge("build_missing_proposal_failure", END)
     return graph.compile(checkpointer=checkpointer)
-
-
-def _sync_node_descriptions(nodes: dict[str, object]) -> None:
-    """Refresh diagram node descriptions from the graph node docstrings."""
-
-    WORKFLOW_NODE_DESCRIPTIONS.clear()
-    for name, node in nodes.items():
-        description = getdoc(node)
-        if description is None:
-            raise RuntimeError(f"Support workflow node {name!r} needs a docstring")
-        WORKFLOW_NODE_DESCRIPTIONS[name] = description.splitlines()[0]
