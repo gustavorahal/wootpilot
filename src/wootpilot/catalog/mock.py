@@ -15,6 +15,7 @@ from wootpilot.domain.models import (
     ProductSnapshot,
     StructuredCatalogContext,
 )
+from wootpilot.text import searchable_text
 
 __all__ = ["MockCatalog"]
 
@@ -77,7 +78,9 @@ class MockCatalog:
 
     def _search_products(self, query: ProductSearchQuery) -> list[ProductSnapshot]:
         normalized_terms = [
-            term for term in query.query.lower().replace("-", " ").split() if term
+            term
+            for term in searchable_text(query.query).replace("-", " ").split()
+            if term
         ]
         scored: list[tuple[int, dict[str, Any]]] = []
         for product in self.products:
@@ -108,11 +111,9 @@ class MockCatalog:
         parts: list[str] = []
         for item in product.get(key, []) or []:
             parts.extend(
-                str(value)
-                for value in (item.get("name"), item.get("slug"))
-                if value
+                str(value) for value in (item.get("name"), item.get("slug")) if value
             )
-        return " ".join(parts).casefold()
+        return searchable_text(" ".join(parts))
 
     def _search_text(self, product: dict[str, Any]) -> str:
         parts = [
@@ -127,7 +128,7 @@ class MockCatalog:
                 parts.extend([item.get("name"), item.get("slug")])
         client = product.get("clientFacing") or {}
         parts.append(json.dumps(client.get("fitment") or {}, ensure_ascii=False))
-        return " ".join(str(part) for part in parts if part).lower()
+        return searchable_text(" ".join(str(part) for part in parts if part))
 
     def _snapshot(self, product: dict[str, Any]) -> ProductSnapshot:
         prices = product.get("prices") or {}
@@ -200,4 +201,4 @@ class MockCatalog:
 
 
 def _all_terms_match(terms: list[str], haystack: str) -> bool:
-    return all(term.casefold() in haystack for term in terms)
+    return all(searchable_text(term) in haystack for term in terms)

@@ -19,38 +19,73 @@ from wootpilot.domain.models import (
     StructuredCatalogContext,
     TriageResult,
 )
+from wootpilot.text import searchable_text
 from wootpilot.time import IdGenerator
 
 __all__ = [
     "pre_model_policy",
+    "public_internal_reasoning_rule",
     "public_price_policy_rule",
     "triage_message",
     "validate_proposal",
 ]
 
-# Alpha note: these terms are intentionally broad. They are not a claim of
-# semantic intent detection; they are a conservative, deterministic review gate.
-# False positives should become private notes or human review instead of unsafe
-# public replies. Later versions can replace this with categorized policy rules
-# or model-assisted classification while keeping deterministic final gates.
-HANDOFF_TERMS = {
-    "account",
-    "agent",
-    "callback",
-    "cancel",
-    "cancellation",
-    "complaint",
-    "discount",
-    "ignore previous",
+# Alpha note: these terms are intentionally broad and multilingual. They are not
+# a claim of semantic intent detection; they are a conservative, deterministic
+# review gate. False positives should become private notes or human review
+# instead of unsafe public replies. Later versions can replace this with
+# categorized policy rules or model-assisted classification while keeping
+# deterministic final gates.
+HANDOFF_TERMS: dict[str, str] = {
+    "account": "account",
+    "agent": "agent",
+    "atendente": "agent",
+    "callback": "callback",
+    "cancel": "cancel",
+    "cancelamento": "cancel",
+    "cancelar": "cancel",
+    "cancellation": "cancel",
+    "complaint": "complaint",
+    "devolucao": "refund",
+    "discount": "discount",
+    "desconto": "discount",
+    "entrega": "delivery",
+    "estorno": "refund",
+    "garantia": "warranty",
+    "gerente": "manager",
+    "human": "human",
+    "humano": "human",
+    "ignore previous": "prompt_injection",
+    "ignora as instrucoes": "prompt_injection",
+    "instrucoes anteriores": "prompt_injection",
+    "internal": "internal",
+    "interno": "internal",
+    "manager": "manager",
+    "nota fiscal": "invoice",
+    "pedido": "order",
+    "person": "human",
+    "pessoa": "human",
+    "prazo": "delivery",
+    "private": "private",
+    "privado": "private",
+    "refund": "refund",
+    "reembolso": "refund",
+    "reclamacao": "complaint",
+    "senha": "password",
+    "troca": "exchange",
+    "warranty": "warranty",
+}
+
+PUBLIC_INTERNAL_REASONING_TERMS = {
     "internal",
-    "manager",
-    "private",
-    "refund",
-    "senha",
-    "warranty",
-    "garantia",
-    "human",
-    "person",
+    "interno",
+    "instrucoes",
+    "policy",
+    "politica",
+    "raciocinio",
+    "reasoning",
+    "triage",
+    "triagem",
 }
 
 
@@ -63,8 +98,10 @@ def triage_message(message: NormalizedMessage) -> TriageResult:
     turns toward review rather than treating this as final intelligence.
     """
 
-    content = message.content.lower()
-    risk_signals = [f"intent.{term}" for term in HANDOFF_TERMS if term in content]
+    content = searchable_text(message.content)
+    risk_signals = [
+        f"intent.{signal}" for term, signal in HANDOFF_TERMS.items() if term in content
+    ]
     intent = "handoff_requested" if risk_signals else "product_or_support"
     return TriageResult(
         should_invoke=True, intent=intent, risk_signals=sorted(risk_signals)
@@ -102,9 +139,8 @@ def pre_model_policy(
         and state.human_active_until > now
     ):
         rule_ids.append(PolicyRule.conversation_human_active)
-    if (
-        automation_mode is AutomationMode.public_reply
-        and (state.assigned_agent_id or state.assigned_team_id)
+    if automation_mode is AutomationMode.public_reply and (
+        state.assigned_agent_id or state.assigned_team_id
     ):
         rule_ids.append(PolicyRule.conversation_assigned_to_human)
     if "intent.human" in triage.risk_signals or "intent.agent" in triage.risk_signals:
@@ -150,10 +186,7 @@ def validate_proposal(
         and proposal.action_kind == AgentActionKind.public_message
     ):
         text = proposal.public_message or ""
-        lowered = text.lower()
-        if any(
-            term in lowered for term in ("internal", "triage", "policy", "reasoning")
-        ):
+        if public_internal_reasoning_rule(text):
             rule_ids.append(PolicyRule.public_no_internal_reasoning)
         if triage.risk_signals:
             rule_ids.append(PolicyRule.public_risk_requires_review)
@@ -204,8 +237,17 @@ def public_price_policy_rule(
     return PolicyRule.public_price_requires_mentionable_snapshot
 
 
+def public_internal_reasoning_rule(text: str) -> PolicyRule | None:
+    """Return a block rule when public text leaks internal reasoning language."""
+
+    lowered = searchable_text(text)
+    if any(term in lowered for term in PUBLIC_INTERNAL_REASONING_TERMS):
+        return PolicyRule.public_no_internal_reasoning
+    return None
+
+
 def _mentions_exact_price(text: str) -> bool:
-    lowered = text.lower()
+    lowered = searchable_text(text)
     price_markers = ("r$", "$", "brl", "usd", "eur", "free", "grátis", "gratis")
     if any(marker in lowered for marker in price_markers):
         return True

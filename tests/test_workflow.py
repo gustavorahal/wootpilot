@@ -241,6 +241,51 @@ async def test_public_reply_graph_blocks_resolved_conversations() -> None:
     assert "conversation.resolved" in decision.rule_ids
 
 
+async def test_public_reply_graph_blocks_portuguese_human_escalation() -> None:
+    graph = build_support_graph(model_port=PublicProposalPort())
+    now = datetime.now(UTC)
+    message = _message(now).model_copy(
+        update={"content": "Quero falar com um atendente humano."}
+    )
+
+    result = await graph.ainvoke(
+        {
+            "normalized_message": message,
+            "conversation_state": _state(now),
+            "catalog_context": StructuredCatalogContext(query=message.content),
+            "automation_mode": AutomationMode.public_reply,
+        },
+        config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
+    )
+
+    decision = result["workflow_decision"]
+    assert decision.status.value == "blocked_by_policy"
+    assert "intent.human_requested" in decision.rule_ids
+
+
+async def test_public_reply_graph_routes_portuguese_discount_to_review() -> None:
+    graph = build_support_graph(model_port=PublicProposalPort())
+    now = datetime.now(UTC)
+    message = _message(now).model_copy(
+        update={"content": "Tem desconto no pix para esse produto?"}
+    )
+
+    result = await graph.ainvoke(
+        {
+            "normalized_message": message,
+            "conversation_state": _state(now),
+            "catalog_context": StructuredCatalogContext(query=message.content),
+            "automation_mode": AutomationMode.public_reply,
+        },
+        config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
+    )
+
+    decision = result["workflow_decision"]
+    assert decision.status.value == "queued_action"
+    assert decision.action_kind.value == "private_note"
+    assert "public.risk_requires_review" in decision.rule_ids
+
+
 async def test_public_reply_allows_exact_mentionable_catalog_price() -> None:
     graph = build_support_graph(model_port=PriceProposalPort())
     now = datetime.now(UTC)
@@ -464,10 +509,7 @@ async def test_persistent_checkpoints_do_not_replay_policy_state_between_message
         stage_counts = {
             row[0]: row[1]
             for row in conn.execute(
-                text(
-                    "select stage, count(*) from policy_decisions "
-                    "group by stage"
-                )
+                text("select stage, count(*) from policy_decisions group by stage")
             )
         }
     assert stage_counts == {"pre_model": 2, "post_model": 2}

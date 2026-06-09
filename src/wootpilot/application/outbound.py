@@ -8,7 +8,10 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wootpilot.application.errors import ChatwootApiError
-from wootpilot.application.policy import public_price_policy_rule
+from wootpilot.application.policy import (
+    public_internal_reasoning_rule,
+    public_price_policy_rule,
+)
 from wootpilot.domain.models import (
     AgentActionKind,
     AutomationMode,
@@ -302,11 +305,8 @@ class ExecuteOutboundActions:
             return PolicyRule.mode_public_reply_not_enabled
         if not action.content.strip():
             return PolicyRule.content_empty
-        lowered = action.content.lower()
-        if any(
-            term in lowered for term in ("internal", "triage", "policy", "reasoning")
-        ):
-            return PolicyRule.public_no_internal_reasoning
+        if leakage_rule := public_internal_reasoning_rule(action.content):
+            return leakage_rule
         return _public_price_rule_from_safety_context(
             action.content,
             action.safety_context,

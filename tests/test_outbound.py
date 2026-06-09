@@ -55,16 +55,12 @@ class FakeChatwootWriter:
     async def set_conversation_status(
         self, *, conversation_id: str, status: str
     ) -> None:
-        self.status_calls.append(
-            {"conversation_id": conversation_id, "status": status}
-        )
+        self.status_calls.append({"conversation_id": conversation_id, "status": status})
 
     async def add_conversation_labels(
         self, *, conversation_id: str, labels: list[str]
     ) -> None:
-        self.label_calls.append(
-            {"conversation_id": conversation_id, "labels": labels}
-        )
+        self.label_calls.append({"conversation_id": conversation_id, "labels": labels})
 
 
 class ObservingChatwootWriter(FakeChatwootWriter):
@@ -1198,6 +1194,55 @@ async def test_public_message_is_blocked_when_content_leaks_reasoning(
             now=now,
         )
         await queue_public_action(repo, ids, now, content="Internal policy says yes.")
+        await session.commit()
+
+    writer = FakeChatwootWriter()
+    async with factory() as session:
+        counts = await ExecuteOutboundActions(
+            settings=settings,
+            session=session,
+            chatwoot=writer,  # type: ignore[arg-type]
+        ).run_once()
+        await session.commit()
+
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert writer.calls == []
+    assert outbound_status(db_path) == (
+        "blocked_by_policy",
+        "public.no_internal_reasoning",
+    )
+
+
+async def test_public_message_is_blocked_when_content_leaks_portuguese_policy(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "public-content-pt-policy-leak-blocked.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        automation_mode=AutomationMode.public_reply,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.get_or_create_state(
+            id=ids.new(),
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            now=now,
+        )
+        await queue_public_action(
+            repo,
+            ids,
+            now,
+            content="A política interna diz que posso responder.",
+        )
         await session.commit()
 
     writer = FakeChatwootWriter()

@@ -51,6 +51,13 @@ class ModelProvider(StrEnum):
     openrouter = "openrouter"
 
 
+class CustomerLocale(StrEnum):
+    """Customer-facing language profile selected for prompts and safe defaults."""
+
+    pt_br = "pt-BR"
+    en = "en"
+
+
 class CatalogConnectorMode(StrEnum):
     """Catalog adapter profile selected by runtime settings."""
 

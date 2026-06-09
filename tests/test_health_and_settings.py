@@ -25,10 +25,12 @@ def test_public_dev_settings_parse_native_chatwoot_headers() -> None:
         "chatwoot_webhook_signature_header": "x-chatwoot-signature",
         "chatwoot_webhook_timestamp_header": "x-chatwoot-timestamp",
         "chatwoot_webhook_delivery_header": "x-chatwoot-delivery",
+        "response_locale": "pt-BR",
     }
     settings = Settings(**settings_values)
     assert str(settings.chatwoot_base_url).rstrip("/") == "https://chat.gmrahal.net"
     assert settings.chatwoot_webhook_signature_header == "x-chatwoot-signature"
+    assert settings.response_locale.value == "pt-BR"
 
 
 def test_production_startup_does_not_create_tables(

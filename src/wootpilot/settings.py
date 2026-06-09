@@ -12,6 +12,7 @@ from wootpilot.domain.models import (
     AutomationMode,
     CatalogConnectorMode,
     CheckpointerProfile,
+    CustomerLocale,
     ModelProvider,
     RuntimeEnvironment,
     WebhookSignatureMode,
@@ -40,6 +41,7 @@ class Settings(BaseSettings):
     checkpointer: CheckpointerProfile = CheckpointerProfile.memory
 
     automation_mode: AutomationMode = AutomationMode.public_reply
+    response_locale: CustomerLocale = CustomerLocale.pt_br
     human_operator_active_ttl_seconds: int = 900
     webhook_replay_window_seconds: int = 300
     outbound_retry_delay_seconds: int = 60

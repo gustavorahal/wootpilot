@@ -66,6 +66,7 @@ DB_URL
 CHECKPOINTER
 
 AUTOMATION_MODE
+RESPONSE_LOCALE
 HUMAN_OPERATOR_ACTIVE_TTL_SECONDS
 OUTBOUND_RETRY_DELAY_SECONDS
 OUTBOUND_MAX_ATTEMPTS
@@ -77,6 +78,11 @@ It is not necessarily the same as the Chatwoot URL.
 trace in `local` and `public_dev` environments, including customer messages and
 model-proposed text. It is ignored in `test` and `production`, where structured
 JSON logs and audit records remain the observability path.
+`RESPONSE_LOCALE` controls the language profile used for model prompts and
+deterministic fake proposals. The default is `pt-BR`, because the first live
+customer target is Brazilian Portuguese. Keep this explicit in deployments so
+reviewers can see that Portuguese behavior is a product choice, not an
+accidental prompt side effect.
 `HUMAN_OPERATOR_ACTIVE_TTL_SECONDS` controls how long WootPilot treats
 a conversation as human-active after a human sends a public Chatwoot reply. The
 default is `900` seconds, or 15 minutes. During this window, `public_reply`

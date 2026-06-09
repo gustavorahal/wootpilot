@@ -34,6 +34,14 @@ async def test_mock_catalog_search_by_name_sku_and_category() -> None:
     assert by_category.products
 
 
+async def test_mock_catalog_search_is_accent_insensitive_for_pt_br_text() -> None:
+    catalog = MockCatalog(Path("data/mock-woocommerce/catalog.demo-car-parts.json"))
+
+    result = await catalog.search("injecao carburado")
+
+    assert result.products
+
+
 def test_money_rejects_float_minor_units() -> None:
     try:
         Money(currency="brl", minor_units=10.5)  # type: ignore[arg-type]
@@ -107,17 +115,16 @@ def test_store_api_catalog_search_maps_recorded_fixture(caplog) -> None:
     caplog.set_level(logging.INFO, logger="wootpilot.catalog.store_api")
 
     context = asyncio.run(
-        StoreApiCatalog(
-            base_url="https://fictional-woocommerce-demo.test"
-        ).search("aircooled")
+        StoreApiCatalog(base_url="https://fictional-woocommerce-demo.test").search(
+            "aircooled"
+        )
     )
 
     assert route.called
     log_record = next(
         record
         for record in caplog.records
-        if getattr(record, "wootpilot_event", "")
-        == "catalog_connector_read_completed"
+        if getattr(record, "wootpilot_event", "") == "catalog_connector_read_completed"
     )
     assert log_record.wootpilot_fields["connector"] == "woocommerce_store_api"
     assert log_record.wootpilot_fields["capability"] == "product_search"
@@ -126,9 +133,7 @@ def test_store_api_catalog_search_maps_recorded_fixture(caplog) -> None:
     assert log_record.wootpilot_fields["result_count"] == 2
     assert context.products[0].name == "Demo Aircooled Harness"
     assert context.products[0].price.can_mention is True
-    assert context.products[0].price.amount == Money(
-        currency="BRL", minor_units=350000
-    )
+    assert context.products[0].price.amount == Money(currency="BRL", minor_units=350000)
     assert context.products[0].availability.can_mention is True
 
 
@@ -200,8 +205,7 @@ def test_store_api_structured_filters_and_logs_capabilities(caplog) -> None:
     capabilities = [
         record.wootpilot_fields["capability"]
         for record in caplog.records
-        if getattr(record, "wootpilot_event", "")
-        == "catalog_connector_read_completed"
+        if getattr(record, "wootpilot_event", "") == "catalog_connector_read_completed"
     ]
     assert "product_search" in capabilities
     assert "product_categories" in capabilities
@@ -334,9 +338,9 @@ def test_store_api_failure_raises_controlled_context_error(caplog) -> None:
 
     try:
         asyncio.run(
-            StoreApiCatalog(
-                base_url="https://fictional-woocommerce-demo.test"
-            ).search("aircooled")
+            StoreApiCatalog(base_url="https://fictional-woocommerce-demo.test").search(
+                "aircooled"
+            )
         )
     except CatalogContextError as exc:
         assert "woocommerce_store_api_context_failed" in str(exc)
@@ -345,8 +349,7 @@ def test_store_api_failure_raises_controlled_context_error(caplog) -> None:
     log_record = next(
         record
         for record in caplog.records
-        if getattr(record, "wootpilot_event", "")
-        == "catalog_connector_read_completed"
+        if getattr(record, "wootpilot_event", "") == "catalog_connector_read_completed"
     )
     assert log_record.wootpilot_fields["status"] == "failed"
     assert log_record.wootpilot_fields["status_code"] == 503

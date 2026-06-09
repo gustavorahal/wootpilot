@@ -27,6 +27,7 @@ from wootpilot.domain.models import (
     StructuredCatalogContext,
 )
 from wootpilot.observability import log_event
+from wootpilot.text import searchable_text
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +228,7 @@ class StoreApiCatalog:
                 result_count=len(products),
             )
             return products
-        except (httpx.HTTPError, ValueError):
+        except httpx.HTTPError, ValueError:
             self._log_store_api_call(
                 capability=capability,
                 status="failed",
@@ -263,7 +264,7 @@ class StoreApiCatalog:
                 result_count=1,
             )
             return data
-        except (httpx.HTTPError, ValueError):
+        except httpx.HTTPError, ValueError:
             self._log_store_api_call(
                 capability=capability,
                 status="failed",
@@ -340,9 +341,7 @@ def store_api_product_to_snapshot(product: dict[str, Any]) -> ProductSnapshot:
     availability = AvailabilitySnapshot(
         is_available=in_stock,
         display_text=str(
-            product.get("stock_availability")
-            or product.get("stockAvailability")
-            or ""
+            product.get("stock_availability") or product.get("stockAvailability") or ""
         ),
         can_mention=True,
         hidden_quantity=False,
@@ -398,9 +397,9 @@ def _snapshot_matches_structured_filters(
     snapshot: ProductSnapshot,
     query: ProductSearchQuery,
 ) -> bool:
-    category_text = " ".join(snapshot.categories).casefold()
-    tag_text = " ".join(snapshot.tags).casefold()
-    fitment_text = " ".join(snapshot.fitment_hints).casefold()
+    category_text = searchable_text(" ".join(snapshot.categories))
+    tag_text = searchable_text(" ".join(snapshot.tags))
+    fitment_text = searchable_text(" ".join(snapshot.fitment_hints))
     return (
         _all_terms_match(query.categories, category_text)
         and _all_terms_match(query.tags, tag_text)
@@ -409,7 +408,7 @@ def _snapshot_matches_structured_filters(
 
 
 def _all_terms_match(terms: list[str], haystack: str) -> bool:
-    return all(term.casefold() in haystack for term in terms)
+    return all(searchable_text(term) in haystack for term in terms)
 
 
 def _taxonomy_name(item: Any) -> str:

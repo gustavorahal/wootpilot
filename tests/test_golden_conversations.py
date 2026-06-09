@@ -18,6 +18,9 @@ async def test_golden_conversation_suite() -> None:
         "hidden_price",
         "quote_required_price",
         "zero_value_kit_placeholder",
+        "pt_br_human_escalation",
+        "pt_br_discount_review",
+        "pt_br_prompt_injection",
     }
 
     failures = []
