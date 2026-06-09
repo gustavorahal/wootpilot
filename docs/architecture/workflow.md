@@ -126,6 +126,13 @@ Post-model policy blocks or downgrades unsafe public proposals. In `public_reply
 mode, risky public proposals become private review notes instead of customer
 messages. Price claims must match a mentionable catalog snapshot.
 
+Customer text is normalized for lightweight deterministic matching before policy
+rules run. The normalization is case-insensitive and accent-insensitive, so
+Brazilian Portuguese terms such as `devolução` and `devolucao` are treated as
+the same signal. These keyword rules are deliberately conservative alpha review
+gates, not final semantic intelligence; false positives should route to private
+review rather than become unsafe public replies.
+
 ## Outbound Execution
 
 Outbound execution is separate from the graph. `ExecuteOutboundActions` claims

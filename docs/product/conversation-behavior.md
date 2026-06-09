@@ -73,22 +73,24 @@ authenticated WooCommerce mutations, or custom Chatwoot UI approval flows.
 
 ## Mode Behavior
 
-Shadow mode:
+`observe`:
 
 - WootPilot evaluates the message and stores what it would have done.
 - It never writes a private note or public reply to Chatwoot.
 - Use this for live observation against the public dev Chatwoot server before
   enabling writes.
 
-Copilot mode:
+`assist`:
 
 - WootPilot writes a private note with a suggested reply, useful context, and
   risk reasons.
 - The customer does not see the private note.
 - A human agent replies from Chatwoot if they want to use or edit the suggestion.
-- This is the default MVP write mode.
+- This is the safest customer-support write mode. The current alpha templates
+  default to `public_reply` so public-dev testing exercises the full delivery
+  pipeline.
 
-Limited auto mode:
+`public_reply`:
 
 - WootPilot can send a public message only when the final policy check says the
   exact content is safe.

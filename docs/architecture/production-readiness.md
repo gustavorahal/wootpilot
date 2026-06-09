@@ -74,6 +74,7 @@ Local and public-dev laptop profile:
 DB_URL=sqlite+aiosqlite:///./data/wootpilot-public-dev.db
 CHECKPOINTER=sqlite
 AUTOMATION_MODE=public_reply
+RESPONSE_LOCALE=pt-BR
 ```
 
 SQLite enables WAL mode, foreign keys, and a busy timeout at connection time.
@@ -87,6 +88,7 @@ Production profile:
 DB_URL=postgresql+psycopg://wootpilot:...@db.example/wootpilot
 CHECKPOINTER=postgres
 AUTOMATION_MODE=public_reply
+RESPONSE_LOCALE=pt-BR
 ```
 
 Postgres is the production database target for public replies and multiple

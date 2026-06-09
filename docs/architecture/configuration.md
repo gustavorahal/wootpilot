@@ -2,7 +2,8 @@
 
 WootPilot reads runtime configuration from environment variables using
 `pydantic-settings`. The implementation entry point is
-[`src/wootpilot/settings.py`](../../src/wootpilot/settings.py):
+[`src/wootpilot/settings.py`](../../src/wootpilot/settings.py). In abbreviated
+form, the settings boundary looks like this:
 
 ```python
 from functools import cache

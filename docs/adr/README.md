@@ -32,4 +32,4 @@ No ADRs have been extracted yet. The first candidates are:
 - LangGraph as an explicit support workflow rather than a free-form agent loop.
 - Outbox-based Chatwoot writes instead of writing inside the graph.
 - Connector context prepared before graph invocation.
-- Shadow, assist, and public-reply operating modes as the safety ladder.
+- `observe`, `assist`, and `public_reply` operating modes as the safety ladder.

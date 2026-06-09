@@ -49,14 +49,16 @@ DTO
 
 ## Naming Rules
 
-- Use `adapter.py` for boundary orchestration around one provider or
-  infrastructure concern.
-- Use `client.py` for low-level HTTP/API interaction.
-- Use `translators.py` for conversion functions at a boundary.
-- Use `repositories.py` for persistence access.
-- Use `ports/` for application-owned `Protocol` definitions that represent
-  external effects.
-- Use `registry.py` for selecting configured connector adapters or installations.
+- Use `integrations/<provider>.py` for provider boundaries that currently fit in
+  one module, such as Chatwoot and OpenRouter. Split into package-level
+  `client.py`, `translators.py`, or `adapter.py` only when the boundary becomes
+  large enough that those names hide real complexity.
+- Use `catalog/` for product-catalog connector selection and implementations.
+- Use `persistence/repositories.py` for persistence access.
+- Use `domain/ports.py` for application-owned `Protocol` definitions that
+  represent external effects.
+- Use `factory.py` or `registry.py` for selecting configured connector adapters
+  or installations.
 - Avoid new names such as `mapper`, `normalizer`, `converter`, or `builder` for
   boundary translation unless the code has a clearly different job.
 
@@ -66,7 +68,7 @@ Inbound channel flow:
 
 ```text
 Chatwoot webhook DTO
-  -> channels/chatwoot/translators.py
+  -> integrations/chatwoot.py
   -> ChannelEvent / NormalizedMessage
   -> application service
   -> agent graph
@@ -76,10 +78,9 @@ Connector read flow:
 
 ```text
 application service
-  -> connector capability protocol
-  -> connector adapter
-  -> connector client returns WooCommerce API DTO
-  -> connectors/woocommerce/translators.py
+  -> ProductCatalogConnector protocol
+  -> catalog/factory.py selects mock or Store API connector
+  -> catalog connector reads fixture data or WooCommerce Store API DTOs
   -> ProductSnapshot / PriceSnapshot / AvailabilitySnapshot
   -> application service receives domain snapshots
 ```
@@ -88,7 +89,7 @@ Persistence flow:
 
 ```text
 database row
-  -> persistence/translators.py
+  -> persistence/repositories.py
   -> domain object
   -> repository caller
 ```
@@ -97,10 +98,9 @@ Outbound channel flow:
 
 ```text
 OutboundAction
-  -> ChannelWriter port
-  -> channels/chatwoot/adapter.py
-  -> channels/chatwoot/translators.py
-  -> channels/chatwoot/client.py
+  -> ExecuteOutboundActions
+  -> integrations/chatwoot.py
+  -> Chatwoot API
 ```
 
 ## Rule Of Thumb

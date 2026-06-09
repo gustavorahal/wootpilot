@@ -88,6 +88,13 @@ Prompt construction is versioned in the model adapter. Customer text is labeled
 as untrusted data, compact conversation safety state is included explicitly, and
 catalog rows are serialized from policy-aware prompt-safe snapshots.
 
+`RESPONSE_LOCALE` is passed into prompt construction as an explicit language
+profile. The default is `pt-BR`, so public messages, private notes, and summaries
+should be written in Brazilian Portuguese while preserving product names, SKUs,
+URLs, and catalog-provided price formatting. Locale is configuration, not a
+model guess from customer text, because Brazilian customer messages may mix
+Portuguese, English product names, codes, and links in one turn.
+
 Model output is a proposal only. Deterministic policy and outbound execution
 decide whether the proposal becomes a private note, public reply, audit-only
 observation, or blocked run.
