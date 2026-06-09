@@ -28,6 +28,11 @@ __all__ = [
     "validate_proposal",
 ]
 
+# Alpha note: these terms are intentionally broad. They are not a claim of
+# semantic intent detection; they are a conservative, deterministic review gate.
+# False positives should become private notes or human review instead of unsafe
+# public replies. Later versions can replace this with categorized policy rules
+# or model-assisted classification while keeping deterministic final gates.
 HANDOFF_TERMS = {
     "account",
     "agent",
@@ -50,7 +55,13 @@ HANDOFF_TERMS = {
 
 
 def triage_message(message: NormalizedMessage) -> TriageResult:
-    """Classify simple intent signals before spending model/provider work."""
+    """Classify conservative alpha risk signals before model/provider work.
+
+    The keyword list favors safety over recall precision. A message mentioning
+    refunds, discounts, private/internal details, or human escalation may be a
+    normal customer question, but alpha public automation should route those
+    turns toward review rather than treating this as final intelligence.
+    """
 
     content = message.content.lower()
     risk_signals = [f"intent.{term}" for term in HANDOFF_TERMS if term in content]
