@@ -18,6 +18,12 @@ from wootpilot.settings import Settings
 
 
 def make_engine(settings: Settings) -> AsyncEngine:
+    """Create an async SQLAlchemy engine with WootPilot runtime defaults.
+
+    SQLite uses `NullPool` because local and test processes are short-lived and
+    should not keep aiosqlite worker threads alive after commands finish.
+    """
+
     connect_args = (
         {"check_same_thread": False} if settings.db_url.startswith("sqlite") else {}
     )
@@ -38,10 +44,14 @@ def make_engine(settings: Settings) -> AsyncEngine:
 
 
 def make_session_factory(settings: Settings) -> async_sessionmaker[AsyncSession]:
+    """Create the session factory used by API requests, CLI commands, and tests."""
+
     return async_sessionmaker(make_engine(settings), expire_on_commit=False)
 
 
 async def init_database(settings: Settings) -> None:
+    """Create all currently declared tables for early-stage local deployments."""
+
     engine = make_engine(settings)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -67,6 +77,13 @@ async def sqlite_pragmas(settings: Settings) -> dict[str, str]:
 async def session_scope(
     factory: async_sessionmaker[AsyncSession],
 ) -> AsyncIterator[AsyncSession]:
+    """Yield a transaction-scoped session and rollback on any escaping error.
+
+    Args:
+        factory: Async SQLAlchemy session factory created for the current
+            runtime settings.
+    """
+
     async with factory() as session:
         try:
             yield session

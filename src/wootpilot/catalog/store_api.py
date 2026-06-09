@@ -52,10 +52,24 @@ class StoreApiCatalog:
         base_url: str,
         client: httpx.AsyncClient | None = None,
     ):
+        """Create a read-only Store API adapter.
+
+        Args:
+            base_url: WooCommerce site origin without the Store API path.
+            client: Optional HTTP client supplied by tests or shared callers.
+        """
+
         self.base_url = base_url.rstrip("/")
         self.client = client
 
     async def search(self, query: str, limit: int = 5) -> StructuredCatalogContext:
+        """Return policy-aware catalog context for a customer text query.
+
+        Raises:
+            CatalogContextError: If WooCommerce cannot be reached or returns an
+                invalid Store API response.
+        """
+
         try:
             products = await self._get_products(
                 query=query,
@@ -77,6 +91,13 @@ class StoreApiCatalog:
         )
 
     async def search_products(self, query: ProductSearchQuery) -> list[ProductSnapshot]:
+        """Search Store API products with structured filters applied locally.
+
+        Raises:
+            CatalogContextError: If WooCommerce cannot be reached or returns an
+                invalid Store API response.
+        """
+
         try:
             products = await self._get_products(
                 query=query.query,
@@ -94,6 +115,8 @@ class StoreApiCatalog:
         ][: query.limit]
 
     async def get_product(self, external_product_id: str) -> ProductSnapshot | None:
+        """Return one product by Store API id, or `None` for a 404."""
+
         try:
             product = await self._get_product(external_product_id)
         except CatalogContextError:
@@ -103,6 +126,8 @@ class StoreApiCatalog:
         return store_api_product_to_snapshot(product)
 
     async def get_product_by_sku(self, sku: str) -> ProductSnapshot | None:
+        """Return one product by exact case-insensitive SKU, if WooCommerce finds it."""
+
         try:
             products = await self._get_products(
                 query="",
@@ -118,6 +143,8 @@ class StoreApiCatalog:
         return None
 
     async def list_categories(self) -> list[ProductCategory]:
+        """Return normalized Store API product categories."""
+
         try:
             categories = await self._get_categories()
         except (httpx.HTTPError, ValueError) as exc:

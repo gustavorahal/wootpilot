@@ -44,20 +44,24 @@ class GoldenConversation(BaseModel):
 
     @field_validator("automation_mode", mode="before")
     @classmethod
-    def parse_automation_mode(cls, value):
+    def parse_automation_mode(cls, value: AutomationMode | str) -> AutomationMode:
         return AutomationMode(value) if isinstance(value, str) else value
 
     @field_validator("proposal_action_kind", mode="before")
     @classmethod
-    def parse_action_kind(cls, value):
+    def parse_action_kind(cls, value: AgentActionKind | str) -> AgentActionKind:
         return AgentActionKind(value) if isinstance(value, str) else value
 
 
 class StaticProposalPort:
-    def __init__(self, case: GoldenConversation):
+    """Model port that returns the proposal encoded in a golden fixture."""
+
+    def __init__(self, case: GoldenConversation) -> None:
         self.case = case
 
-    async def propose(self, **kwargs) -> ModelProposalResult:
+    async def propose(self, **kwargs: object) -> ModelProposalResult:
+        """Return fixture-defined proposal data for graph-level evaluation."""
+
         return ModelProposalResult(
             proposal=AgentProposal(
                 action_kind=self.case.proposal_action_kind,

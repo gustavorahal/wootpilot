@@ -70,6 +70,17 @@ class HandleWebhookEvent:
         body: bytes,
         headers: dict[str, str],
     ) -> HandleWebhookResult:
+        """Persist and process one authenticated Chatwoot webhook payload.
+
+        Args:
+            body: Raw request body, already authenticated by the API route.
+            headers: Lower-cased request headers used for delivery id lookup.
+
+        Returns:
+            Route-facing status payload describing duplicate, ignored, or
+            processed work.
+        """
+
         payload = json.loads(body.decode("utf-8"))
         delivery_id = headers.get(
             self.settings.chatwoot_webhook_delivery_header.lower()
@@ -131,6 +142,8 @@ class HandleWebhookEvent:
         raw: RawEventRow,
         payload: dict[str, Any],
     ) -> HandleWebhookResult:
+        """Process conversation state webhooks or record them as ignored."""
+
         channel_event = translate_channel_event(
             payload=payload,
             raw_event_id=raw.id,
@@ -170,6 +183,8 @@ class HandleWebhookEvent:
         }
 
     async def _ignore_raw_event(self, raw: RawEventRow) -> HandleWebhookResult:
+        """Mark a raw event ignored when no supported translator accepts it."""
+
         await self.repo.update_raw_status(raw.id, RawEventStatus.ignored)
         await self.repo.insert_audit_record(
             id=self.ids.new(),
@@ -191,6 +206,8 @@ class HandleWebhookEvent:
         raw_id: str,
         message: NormalizedMessage,
     ) -> HandleWebhookResult:
+        """Audit a stored message that should not trigger the agent workflow."""
+
         await self.repo.update_raw_status(raw_id, RawEventStatus.ignored)
         await self.repo.insert_audit_record(
             id=self.ids.new(),

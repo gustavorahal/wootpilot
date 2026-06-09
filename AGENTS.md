@@ -66,10 +66,10 @@ Checklist:
 - Public functions, classes, modules, non-obvious algorithms, domain rules, and important architectural boundaries should usually have docstrings.
 - Avoid documentation that merely restates obvious implementation details. The goal is educational clarity, not noise.
 - Treat code as something future contributors will learn from: it should be readable on its own, and documented where context would otherwise be lost.
-- Use Google-style docstrings with an `Args` section for all public functions.
+- Use Google-style docstrings for public functions. Include `Args`, `Returns`, and `Raises` sections when they apply; do not add empty or filler sections.
 - Put types in function signatures, NOT in docstrings.
 - If a default is present, DO NOT repeat it in the docstring unless there is post-processing or the value is set conditionally.
-- Document all parameters, return values, and exceptions.
+- Document parameters, return values, and exceptions when doing so adds useful context beyond the type signature.
 - Ensure American English spelling, for example `behavior`, not `behaviour`.
 - Do NOT use Sphinx-style double backtick formatting like ``code``. Use single backticks such as `code` for inline code references in docstrings and comments.
 

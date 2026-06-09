@@ -43,6 +43,8 @@ HANDOFF_TERMS = {
 
 
 def triage_message(message: NormalizedMessage) -> TriageResult:
+    """Classify simple intent signals before spending model/provider work."""
+
     content = message.content.lower()
     risk_signals = [f"intent.{term}" for term in HANDOFF_TERMS if term in content]
     intent = "handoff_requested" if risk_signals else "product_or_support"
@@ -60,6 +62,13 @@ def pre_model_policy(
     now: datetime,
     ids: IdGenerator,
 ) -> PolicyDecision:
+    """Apply deterministic conversation gates before any model call.
+
+    The pre-model policy protects against replying to non-customer turns,
+    resolved or paused conversations, human-owned conversations, and explicit
+    handoff requests before external model work is attempted.
+    """
+
     rule_ids: list[PolicyRule] = []
     if not message.is_customer_public_inbound():
         rule_ids.append(PolicyRule.ingress_customer_public_inbound_required)
@@ -109,6 +118,12 @@ def validate_proposal(
     now: datetime,
     ids: IdGenerator,
 ) -> PolicyDecision:
+    """Validate a model proposal before it can become an outbound action.
+
+    Public replies are held to stricter rules than private notes because they
+    can reach customers without human editing in public-reply mode.
+    """
+
     rule_ids: list[PolicyRule] = []
     if proposal is None:
         rule_ids.append(PolicyRule.model_no_proposal)
@@ -147,7 +162,11 @@ def public_price_policy_rule(
     text: str,
     catalog_context: StructuredCatalogContext,
 ) -> PolicyRule | None:
-    """Return a block rule when public text makes an unsafe price claim."""
+    """Return a block rule when public text makes an unsafe price claim.
+
+    Exact prices may be mentioned only when the current catalog snapshot says
+    the product price is visible, current, and safe to quote.
+    """
 
     if not _mentions_exact_price(text):
         return None

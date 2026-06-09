@@ -194,6 +194,13 @@ class RunCustomerSupportWorkflow:
         thread_id: str,
         message: NormalizedMessage,
     ) -> dict:
+        """Invoke LangGraph with optional local-only trace output.
+
+        Tracing intentionally uses content-rich developer output only in local
+        and public-dev environments. Production observability remains structured
+        logs plus durable audit records.
+        """
+
         trace_enabled = workflow_trace_enabled(
             env=self.settings.env.value,
             enabled=self.settings.workflow_trace,
@@ -239,6 +246,12 @@ class RunCustomerSupportWorkflow:
         decision: WorkflowDecision,
         context: StructuredCatalogContext,
     ) -> None:
+        """Persist a workflow decision as an idempotent outbound action.
+
+        The queue stores the catalog and policy context used at decision time so
+        outbound execution can re-check safety without asking the model again.
+        """
+
         if decision.action_kind is AgentActionKind.none:
             return
         if (

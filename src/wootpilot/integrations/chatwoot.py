@@ -58,12 +58,21 @@ class ChannelSafetyState(BaseModel):
 
 
 def event_type(payload: dict[str, Any]) -> str:
+    """Return Chatwoot's event name across supported webhook payload shapes."""
+
     return str(
         payload.get("event") or payload.get("event_type") or payload.get("name") or ""
     )
 
 
 def provider_event_id(payload: dict[str, Any], delivery_id: str | None) -> str:
+    """Return a stable idempotency key for one Chatwoot webhook delivery.
+
+    Chatwoot deployments may omit a delivery id, so the fallback combines the
+    event type with a message id when available, otherwise a canonical payload
+    hash.
+    """
+
     if delivery_id:
         return delivery_id
     raw_message = payload.get("message")
@@ -86,6 +95,13 @@ def translate_message(
     raw_event_id: str,
     ids: IdGenerator,
 ) -> NormalizedMessage | None:
+    """Translate a Chatwoot message webhook into WootPilot's message contract.
+
+    Returns:
+        A normalized message for `message_created` payloads, or `None` when the
+        payload is not a message event WootPilot should store.
+    """
+
     evt = event_type(payload)
     if evt and evt != "message_created":
         return None
@@ -323,7 +339,17 @@ def _conversation_status(value: Any) -> ConversationStatus | None:
 class ChatwootClient:
     """Minimal Chatwoot writer for private notes and public replies."""
 
-    def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None):
+    def __init__(
+        self, settings: Settings, client: httpx.AsyncClient | None = None
+    ) -> None:
+        """Create a Chatwoot API client.
+
+        Args:
+            settings: Runtime settings containing Chatwoot base URL, account id,
+                and API token.
+            client: Optional HTTP client supplied by tests or shared callers.
+        """
+
         self.settings = settings
         self.client = client
 
@@ -348,6 +374,13 @@ class ChatwootClient:
         content: str,
         private: bool,
     ) -> str:
+        """Create a Chatwoot message and return its provider message id.
+
+        Raises:
+            ChatwootApiError: If the request fails or Chatwoot returns an
+                invalid create-message response.
+        """
+
         operation = "create_message"
         status_code: int | None = None
         started = time.perf_counter()
@@ -439,6 +472,8 @@ class ChatwootClient:
         *,
         conversation_id: str,
     ) -> ChannelSafetyState:
+        """Fetch fresh channel state for final public-send safety checks."""
+
         data = await self._get_json(
             operation="get_conversation_safety",
             conversation_id=conversation_id,

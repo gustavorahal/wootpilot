@@ -18,6 +18,20 @@ def verify_chatwoot_signature(
     body: bytes,
     now: datetime,
 ) -> None:
+    """Validate Chatwoot's timestamped HMAC webhook signature.
+
+    Args:
+        settings: Runtime settings containing header names, shared secret, and
+            replay window.
+        headers: Lower-cased request headers from the ASGI route.
+        body: Raw request body used as signed material.
+        now: Current time supplied by the caller for deterministic tests.
+
+    Raises:
+        HTTPException: If the secret is missing, signature headers are missing
+            or malformed, the timestamp is stale, or the digest does not match.
+    """
+
     secret = settings.chatwoot_webhook_secret
     if not secret or secret == "change-me":
         raise HTTPException(status_code=401, detail="webhook secret is not configured")

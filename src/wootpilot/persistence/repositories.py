@@ -138,7 +138,13 @@ class Repository:
     and hydrate typed read models on fetch.
     """
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
+        """Bind repository operations to one caller-owned session.
+
+        The repository does not commit by itself except where use cases ask for
+        explicit durability boundaries; callers retain transaction ownership.
+        """
+
         self.session = session
 
     async def insert_raw_event(

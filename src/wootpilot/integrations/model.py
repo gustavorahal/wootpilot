@@ -35,6 +35,8 @@ class FakeModelProposalPort(ModelProposalPort):
         conversation_state: ConversationState,
         catalog_context: StructuredCatalogContext,
     ) -> ModelProposalResult:
+        """Return a predictable proposal without contacting an LLM provider."""
+
         product = catalog_context.products[0] if catalog_context.products else None
         if product:
             public = (
@@ -77,7 +79,9 @@ class AgentProposalSchema(BaseModel):
 class OpenRouterModelProposalPort(ModelProposalPort):
     """LangChain/OpenRouter adapter hidden behind WootPilot's proposal port."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
+        """Store model settings while keeping provider imports lazy."""
+
         self.settings = settings
 
     async def propose(
@@ -87,6 +91,13 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         conversation_state: ConversationState,
         catalog_context: StructuredCatalogContext,
     ) -> ModelProposalResult:
+        """Ask OpenRouter for a structured proposal and classify provider errors.
+
+        Expected provider and response-contract failures become
+        `ModelProposalResult` error fields so the workflow can fail closed.
+        Unexpected application bugs are allowed to escape.
+        """
+
         if (
             not self.settings.openrouter_api_key
             or self.settings.openrouter_api_key == "change-me"
@@ -244,6 +255,8 @@ class OpenRouterModelProposalPort(ModelProposalPort):
 
 
 def model_port_from_settings(settings: Settings) -> ModelProposalPort:
+    """Build the configured model proposal adapter."""
+
     if settings.model_provider is ModelProvider.openrouter:
         return OpenRouterModelProposalPort(settings)
     return FakeModelProposalPort()
@@ -252,7 +265,15 @@ def model_port_from_settings(settings: Settings) -> ModelProposalPort:
 def catalog_products_for_prompt(
     catalog_context: StructuredCatalogContext,
 ) -> list[dict[str, Any]]:
-    """Build model-visible catalog rows without leaking unsafe exact prices."""
+    """Build model-visible catalog rows without leaking unsafe exact prices.
+
+    Args:
+        catalog_context: Policy-aware catalog context prepared before the model
+            call.
+
+    Returns:
+        Product dictionaries safe to include in a model prompt.
+    """
 
     return [
         {

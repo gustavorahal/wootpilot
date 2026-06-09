@@ -45,6 +45,19 @@ class ExecuteOutboundActions:
         self.clock = clock or Clock()
 
     async def run_once(self, limit: int = 10) -> dict[str, int]:
+        """Execute due outbound actions once.
+
+        Args:
+            limit: Maximum number of queued or due retryable actions to inspect.
+
+        Returns:
+            Counts for sent, blocked, and failed actions.
+
+        Raises:
+            Exception: Unexpected application errors escape so operators see
+                bugs instead of persisted provider-failure rows.
+        """
+
         counts = {"sent": 0, "blocked": 0, "failed": 0}
         for action in await self.repo.list_queued_outbound_actions(
             limit=limit,
@@ -351,6 +364,8 @@ def _public_price_rule_from_safety_context(
     content: str,
     safety_context: dict | None,
 ) -> PolicyRule | None:
+    """Re-run price policy using the catalog snapshot captured at queue time."""
+
     catalog_payload = (safety_context or {}).get("catalog_context")
     if not isinstance(catalog_payload, dict):
         catalog_context = StructuredCatalogContext(query="")
@@ -360,6 +375,8 @@ def _public_price_rule_from_safety_context(
 
 
 def _is_human_review_private_note(safety_context: dict | None) -> bool:
+    """Return whether a private note represents a human-review handoff."""
+
     payload = safety_context or {}
     rule_ids = payload.get("workflow_rule_ids") or []
     risk_reasons = payload.get("workflow_risk_reasons") or []

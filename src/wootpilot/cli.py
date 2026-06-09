@@ -10,10 +10,12 @@ from wootpilot.application.outbound import ExecuteOutboundActions
 from wootpilot.catalog.factory import catalog_connector_from_settings
 from wootpilot.evals.golden import load_golden_cases, run_golden_case
 from wootpilot.persistence.database import init_database, make_session_factory
-from wootpilot.settings import get_settings
+from wootpilot.settings import Settings, get_settings
 
 
 def main() -> None:
+    """Run local operational commands for database, catalog, and workflow checks."""
+
     parser = argparse.ArgumentParser(prog="wootpilot")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init-db")
@@ -43,7 +45,9 @@ def main() -> None:
         raise SystemExit(asyncio.run(_eval_golden(Path(args.fixture))))
 
 
-async def _execute_outbound(settings, limit: int):
+async def _execute_outbound(settings: Settings, limit: int) -> dict[str, int]:
+    """Execute queued outbound actions from the CLI using configured settings."""
+
     factory = make_session_factory(settings)
     async with factory() as session:
         executor = ExecuteOutboundActions(settings=settings, session=session)
@@ -52,13 +56,17 @@ async def _execute_outbound(settings, limit: int):
         return counts
 
 
-async def _catalog_search(settings, query: str) -> None:
+async def _catalog_search(settings: Settings, query: str) -> None:
+    """Print a compact catalog search result for local connector debugging."""
+
     result = await catalog_connector_from_settings(settings).search(query)
     for product in result.products:
         print(f"{product.name} | {product.sku or '-'} | {product.permalink or '-'}")
 
 
 async def _eval_golden(path: Path) -> int:
+    """Run golden conversation fixtures and return a process exit code."""
+
     failures = []
     for case in load_golden_cases(path):
         result = await run_golden_case(case)

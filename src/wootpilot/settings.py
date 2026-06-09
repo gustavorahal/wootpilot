@@ -73,8 +73,12 @@ class Settings(BaseSettings):
 
 @cache
 def get_settings() -> Settings:
+    """Return process-cached settings loaded from environment and `.env` files."""
+
     return Settings()
 
 
 def reset_settings_cache() -> None:
+    """Clear cached settings so tests can observe environment changes."""
+
     get_settings.cache_clear()

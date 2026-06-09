@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -11,7 +12,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from wootpilot.application.security import verify_chatwoot_signature
-from wootpilot.application.webhooks import HandleWebhookEvent
+from wootpilot.application.webhooks import HandleWebhookEvent, HandleWebhookResult
 from wootpilot.domain.models import Provider
 from wootpilot.observability import configure_logging, log_event
 from wootpilot.persistence.database import init_database, make_session_factory
@@ -22,7 +23,16 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Initialize process-wide dependencies before serving requests.
+
+    The app keeps database setup explicit here so request handlers can receive
+    sessions from FastAPI dependencies without importing global engine state.
+
+    Args:
+        app: FastAPI application whose state stores the session factory.
+    """
+
     settings = get_settings()
     configure_logging(settings.log_level)
     await init_database(settings)
@@ -34,10 +44,21 @@ app = FastAPI(title="WootPilot", lifespan=lifespan)
 
 
 def settings_dependency() -> Settings:
+    """Return cached runtime settings for FastAPI dependency injection."""
+
     return get_settings()
 
 
-async def session_dependency(request: Request):
+async def session_dependency(request: Request) -> AsyncIterator[AsyncSession]:
+    """Yield one transactional database session per request.
+
+    The broad exception guard is intentionally limited to rollback cleanup and
+    immediately re-raises so route-level errors are not hidden.
+
+    Args:
+        request: Current FastAPI request containing the app session factory.
+    """
+
     factory: async_sessionmaker[AsyncSession] = request.app.state.session_factory
     async with factory() as session:
         try:
@@ -49,7 +70,11 @@ async def session_dependency(request: Request):
 
 
 @app.get("/health")
-async def health(settings: Annotated[Settings, Depends(settings_dependency)]):
+async def health(
+    settings: Annotated[Settings, Depends(settings_dependency)],
+) -> dict[str, str]:
+    """Return a small readiness payload for local tunnels and process checks."""
+
     return {"status": "ok", "env": settings.env.value}
 
 
@@ -58,7 +83,14 @@ async def chatwoot_webhook(
     request: Request,
     settings: Annotated[Settings, Depends(settings_dependency)],
     session: Annotated[AsyncSession, Depends(session_dependency)],
-):
+) -> HandleWebhookResult:
+    """Authenticate and ingest one Chatwoot webhook delivery.
+
+    The route performs only HTTP-bound concerns: body/header extraction,
+    signature verification, request-level logging, and delegation to the webhook
+    use case that owns persistence and workflow execution.
+    """
+
     started = time.perf_counter()
     body = await request.body()
     headers = {key.lower(): value for key, value in request.headers.items()}

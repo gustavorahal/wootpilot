@@ -16,13 +16,25 @@ from wootpilot.settings import Settings
 class CatalogConnectorRegistry:
     """Selects configured catalog adapters by explicit installation capability."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
     def require_product_catalog(
         self,
         installation: ConnectorInstallation | None = None,
     ) -> ProductCatalogConnector:
+        """Return a catalog connector that is enabled for product reads.
+
+        Args:
+            installation: Optional connector installation to validate instead
+                of deriving the default installation from settings.
+
+        Raises:
+            ValueError: If the installation does not grant product catalog read
+                capability, names an unsupported connector, or lacks required
+                Store API configuration.
+        """
+
         configured = installation or default_catalog_installation_from_settings(
             self.settings
         )
@@ -63,7 +75,7 @@ class CatalogConnectorRegistry:
 def default_catalog_installation_from_settings(
     settings: Settings,
 ) -> ConnectorInstallation:
-    """Seed the default tenant's WooCommerce catalog installation from env settings."""
+    """Seed the default tenant's WooCommerce catalog installation from settings."""
 
     capabilities = [ConnectorCapability.product_catalog_read]
     config: dict[str, str] = {"mode": settings.catalog_connector_mode.value}
@@ -84,4 +96,6 @@ def default_catalog_installation_from_settings(
 
 
 def catalog_connector_from_settings(settings: Settings) -> ProductCatalogConnector:
+    """Build the configured product catalog connector for application services."""
+
     return CatalogConnectorRegistry(settings).require_product_catalog()
