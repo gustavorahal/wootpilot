@@ -1,69 +1,63 @@
 # WootPilot
 
-WootPilot is an AI assist infrastructure project for
+WootPilot adds AI-assisted support workflows to
 [Chatwoot](https://www.chatwoot.com/).
 
-The goal is to help small support teams run safe, auditable AI-assisted
-workflows without replacing their helpdesk. Chatwoot remains the system of
-record for conversations, contacts, agents, teams, messages, and human handoff.
-WootPilot sits beside it as an external service that receives webhooks, gathers
-business context, applies deterministic policy, and drafts or sends responses
-back to Chatwoot.
+It is designed for small support teams that want useful automation without
+giving up human control. Chatwoot remains the system of record for
+conversations, contacts, agents, teams, messages, and handoff. WootPilot runs
+alongside Chatwoot, receives webhook events, gathers business context, applies
+policy checks, and then drafts private notes or sends approved replies back to
+Chatwoot.
 
 ## Current Status
 
-This repository now contains an alpha Python 3.14 service using FastAPI,
-Pydantic v2, LangGraph, LangChain/OpenRouter, SQLAlchemy/Alembic, and SQLite for
-local workflows. The implemented vertical path receives signed Chatwoot
-webhooks, stores raw and normalized events, builds deterministic WooCommerce
-catalog context from either the mock catalog or the public Store API, runs the
-support workflow in LangGraph, audits the decision, and queues/executes
-Chatwoot outbound actions through an idempotent outbox.
+This repository contains an alpha Python service for Chatwoot-based AI support
+workflows. The first working path receives signed Chatwoot webhooks, records the
+event, gathers WooCommerce catalog context, decides whether AI should assist,
+and creates either a private note or an approved public reply in Chatwoot.
 
 A disposable local Chatwoot development stack is available for manual
-integration testing. The public dev Chatwoot server for Meta-reachable MVP
-testing is `https://chat.gmrahal.net/`.
+integration testing. A public development Chatwoot server is available at
+`https://chat.gmrahal.net/` for opt-in testing with externally delivered
+messages.
 
 ## Implemented Capabilities
 
 - Receive and normalize Chatwoot webhook events.
-- Ignore private notes, outbound messages, bot echoes, and non-customer events.
-- Detect whether a human operator is already active in a conversation.
-- Classify customer intent with deterministic rules before model calls.
-- Load structured business context through external connectors.
-- Use WooCommerce as the first connector for product catalog context, with both
-  mock-catalog and public Store API profiles.
-- Run agent workflows through explicit, documented LangGraph nodes and named
-  conditional branches.
-- Support observe mode, assist private notes, and guarded public replies.
-- Hand off to humans by suppressing public replies and surfacing private
-  notes or handoff markers in Chatwoot.
-- Persist audit records, context snapshots, outbound actions, and policy
-  decisions.
-- Execute queued Chatwoot private notes and public replies with retry scheduling,
-  permanent-failure handling, and final pre-send safety checks.
-- Optionally mark private-review conversations with a needs-human label and move
-  conversations to a configured Chatwoot status after public replies.
-- Render the support workflow topology as versioned Mermaid and PNG
-  documentation artifacts.
+- Ignore events that should not trigger AI assistance, such as private notes,
+  outbound messages, and bot echoes.
+- Detect whether a human agent is already active in a conversation.
+- Classify customer intent before deciding whether to call a model.
+- Load business context through connectors, starting with WooCommerce product
+  catalog data.
+- Support observe mode, private-note assistance, and approved public replies.
+- Hand off to humans by suppressing public replies and adding review context in
+  Chatwoot.
+- Store audit records, context snapshots, outbound actions, and policy decisions.
+- Execute queued Chatwoot private notes and public replies with retries and
+  final pre-send checks.
+- Optionally label conversations that need human review and update conversation
+  status after public replies.
+- Render workflow diagrams for documentation and review.
 
 ## Still Planned
 
 - Authenticated WooCommerce write capabilities such as order notes, refunds,
-  coupons, and order mutations.
+  coupons, and order updates.
 - Multi-channel support beyond Chatwoot.
-- Production-grade Postgres deployment and operational hardening beyond the
-  current optional dependency/readiness checks.
+- Production deployment guidance and operational readiness beyond the current
+  local and public-dev workflows.
 
 ## Architecture Direction
 
-WootPilot is centered around Chatwoot, so Chatwoot is modeled as a primary
-support channel rather than as a generic connector.
+WootPilot is centered around Chatwoot. Chatwoot is treated as the primary
+support channel rather than a generic connector.
 
 External business systems are modeled as connectors. WooCommerce is the first
-connector, with a read-only product catalog capability in version 1.
-Future connectors may include billing, CRM, documentation, inventory, order
-management, or custom HTTP APIs.
+connector, with read-only product catalog support in the current version. Future
+connectors may include billing, CRM, documentation, inventory, order management,
+or custom HTTP APIs.
 
 The core flow is:
 
@@ -71,11 +65,11 @@ The core flow is:
 Customer message
   -> Chatwoot
   -> WootPilot webhook endpoint
-  -> authenticated ingress and replay protection
+  -> webhook validation
   -> policy and context loading
-  -> LangGraph agent proposal
-  -> outbound guardrails
-  -> idempotent outbound action execution
+  -> AI assistance proposal
+  -> outbound checks
+  -> queued outbound action
   -> Chatwoot private note or public reply
   -> audit log
 ```
@@ -97,7 +91,7 @@ Customer message
 - [ADR Index](docs/adr/README.md)
 - [Production Readiness](docs/architecture/production-readiness.md)
 
-## Local Chatwoot
+## Local Setup
 
 Install dependencies and run the default checks:
 
@@ -133,13 +127,9 @@ Chatwoot should send webhooks to:
 https://wootpilot-local-dev.gmrahal.net/webhooks/chatwoot
 ```
 
-The WootPilot terminal is also where local JSON logs appear, including
-`webhook_handled`, `webhook_authentication_failed`, and
-`support_workflow_completed` events. In `local` and `public_dev` environments,
-`WORKFLOW_TRACE=true` also prints a developer LangGraph node trace so
-you can see steps such as `should_invoke`, `policy_gate`, `llm_proposal`, and
-`route_final_decision` as they complete, including the customer message and
-model-proposed text.
+The WootPilot terminal is also where local JSON logs appear. In `local` and
+`public_dev` environments, `WORKFLOW_TRACE=true` prints the workflow steps as
+they complete, including the customer message and proposed response text.
 
 Build the application container:
 
@@ -182,18 +172,16 @@ See [Local Chatwoot Dev Stack](infra/chatwoot-dev/README.md).
 
 ## Public Dev Chatwoot
 
-Use `https://chat.gmrahal.net/` for opt-in manual smoke tests that need a
-publicly reachable Chatwoot environment, including Meta-connected channel
-back-and-forth. The intended MVP loop is: customer message reaches Chatwoot,
-Chatwoot notifies WootPilot, WootPilot writes a private note or safe public
-reply through the Chatwoot API, a human can reply in Chatwoot, and WootPilot
-observes that human activity before deciding whether a later customer turn is
-eligible for AI again.
+Use `https://chat.gmrahal.net/` for opt-in manual tests that need a publicly
+reachable Chatwoot environment, including Meta-connected channel testing. The
+intended MVP loop is: customer message reaches Chatwoot, Chatwoot notifies
+WootPilot, WootPilot writes a private note or approved public reply through the
+Chatwoot API, a human can reply in Chatwoot, and WootPilot observes that human
+activity before deciding whether AI should assist again.
 
 Copy [.env.public-dev.example](.env.public-dev.example) to `.env.local` to run
-WootPilot locally against this server. The implementation should read these
-values through `pydantic-settings` from environment variables; see
-[Configuration](docs/architecture/configuration.md).
+WootPilot locally against this server. See
+[Configuration](docs/architecture/configuration.md) for the available settings.
 
 For the full laptop tunnel loop, use the
 [Public Dev Laptop Harness](infra/public-dev-laptop/README.md):
