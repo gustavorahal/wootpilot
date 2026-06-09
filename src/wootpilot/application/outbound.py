@@ -11,13 +11,14 @@ from wootpilot.application.policy import public_price_policy_rule
 from wootpilot.domain.models import (
     AgentActionKind,
     AutomationMode,
+    ConversationState,
     ConversationStatus,
     OutboundActionStatus,
     PolicyRule,
     QueuedOutboundAction,
     StructuredCatalogContext,
 )
-from wootpilot.integrations.chatwoot import ChatwootClient
+from wootpilot.integrations.chatwoot import ChannelSafetyState, ChatwootClient
 from wootpilot.observability import log_event, outbound_log_fields
 from wootpilot.persistence.repositories import Repository
 from wootpilot.settings import Settings
@@ -48,29 +49,10 @@ class ExecuteOutboundActions:
             limit=limit,
             now=self.clock.now(),
         ):
-            await self.repo.mark_outbound_action(
-                action_id=action.id,
-                status=OutboundActionStatus.executing,
-                updated_at=self.clock.now(),
-                clear_next_attempt_at=True,
-            )
-            await self.repo.session.commit()
+            await self._mark_executing(action)
             blocked_reason = await self._blocked_reason(action)
             if blocked_reason:
-                failure_reason = _reason_value(blocked_reason)
-                await self.repo.mark_outbound_action(
-                    action_id=action.id,
-                    status=OutboundActionStatus.blocked_by_policy,
-                    updated_at=self.clock.now(),
-                    failure_reason=failure_reason,
-                    clear_next_attempt_at=True,
-                )
-                await self.repo.session.commit()
-                self._log_action_result(
-                    action,
-                    status=OutboundActionStatus.blocked_by_policy,
-                    failure_reason=failure_reason,
-                )
+                await self._mark_blocked(action, blocked_reason)
                 counts["blocked"] += 1
                 continue
             try:
@@ -80,56 +62,98 @@ class ExecuteOutboundActions:
                     private=action.action_kind is AgentActionKind.private_note,
                 )
             except Exception as exc:
-                attempt_count = action.attempt_count + 1
-                retryable = _retryable(exc)
-                status = (
-                    OutboundActionStatus.retryable_failure
-                    if retryable and attempt_count < self.settings.outbound_max_attempts
-                    else OutboundActionStatus.permanent_failure
-                )
-                next_attempt_at = (
-                    self.clock.now()
-                    + timedelta(seconds=self.settings.outbound_retry_delay_seconds)
-                    if status is OutboundActionStatus.retryable_failure
-                    else None
-                )
-                await self.repo.mark_outbound_action(
-                    action_id=action.id,
-                    status=status,
-                    updated_at=self.clock.now(),
-                    failure_reason=exc.__class__.__name__,
-                    attempt_count=attempt_count,
-                    next_attempt_at=next_attempt_at,
-                    clear_next_attempt_at=next_attempt_at is None,
-                    error_code=exc.__class__.__name__,
-                )
-                await self.repo.session.commit()
-                self._log_action_result(
-                    action,
-                    status=status,
-                    failure_reason=exc.__class__.__name__,
-                    level=logging.WARNING,
-                )
+                await self._mark_send_failure(action, exc)
                 counts["failed"] += 1
                 continue
-            post_send_failure_reason = await self._apply_post_send_updates(action)
-            await self.repo.mark_outbound_action(
-                action_id=action.id,
-                status=OutboundActionStatus.sent,
-                updated_at=self.clock.now(),
-                provider_message_id=provider_message_id,
-                failure_reason=post_send_failure_reason,
-                clear_next_attempt_at=True,
-            )
-            await self.repo.session.commit()
-            self._log_action_result(
-                action,
-                status=OutboundActionStatus.sent,
-                provider_message_id=provider_message_id,
-                failure_reason=post_send_failure_reason,
-            )
+            await self._mark_sent(action, provider_message_id)
             counts["sent"] += 1
         return counts
+
+    async def _mark_executing(self, action: QueuedOutboundAction) -> None:
+        await self.repo.mark_outbound_action(
+            action_id=action.id,
+            status=OutboundActionStatus.executing,
+            updated_at=self.clock.now(),
+            clear_next_attempt_at=True,
+        )
+        await self.repo.session.commit()
+
+    async def _mark_blocked(
+        self, action: QueuedOutboundAction, blocked_reason: PolicyRule | str
+    ) -> None:
+        failure_reason = _reason_value(blocked_reason)
+        await self.repo.mark_outbound_action(
+            action_id=action.id,
+            status=OutboundActionStatus.blocked_by_policy,
+            updated_at=self.clock.now(),
+            failure_reason=failure_reason,
+            clear_next_attempt_at=True,
+        )
+        await self.repo.session.commit()
+        self._log_action_result(
+            action,
+            status=OutboundActionStatus.blocked_by_policy,
+            failure_reason=failure_reason,
+        )
+
+    async def _mark_send_failure(
+        self, action: QueuedOutboundAction, exc: Exception
+    ) -> None:
+        attempt_count = action.attempt_count + 1
+        status = self._failure_status(exc, attempt_count)
+        next_attempt_at = self._next_attempt_at(status)
+        failure_reason = exc.__class__.__name__
+        await self.repo.mark_outbound_action(
+            action_id=action.id,
+            status=status,
+            updated_at=self.clock.now(),
+            failure_reason=failure_reason,
+            attempt_count=attempt_count,
+            next_attempt_at=next_attempt_at,
+            clear_next_attempt_at=next_attempt_at is None,
+            error_code=failure_reason,
+        )
+        await self.repo.session.commit()
+        self._log_action_result(
+            action,
+            status=status,
+            failure_reason=failure_reason,
+            level=logging.WARNING,
+        )
+
+    async def _mark_sent(
+        self, action: QueuedOutboundAction, provider_message_id: str
+    ) -> None:
+        post_send_failure_reason = await self._apply_post_send_updates(action)
+        await self.repo.mark_outbound_action(
+            action_id=action.id,
+            status=OutboundActionStatus.sent,
+            updated_at=self.clock.now(),
+            provider_message_id=provider_message_id,
+            failure_reason=post_send_failure_reason,
+            clear_next_attempt_at=True,
+        )
+        await self.repo.session.commit()
+        self._log_action_result(
+            action,
+            status=OutboundActionStatus.sent,
+            provider_message_id=provider_message_id,
+            failure_reason=post_send_failure_reason,
+        )
+
+    def _failure_status(
+        self, exc: Exception, attempt_count: int
+    ) -> OutboundActionStatus:
+        if _retryable(exc) and attempt_count < self.settings.outbound_max_attempts:
+            return OutboundActionStatus.retryable_failure
+        return OutboundActionStatus.permanent_failure
+
+    def _next_attempt_at(self, status: OutboundActionStatus) -> datetime | None:
+        if status is not OutboundActionStatus.retryable_failure:
+            return None
+        return self.clock.now() + timedelta(
+            seconds=self.settings.outbound_retry_delay_seconds
+        )
 
     async def _apply_post_send_updates(
         self, action: QueuedOutboundAction
@@ -243,57 +267,73 @@ class ExecuteOutboundActions:
                 return PolicyRule.content_empty
             return None
         if action.action_kind is AgentActionKind.public_message:
-            if self.settings.automation_mode is not AutomationMode.public_reply:
-                return PolicyRule.mode_public_reply_not_enabled
-            if not action.content.strip():
-                return PolicyRule.content_empty
-            lowered = action.content.lower()
-            if any(
-                term in lowered
-                for term in ("internal", "triage", "policy", "reasoning")
-            ):
-                return PolicyRule.public_no_internal_reasoning
-            price_rule = _public_price_rule_from_safety_context(
-                action.content,
-                action.safety_context,
-            )
-            if price_rule:
-                return price_rule
+            if static_reason := self._public_message_static_blocked_reason(action):
+                return static_reason
             state = await self.repo.get_conversation_state(
                 tenant_id=action.tenant_id,
                 channel_id=action.channel_id,
                 conversation_id=action.conversation_id,
             )
-            if state is None:
-                return PolicyRule.conversation_safety_state_missing
-            if not state.replyable:
-                return PolicyRule.conversation_not_replyable
-            if state.status is ConversationStatus.resolved:
-                return PolicyRule.conversation_resolved
-            if state.paused:
-                return PolicyRule.conversation_wootpilot_paused
-            now = self.clock.now()
-            human_active_until = _aware(state.human_active_until)
-            if human_active_until and human_active_until > now:
-                return PolicyRule.conversation_human_active
-            if state.assigned_agent_id or state.assigned_team_id:
-                return PolicyRule.conversation_assigned_to_human
+            if stored_reason := self._stored_state_blocked_reason(state):
+                return stored_reason
             await self.repo.session.commit()
             channel_state = await self.chatwoot.get_conversation_safety(
                 conversation_id=action.conversation_id
             )
-            if channel_state.conversation_id != action.conversation_id:
-                return PolicyRule.conversation_id_mismatch
-            if channel_state.replyable is False:
-                return PolicyRule.channel_not_replyable
-            if channel_state.status is ConversationStatus.resolved:
-                return PolicyRule.channel_resolved
-            if channel_state.paused:
-                return PolicyRule.channel_wootpilot_paused
-            if channel_state.assigned_agent_id or channel_state.assigned_team_id:
-                return PolicyRule.channel_assigned_to_human
-            return None
+            return self._channel_state_blocked_reason(action, channel_state)
         return PolicyRule.unknown_action_kind
+
+    def _public_message_static_blocked_reason(
+        self, action: QueuedOutboundAction
+    ) -> PolicyRule | None:
+        if self.settings.automation_mode is not AutomationMode.public_reply:
+            return PolicyRule.mode_public_reply_not_enabled
+        if not action.content.strip():
+            return PolicyRule.content_empty
+        lowered = action.content.lower()
+        if any(
+            term in lowered for term in ("internal", "triage", "policy", "reasoning")
+        ):
+            return PolicyRule.public_no_internal_reasoning
+        return _public_price_rule_from_safety_context(
+            action.content,
+            action.safety_context,
+        )
+
+    def _stored_state_blocked_reason(
+        self, state: ConversationState | None
+    ) -> PolicyRule | None:
+        if state is None:
+            return PolicyRule.conversation_safety_state_missing
+        if not state.replyable:
+            return PolicyRule.conversation_not_replyable
+        if state.status is ConversationStatus.resolved:
+            return PolicyRule.conversation_resolved
+        if state.paused:
+            return PolicyRule.conversation_wootpilot_paused
+        human_active_until = _aware(state.human_active_until)
+        if human_active_until and human_active_until > self.clock.now():
+            return PolicyRule.conversation_human_active
+        if state.assigned_agent_id or state.assigned_team_id:
+            return PolicyRule.conversation_assigned_to_human
+        return None
+
+    def _channel_state_blocked_reason(
+        self,
+        action: QueuedOutboundAction,
+        channel_state: ChannelSafetyState,
+    ) -> PolicyRule | None:
+        if channel_state.conversation_id != action.conversation_id:
+            return PolicyRule.conversation_id_mismatch
+        if channel_state.replyable is False:
+            return PolicyRule.channel_not_replyable
+        if channel_state.status is ConversationStatus.resolved:
+            return PolicyRule.channel_resolved
+        if channel_state.paused:
+            return PolicyRule.channel_wootpilot_paused
+        if channel_state.assigned_agent_id or channel_state.assigned_team_id:
+            return PolicyRule.channel_assigned_to_human
+        return None
 
 
 def _retryable(exc: Exception) -> bool:

@@ -321,6 +321,20 @@ class ChatwootClient:
         self.settings = settings
         self.client = client
 
+    @property
+    def _account_base_url(self) -> str:
+        return (
+            f"{str(self.settings.chatwoot_base_url).rstrip('/')}/api/v1/accounts/"
+            f"{self.settings.chatwoot_account_id}"
+        )
+
+    @property
+    def _headers(self) -> dict[str, str]:
+        return {
+            "api-access-token": self.settings.chatwoot_api_token,
+            "Accept": "application/json",
+        }
+
     async def create_message(
         self,
         *,
@@ -328,30 +342,21 @@ class ChatwootClient:
         content: str,
         private: bool,
     ) -> str:
-        url = (
-            f"{str(self.settings.chatwoot_base_url).rstrip('/')}/api/v1/accounts/"
-            f"{self.settings.chatwoot_account_id}/conversations/{conversation_id}/messages"
-        )
-        payload = {"content": content, "private": private}
-        headers = {
-            "api-access-token": self.settings.chatwoot_api_token,
-            "Accept": "application/json",
-        }
-        started = time.perf_counter()
+        operation = "create_message"
         status_code: int | None = None
+        started = time.perf_counter()
         try:
-            if self.client:
-                response = await self.client.post(url, json=payload, headers=headers)
-            else:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.post(url, json=payload, headers=headers)
-            status_code = response.status_code
+            response, status_code = await self._send_request(
+                method="POST",
+                path=f"/conversations/{conversation_id}/messages",
+                payload={"content": content, "private": private},
+            )
             response.raise_for_status()
             data = response.json()
             message = data.get("id") or data.get("payload", {}).get("id")
             provider_message_id = str(message or "")
             self._log_api_call(
-                operation="create_message",
+                operation=operation,
                 conversation_id=conversation_id,
                 status="success",
                 status_code=status_code,
@@ -362,7 +367,7 @@ class ChatwootClient:
             return provider_message_id
         except Exception:
             self._log_api_call(
-                operation="create_message",
+                operation=operation,
                 conversation_id=conversation_id,
                 status="failed",
                 status_code=status_code,
@@ -380,44 +385,13 @@ class ChatwootClient:
     ) -> None:
         """Set Chatwoot's conversation status after WootPilot finishes a write."""
 
-        url = (
-            f"{str(self.settings.chatwoot_base_url).rstrip('/')}/api/v1/accounts/"
-            f"{self.settings.chatwoot_account_id}/conversations/{conversation_id}/toggle_status"
+        await self._post_json(
+            operation="set_conversation_status",
+            conversation_id=conversation_id,
+            path=f"/conversations/{conversation_id}/toggle_status",
+            payload={"status": status},
+            conversation_status=status,
         )
-        payload = {"status": status}
-        headers = {
-            "api-access-token": self.settings.chatwoot_api_token,
-            "Accept": "application/json",
-        }
-        started = time.perf_counter()
-        status_code: int | None = None
-        try:
-            if self.client:
-                response = await self.client.post(url, json=payload, headers=headers)
-            else:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.post(url, json=payload, headers=headers)
-            status_code = response.status_code
-            response.raise_for_status()
-            self._log_api_call(
-                operation="set_conversation_status",
-                conversation_id=conversation_id,
-                status="success",
-                status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
-                conversation_status=status,
-            )
-        except Exception:
-            self._log_api_call(
-                operation="set_conversation_status",
-                conversation_id=conversation_id,
-                status="failed",
-                status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
-                conversation_status=status,
-                level=logging.WARNING,
-            )
-            raise
 
     async def add_conversation_labels(
         self,
@@ -442,89 +416,127 @@ class ChatwootClient:
     ) -> None:
         """Replace Chatwoot conversation labels with the provided full label set."""
 
-        url = (
-            f"{str(self.settings.chatwoot_base_url).rstrip('/')}/api/v1/accounts/"
-            f"{self.settings.chatwoot_account_id}/conversations/{conversation_id}/labels"
+        await self._post_json(
+            operation="set_conversation_labels",
+            conversation_id=conversation_id,
+            path=f"/conversations/{conversation_id}/labels",
+            payload={"labels": labels},
+            label_count=len(labels),
         )
-        payload = {"labels": labels}
-        headers = {
-            "api-access-token": self.settings.chatwoot_api_token,
-            "Accept": "application/json",
-        }
-        started = time.perf_counter()
-        status_code: int | None = None
-        try:
-            if self.client:
-                response = await self.client.post(url, json=payload, headers=headers)
-            else:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.post(url, json=payload, headers=headers)
-            status_code = response.status_code
-            response.raise_for_status()
-            self._log_api_call(
-                operation="set_conversation_labels",
-                conversation_id=conversation_id,
-                status="success",
-                status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
-                label_count=len(labels),
-            )
-        except Exception:
-            self._log_api_call(
-                operation="set_conversation_labels",
-                conversation_id=conversation_id,
-                status="failed",
-                status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
-                label_count=len(labels),
-                level=logging.WARNING,
-            )
-            raise
 
     async def get_conversation_safety(
         self,
         *,
         conversation_id: str,
     ) -> ChannelSafetyState:
-        url = (
-            f"{str(self.settings.chatwoot_base_url).rstrip('/')}/api/v1/accounts/"
-            f"{self.settings.chatwoot_account_id}/conversations/{conversation_id}"
+        data = await self._get_json(
+            operation="get_conversation_safety",
+            conversation_id=conversation_id,
+            path=f"/conversations/{conversation_id}",
         )
-        headers = {
-            "api-access-token": self.settings.chatwoot_api_token,
-            "Accept": "application/json",
-        }
+        return _conversation_safety_from_response(conversation_id, data)
+
+    async def _post_json(
+        self,
+        *,
+        operation: str,
+        conversation_id: str,
+        path: str,
+        payload: dict[str, Any],
+        private: bool | None = None,
+        conversation_status: str | None = None,
+        label_count: int | None = None,
+    ) -> dict[str, Any]:
+        return await self._request_json(
+            method="POST",
+            operation=operation,
+            conversation_id=conversation_id,
+            path=path,
+            payload=payload,
+            private=private,
+            conversation_status=conversation_status,
+            label_count=label_count,
+        )
+
+    async def _get_json(
+        self,
+        *,
+        operation: str,
+        conversation_id: str,
+        path: str,
+    ) -> dict[str, Any]:
+        return await self._request_json(
+            method="GET",
+            operation=operation,
+            conversation_id=conversation_id,
+            path=path,
+            payload=None,
+        )
+
+    async def _request_json(
+        self,
+        *,
+        method: str,
+        operation: str,
+        conversation_id: str,
+        path: str,
+        payload: dict[str, Any] | None,
+        private: bool | None = None,
+        conversation_status: str | None = None,
+        label_count: int | None = None,
+    ) -> dict[str, Any]:
         started = time.perf_counter()
         status_code: int | None = None
         try:
-            if self.client:
-                response = await self.client.get(url, headers=headers)
-            else:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.get(url, headers=headers)
-            status_code = response.status_code
-            response.raise_for_status()
-            safety = _conversation_safety_from_response(
-                conversation_id, response.json()
+            response, status_code = await self._send_request(
+                method=method,
+                path=path,
+                payload=payload,
             )
+            response.raise_for_status()
             self._log_api_call(
-                operation="get_conversation_safety",
+                operation=operation,
                 conversation_id=conversation_id,
                 status="success",
                 status_code=status_code,
                 latency_ms=round((time.perf_counter() - started) * 1000),
+                private=private,
+                conversation_status=conversation_status,
+                label_count=label_count,
             )
-            return safety
+            return response.json()
         except Exception:
             self._log_api_call(
-                operation="get_conversation_safety",
+                operation=operation,
                 conversation_id=conversation_id,
                 status="failed",
                 status_code=status_code,
                 latency_ms=round((time.perf_counter() - started) * 1000),
+                private=private,
+                conversation_status=conversation_status,
+                label_count=label_count,
                 level=logging.WARNING,
             )
             raise
+
+    async def _send_request(
+        self,
+        *,
+        method: str,
+        path: str,
+        payload: dict[str, Any] | None,
+    ) -> tuple[httpx.Response, int]:
+        url = f"{self._account_base_url}{path}"
+        if self.client:
+            response = await self.client.request(
+                method, url, json=payload, headers=self._headers
+            )
+        else:
+            async with httpx.AsyncClient(timeout=20) as client:
+                response = await client.request(
+                    method, url, json=payload, headers=self._headers
+                )
+        return response, response.status_code
 
     def _log_api_call(
         self,

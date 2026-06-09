@@ -163,15 +163,12 @@ class StoreApiCatalog:
         params: dict[str, str],
         capability: str,
     ) -> list[dict[str, Any]]:
-        started = time.perf_counter()
         status_code: int | None = None
+        latency_ms = 0
         try:
-            if self.client:
-                response = await self.client.get(url, params=params)
-            else:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.get(url, params=params)
-            status_code = response.status_code
+            response, status_code, latency_ms = await self._get_response(
+                url=url, params=params
+            )
             response.raise_for_status()
             data = response.json()
             if not isinstance(data, list):
@@ -183,7 +180,7 @@ class StoreApiCatalog:
                 capability=capability,
                 status="success",
                 status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
+                latency_ms=latency_ms,
                 result_count=len(products),
             )
             return products
@@ -192,7 +189,7 @@ class StoreApiCatalog:
                 capability=capability,
                 status="failed",
                 status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
+                latency_ms=latency_ms,
                 result_count=None,
                 level=logging.WARNING,
             )
@@ -205,15 +202,12 @@ class StoreApiCatalog:
         params: dict[str, str],
         capability: str,
     ) -> dict[str, Any]:
-        started = time.perf_counter()
         status_code: int | None = None
+        latency_ms = 0
         try:
-            if self.client:
-                response = await self.client.get(url, params=params)
-            else:
-                async with httpx.AsyncClient(timeout=20) as client:
-                    response = await client.get(url, params=params)
-            status_code = response.status_code
+            response, status_code, latency_ms = await self._get_response(
+                url=url, params=params
+            )
             response.raise_for_status()
             data = response.json()
             if not isinstance(data, dict):
@@ -222,7 +216,7 @@ class StoreApiCatalog:
                 capability=capability,
                 status="success",
                 status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
+                latency_ms=latency_ms,
                 result_count=1,
             )
             return data
@@ -231,11 +225,29 @@ class StoreApiCatalog:
                 capability=capability,
                 status="failed",
                 status_code=status_code,
-                latency_ms=round((time.perf_counter() - started) * 1000),
+                latency_ms=latency_ms,
                 result_count=None,
                 level=logging.WARNING,
             )
             raise
+
+    async def _get_response(
+        self,
+        *,
+        url: str,
+        params: dict[str, str],
+    ) -> tuple[httpx.Response, int, int]:
+        started = time.perf_counter()
+        if self.client:
+            response = await self.client.get(url, params=params)
+        else:
+            async with httpx.AsyncClient(timeout=20) as client:
+                response = await client.get(url, params=params)
+        return (
+            response,
+            response.status_code,
+            round((time.perf_counter() - started) * 1000),
+        )
 
     def _log_store_api_call(
         self,

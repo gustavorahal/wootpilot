@@ -29,6 +29,7 @@ from wootpilot.integrations.chatwoot import (
     translate_message,
 )
 from wootpilot.integrations.model import model_port_from_settings
+from wootpilot.persistence.models import RawEventRow
 from wootpilot.persistence.repositories import Repository, row_to_state
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
@@ -88,55 +89,7 @@ class HandleWebhookEvent:
 
         message = translate_message(payload=payload, raw_event_id=raw.id, ids=self.ids)
         if message is None:
-            channel_event = translate_channel_event(
-                payload=payload,
-                raw_event_id=raw.id,
-                ids=self.ids,
-            )
-            if channel_event is not None:
-                state = await self._update_channel_state(channel_event)
-                await self.repo.update_raw_status(raw.id, RawEventStatus.processed)
-                await self.repo.insert_audit_record(
-                    id=self.ids.new(),
-                    raw_event_id=raw.id,
-                    normalized_message_id=None,
-                    agent_run_id=None,
-                    policy_decision_id=None,
-                    context_snapshot_ids=[],
-                    event_type=AuditEventType.channel_state_updated,
-                    summary="Chatwoot conversation event updated safety state.",
-                    details={
-                        "event_type": channel_event.event_type,
-                        "tenant_id": channel_event.tenant_id,
-                        "channel_id": channel_event.channel_id,
-                        "conversation_id": channel_event.conversation_id,
-                        "status": state.status.value if state.status else None,
-                        "replyable": state.replyable,
-                        "paused": state.paused,
-                        "assigned_agent_id": state.assigned_agent_id,
-                        "assigned_team_id": state.assigned_team_id,
-                    },
-                    created_at=self.clock.now(),
-                )
-                return {
-                    "status": WebhookResultStatus.processed,
-                    "raw_event_id": raw.id,
-                    "channel_event_id": channel_event.id,
-                }
-            await self.repo.update_raw_status(raw.id, RawEventStatus.ignored)
-            await self.repo.insert_audit_record(
-                id=self.ids.new(),
-                raw_event_id=raw.id,
-                normalized_message_id=None,
-                agent_run_id=None,
-                policy_decision_id=None,
-                context_snapshot_ids=[],
-                event_type=AuditEventType.webhook_ignored,
-                summary="Chatwoot event did not translate to a customer message.",
-                details={"event_type": raw.event_type},
-                created_at=self.clock.now(),
-            )
-            return {"status": WebhookResultStatus.ignored, "raw_event_id": raw.id}
+            return await self._handle_non_message_event(raw=raw, payload=payload)
 
         message, inserted_message = await self.repo.insert_message(message)
         state = await self._update_conversation_state(message)
@@ -149,28 +102,7 @@ class HandleWebhookEvent:
             }
 
         if not self._message_is_agentable(message):
-            await self.repo.update_raw_status(raw.id, RawEventStatus.ignored)
-            await self.repo.insert_audit_record(
-                id=self.ids.new(),
-                raw_event_id=raw.id,
-                normalized_message_id=message.id,
-                agent_run_id=None,
-                policy_decision_id=None,
-                context_snapshot_ids=[],
-                event_type=AuditEventType.message_ignored,
-                summary="Message was stored but is not agentable.",
-                details={
-                    "direction": message.direction.value,
-                    "visibility": message.visibility.value,
-                    "author_type": message.author_type.value,
-                },
-                created_at=self.clock.now(),
-            )
-            return {
-                "status": WebhookResultStatus.ignored,
-                "raw_event_id": raw.id,
-                "normalized_message_id": message.id,
-            }
+            return await self._ignore_message(raw_id=raw.id, message=message)
 
         # Commit authenticated ingress state before connector/model work. This
         # keeps duplicate delivery and conversation suppression state durable
@@ -191,6 +123,95 @@ class HandleWebhookEvent:
             "normalized_message_id": message.id,
             "workflow_status": decision.status.value,
             "action_kind": decision.action_kind.value,
+        }
+
+    async def _handle_non_message_event(
+        self,
+        *,
+        raw: RawEventRow,
+        payload: dict[str, Any],
+    ) -> HandleWebhookResult:
+        channel_event = translate_channel_event(
+            payload=payload,
+            raw_event_id=raw.id,
+            ids=self.ids,
+        )
+        if channel_event is None:
+            return await self._ignore_raw_event(raw)
+
+        state = await self._update_channel_state(channel_event)
+        await self.repo.update_raw_status(raw.id, RawEventStatus.processed)
+        await self.repo.insert_audit_record(
+            id=self.ids.new(),
+            raw_event_id=raw.id,
+            normalized_message_id=None,
+            agent_run_id=None,
+            policy_decision_id=None,
+            context_snapshot_ids=[],
+            event_type=AuditEventType.channel_state_updated,
+            summary="Chatwoot conversation event updated safety state.",
+            details={
+                "event_type": channel_event.event_type,
+                "tenant_id": channel_event.tenant_id,
+                "channel_id": channel_event.channel_id,
+                "conversation_id": channel_event.conversation_id,
+                "status": state.status.value if state.status else None,
+                "replyable": state.replyable,
+                "paused": state.paused,
+                "assigned_agent_id": state.assigned_agent_id,
+                "assigned_team_id": state.assigned_team_id,
+            },
+            created_at=self.clock.now(),
+        )
+        return {
+            "status": WebhookResultStatus.processed,
+            "raw_event_id": raw.id,
+            "channel_event_id": channel_event.id,
+        }
+
+    async def _ignore_raw_event(self, raw: RawEventRow) -> HandleWebhookResult:
+        await self.repo.update_raw_status(raw.id, RawEventStatus.ignored)
+        await self.repo.insert_audit_record(
+            id=self.ids.new(),
+            raw_event_id=raw.id,
+            normalized_message_id=None,
+            agent_run_id=None,
+            policy_decision_id=None,
+            context_snapshot_ids=[],
+            event_type=AuditEventType.webhook_ignored,
+            summary="Chatwoot event did not translate to a customer message.",
+            details={"event_type": raw.event_type},
+            created_at=self.clock.now(),
+        )
+        return {"status": WebhookResultStatus.ignored, "raw_event_id": raw.id}
+
+    async def _ignore_message(
+        self,
+        *,
+        raw_id: str,
+        message: NormalizedMessage,
+    ) -> HandleWebhookResult:
+        await self.repo.update_raw_status(raw_id, RawEventStatus.ignored)
+        await self.repo.insert_audit_record(
+            id=self.ids.new(),
+            raw_event_id=raw_id,
+            normalized_message_id=message.id,
+            agent_run_id=None,
+            policy_decision_id=None,
+            context_snapshot_ids=[],
+            event_type=AuditEventType.message_ignored,
+            summary="Message was stored but is not agentable.",
+            details={
+                "direction": message.direction.value,
+                "visibility": message.visibility.value,
+                "author_type": message.author_type.value,
+            },
+            created_at=self.clock.now(),
+        )
+        return {
+            "status": WebhookResultStatus.ignored,
+            "raw_event_id": raw_id,
+            "normalized_message_id": message.id,
         }
 
     async def _update_conversation_state(
