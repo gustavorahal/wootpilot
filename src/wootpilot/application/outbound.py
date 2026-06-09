@@ -61,11 +61,16 @@ class ExecuteOutboundActions:
         """
 
         counts = {"sent": 0, "blocked": 0, "failed": 0}
-        for action in await self.repo.list_queued_outbound_actions(
-            limit=limit,
-            now=self.clock.now(),
-        ):
-            await self._mark_executing(action)
+        for _ in range(limit):
+            actions = await self.repo.claim_queued_outbound_actions(
+                limit=1,
+                now=self.clock.now(),
+                claimed_at=self.clock.now(),
+            )
+            await self.repo.session.commit()
+            if not actions:
+                break
+            action = actions[0]
             blocked_reason = await self._blocked_reason(action)
             if blocked_reason:
                 await self._mark_blocked(action, blocked_reason)
@@ -84,15 +89,6 @@ class ExecuteOutboundActions:
             await self._mark_sent(action, provider_message_id)
             counts["sent"] += 1
         return counts
-
-    async def _mark_executing(self, action: QueuedOutboundAction) -> None:
-        await self.repo.mark_outbound_action(
-            action_id=action.id,
-            status=OutboundActionStatus.executing,
-            updated_at=self.clock.now(),
-            clear_next_attempt_at=True,
-        )
-        await self.repo.session.commit()
 
     async def _mark_blocked(
         self, action: QueuedOutboundAction, blocked_reason: PolicyRule | str

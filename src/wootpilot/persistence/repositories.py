@@ -272,9 +272,22 @@ class Repository:
             paused=False,
             updated_at=now,
         )
-        self.session.add(row)
-        await self.session.flush()
-        return row
+        try:
+            async with self.session.begin_nested():
+                self.session.add(row)
+                await self.session.flush()
+            return row
+        except IntegrityError:
+            existing = await self.session.scalar(
+                select(ConversationStateRow).where(
+                    ConversationStateRow.tenant_id == tenant_id,
+                    ConversationStateRow.channel_id == channel_id,
+                    ConversationStateRow.conversation_id == conversation_id,
+                )
+            )
+            if existing is None:
+                raise
+            return existing
 
     async def get_conversation_state(
         self,
@@ -406,18 +419,28 @@ class Repository:
             return False
         return True
 
-    async def list_queued_outbound_actions(
-        self, *, limit: int = 10, now: datetime
+    async def claim_queued_outbound_actions(
+        self, *, limit: int = 10, now: datetime, claimed_at: datetime
     ) -> list[QueuedOutboundAction]:
+        """Atomically claim due outbound actions for one executor transaction.
+
+        PostgreSQL row locks are held only until the caller commits. Claimed rows
+        are moved to `executing` before that commit so other workers cannot pick
+        up the same rows after locks are released.
+        """
+
         statement = queued_outbound_actions_statement(
             limit=limit,
             now=now,
             dialect_name=self.session.bind.dialect.name if self.session.bind else "",
         )
-        result = await self.session.scalars(
-            statement
-        )
-        return [row_to_outbound_action(row) for row in result]
+        rows = list(await self.session.scalars(statement))
+        for row in rows:
+            row.status = OutboundActionStatus.executing.value
+            row.updated_at = claimed_at
+            row.next_attempt_at = None
+        await self.session.flush()
+        return [row_to_outbound_action(row) for row in rows]
 
     async def mark_outbound_action(
         self,

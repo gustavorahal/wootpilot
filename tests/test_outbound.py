@@ -439,6 +439,63 @@ async def test_unexpected_chatwoot_writer_error_escapes(
             ).run_once()
 
 
+async def test_unexpected_writer_error_does_not_claim_later_actions(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "private-unexpected-failure-batch.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        for source_message_id, created_at in (
+            ("4", now),
+            ("5", now + timedelta(seconds=1)),
+        ):
+            await repo.insert_outbound_action(
+                id=ids.new(),
+                agent_run_id="agent-run-1",
+                tenant_id="1",
+                channel_id="2",
+                conversation_id="3",
+                source_message_id=source_message_id,
+                action_kind=AgentActionKind.private_note,
+                content="Suggested reply",
+                status=OutboundActionStatus.queued,
+                idempotency_key=f"1:2:3:{source_message_id}:private_note",
+                created_at=created_at,
+            )
+        await session.commit()
+
+    async with factory() as session:
+        with pytest.raises(TypeError, match="local writer bug"):
+            await ExecuteOutboundActions(
+                settings=settings,
+                session=session,
+                chatwoot=BuggyChatwootWriter(),  # type: ignore[arg-type]
+            ).run_once(limit=2)
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with engine.connect() as conn:
+        statuses = {
+            row.source_message_id: row.status
+            for row in conn.execute(
+                text(
+                    "select source_message_id, status from outbound_actions "
+                    "order by created_at"
+                )
+            )
+        }
+    assert statuses == {"4": "executing", "5": "queued"}
+
+
 async def test_private_review_note_marks_conversation_as_needing_human(
     tmp_path: Path,
 ) -> None:

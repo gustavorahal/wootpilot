@@ -52,7 +52,7 @@ def _import_violations(
     forbidden_prefixes: set[str],
 ) -> list[dict[str, str | int]]:
     violations = []
-    for path in sorted(root.glob("*.py")):
+    for path in sorted(root.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             imported_modules = []

@@ -121,7 +121,11 @@ class RunCustomerSupportWorkflow:
         decision: WorkflowDecision = result["workflow_decision"]
         pre_policy: PolicyDecision | None = result.get("pre_model_policy_decision")
         post_policy: PolicyDecision | None = result.get("post_model_policy_decision")
-        policy = post_policy or pre_policy
+        policies = [
+            policy
+            for policy in (pre_policy, post_policy)
+            if policy is not None
+        ]
         model_metadata = result.get("model_metadata") or {}
         agent_run_id = self.ids.new()
         await self.repo.insert_agent_run(
@@ -134,9 +138,9 @@ class RunCustomerSupportWorkflow:
             model_metadata=model_metadata,
             created_at=self.clock.now(),
         )
-        policy_id: str | None = None
-        if policy:
-            policy_id = policy.id
+        terminal_policy = post_policy or pre_policy
+        terminal_policy_id = terminal_policy.id if terminal_policy else None
+        for policy in policies:
             await self.repo.insert_policy_decision(
                 id=policy.id,
                 agent_run_id=agent_run_id,
@@ -154,7 +158,7 @@ class RunCustomerSupportWorkflow:
             raw_event_id=message.raw_event_id,
             normalized_message_id=message.id,
             agent_run_id=agent_run_id,
-            policy_decision_id=policy_id,
+            policy_decision_id=terminal_policy_id,
             context_snapshot_ids=[context_snapshot_id],
             event_type=AuditEventType.support_workflow_completed,
             summary=decision.summary,

@@ -60,9 +60,10 @@ snapshot kind is catalog context.
 automation mode, status, final workflow decision, model metadata, and links to
 the raw event and normalized message.
 
-`policy_decisions` stores deterministic pre-model and post-model decisions with
-stable rule ids and details. Pre-model rows can be created before an `agent_run`
-exists, so `agent_run_id` is nullable.
+`policy_decisions` stores every deterministic pre-model and post-model decision
+with stable rule ids and details. A successful model-assisted turn normally has
+both a pre-model allow row and a post-model validation row linked to the same
+`agent_run`.
 
 `outbound_actions` is the outbox for private notes and public replies. It tracks
 tenant/channel/conversation identity, source message id, action kind, content,
@@ -82,9 +83,10 @@ suppression durable even if later workflow execution fails.
 Support workflow execution stores context snapshots, policy decisions, agent
 runs, audit records, and queued outbound actions after the graph returns.
 
-Outbound execution claims queued actions, records execution state, performs the
-external Chatwoot write outside a long database transaction, then records sent,
-blocked, retryable failure, or permanent failure status.
+Outbound execution atomically claims due actions by moving them to `executing`,
+commits that claim before channel calls, performs the external Chatwoot write
+outside a long database transaction, then records sent, blocked, retryable
+failure, or permanent failure status.
 
 ## Constraints And Idempotency
 
@@ -133,6 +135,7 @@ Release checks run:
 uv run alembic upgrade head
 ```
 
-Application startup may create tables for a fresh local database, but it does
-not contain ad hoc schema upgrade helpers. If a persisted table changes, add an
+Application startup may create tables for fresh non-production alpha profiles,
+but production startup relies on explicit Alembic migration. The app does not
+contain ad hoc schema upgrade helpers. If a persisted table changes, add an
 Alembic migration.

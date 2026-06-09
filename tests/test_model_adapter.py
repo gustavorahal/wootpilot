@@ -18,6 +18,7 @@ from wootpilot.domain.models import (
     StructuredCatalogContext,
 )
 from wootpilot.integrations.model import (
+    MODEL_PROMPT_VERSION,
     OpenRouterModelProposalPort,
     _AgentProposalSchema,
 )
@@ -58,6 +59,7 @@ async def test_openrouter_adapter_maps_structured_response_and_metadata(
     assert result.proposal.context_snapshot_ids == ["snapshot-1"]
     assert result.metadata["provider"] == "openrouter"
     assert result.metadata["model"] == "openai/gpt-4.1-mini"
+    assert result.metadata["prompt_version"] == MODEL_PROMPT_VERSION
     assert result.metadata["structured_method"] == "json_schema"
     assert result.metadata["provider_model_name"] == "fake/openrouter-model"
     assert result.metadata["provider_generation_id"] == "generation-1"

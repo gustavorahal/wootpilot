@@ -84,6 +84,10 @@ The final state is used by persistence code exactly as a normal `ainvoke` result
 OpenRouter adapter validates structured model output into a WootPilot-owned
 proposal schema before creating a domain `AgentProposal`.
 
+Prompt construction is versioned in the model adapter. Customer text is labeled
+as untrusted data, compact conversation safety state is included explicitly, and
+catalog rows are serialized from policy-aware prompt-safe snapshots.
+
 Model output is a proposal only. Deterministic policy and outbound execution
 decide whether the proposal becomes a private note, public reply, audit-only
 observation, or blocked run.

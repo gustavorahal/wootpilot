@@ -461,8 +461,16 @@ async def test_persistent_checkpoints_do_not_replay_policy_state_between_message
 
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
-        count = conn.execute(text("select count(*) from policy_decisions")).scalar_one()
-    assert count == 2
+        stage_counts = {
+            row[0]: row[1]
+            for row in conn.execute(
+                text(
+                    "select stage, count(*) from policy_decisions "
+                    "group by stage"
+                )
+            )
+        }
+    assert stage_counts == {"pre_model": 2, "post_model": 2}
 
 
 async def test_sqlite_loaded_human_active_until_blocks_without_naive_datetime_error(

@@ -91,8 +91,9 @@ AUTOMATION_MODE=public_reply
 
 Postgres is the production database target for public replies and multiple
 outbound workers. Queue workers compile the dequeue query with
-`FOR UPDATE SKIP LOCKED` on Postgres. Install the optional dependency profile
-before enabling `CHECKPOINTER=postgres`:
+`FOR UPDATE SKIP LOCKED` on Postgres and move selected rows to `executing`
+before committing the claim. Install the optional dependency profile before
+enabling `CHECKPOINTER=postgres`:
 
 ```sh
 uv sync --extra postgres

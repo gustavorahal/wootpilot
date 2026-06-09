@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from wootpilot.application.security import verify_chatwoot_signature
 from wootpilot.application.webhooks import HandleWebhookEvent, HandleWebhookResult
-from wootpilot.domain.models import Provider
+from wootpilot.domain.models import Provider, RuntimeEnvironment
 from wootpilot.observability import configure_logging, log_event
 from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.settings import Settings, get_settings
@@ -37,7 +37,8 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     settings = get_settings()
     configure_logging(settings.log_level)
-    await init_database(settings)
+    if _should_initialize_database_on_startup(settings):
+        await init_database(settings)
     app.state.session_factory = make_session_factory(settings)
     yield
 
@@ -49,6 +50,16 @@ def _settings_dependency() -> Settings:
     """Return cached runtime settings for FastAPI dependency injection."""
 
     return get_settings()
+
+
+def _should_initialize_database_on_startup(settings: Settings) -> bool:
+    """Return whether startup may create fresh alpha-profile tables.
+
+    Production deployments should run Alembic explicitly so schema drift is
+    visible during release, not hidden by application startup.
+    """
+
+    return settings.env is not RuntimeEnvironment.production
 
 
 async def _session_dependency(request: Request) -> AsyncIterator[AsyncSession]:

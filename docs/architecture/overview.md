@@ -95,7 +95,8 @@ Adapters translate provider-specific representations at the boundary:
   performs Chatwoot API writes.
 - `src/wootpilot/catalog/` selects and implements the product catalog source.
 - `src/wootpilot/persistence/` maps domain objects to SQLAlchemy rows.
-- `src/wootpilot/llm/` adapts model providers into WootPilot proposal schemas.
+- `src/wootpilot/integrations/model.py` adapts model providers into WootPilot
+  proposal schemas.
 
 The code uses `Protocol` for meaningful external boundaries, `StrEnum` for
 persisted vocabulary, Pydantic models for domain validation, and typed settings
