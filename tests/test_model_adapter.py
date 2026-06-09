@@ -131,6 +131,20 @@ async def test_openrouter_adapter_fails_closed_without_api_key() -> None:
     }
 
 
+async def test_openrouter_adapter_does_not_classify_unexpected_errors(
+    monkeypatch,
+) -> None:
+    _install_fake_langchain_openrouter(monkeypatch, BuggyChatOpenRouter)
+    port = OpenRouterModelProposalPort(_openrouter_settings())
+
+    with pytest.raises(RuntimeError, match="local adapter bug"):
+        await port.propose(
+            message=_message(),
+            conversation_state=_state(),
+            catalog_context=StructuredCatalogContext(query="aircooled"),
+        )
+
+
 class SuccessfulChatOpenRouter:
     def __init__(self, **kwargs) -> None:
         self.kwargs = kwargs
@@ -164,6 +178,12 @@ class TimeoutChatOpenRouter:
 class PermanentChatOpenRouter:
     def __init__(self, **kwargs) -> None:
         raise ValueError("provider rejected request")
+
+
+class BuggyChatOpenRouter:
+    def __init__(self, **kwargs) -> None:
+        del kwargs
+        raise RuntimeError("local adapter bug")
 
 
 class FakeStructuredRunnable:

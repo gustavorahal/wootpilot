@@ -4,8 +4,10 @@ import logging
 from datetime import timedelta
 from pathlib import Path
 
+import pytest
 from sqlalchemy import create_engine, text
 
+from wootpilot.application.errors import ChatwootResponseError
 from wootpilot.application.outbound import ExecuteOutboundActions
 from wootpilot.domain.models import (
     AgentActionKind,
@@ -98,7 +100,12 @@ class RetryableFailingChatwootWriter(FakeChatwootWriter):
                 "private": private,
             }
         )
-        raise _http_error(status_code=503)
+        raise ChatwootResponseError(
+            "chatwoot_http_503",
+            operation="create_message",
+            retryable=True,
+            status_code=503,
+        )
 
 
 class PermanentFailingChatwootWriter(FakeChatwootWriter):
@@ -112,20 +119,20 @@ class PermanentFailingChatwootWriter(FakeChatwootWriter):
                 "private": private,
             }
         )
-        raise ValueError("permanent test failure")
+        raise ChatwootResponseError(
+            "chatwoot_http_400",
+            operation="create_message",
+            retryable=False,
+            status_code=400,
+        )
 
 
-def _http_error(*, status_code: int) -> Exception:
-    class Response:
-        def __init__(self, status_code: int) -> None:
-            self.status_code = status_code
-
-    class Error(Exception):
-        def __init__(self, status_code: int) -> None:
-            super().__init__(f"HTTP {status_code}")
-            self.response = Response(status_code)
-
-    return Error(status_code)
+class BuggyChatwootWriter(FakeChatwootWriter):
+    async def create_message(
+        self, *, conversation_id: str, content: str, private: bool
+    ):
+        del conversation_id, content, private
+        raise TypeError("local writer bug")
 
 
 async def test_outbound_executor_sends_private_note(tmp_path: Path, caplog) -> None:
@@ -388,8 +395,48 @@ async def test_retryable_chatwoot_failure_schedules_next_attempt(
     assert state["status"] == "retryable_failure"
     assert state["attempt_count"] == 1
     assert state["next_attempt_at"] is not None
-    assert state["error_code"] == "Error"
+    assert state["error_code"] == "chatwoot_http_503"
     assert state["row_count"] == 1
+
+
+async def test_unexpected_chatwoot_writer_error_escapes(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "private-unexpected-failure.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=ids.new(),
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.private_note,
+            content="Suggested reply",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:private_note",
+            created_at=now,
+        )
+        await session.commit()
+
+    async with factory() as session:
+        with pytest.raises(TypeError, match="local writer bug"):
+            await ExecuteOutboundActions(
+                settings=settings,
+                session=session,
+                chatwoot=BuggyChatwootWriter(),  # type: ignore[arg-type]
+            ).run_once()
 
 
 async def test_private_review_note_marks_conversation_as_needing_human(

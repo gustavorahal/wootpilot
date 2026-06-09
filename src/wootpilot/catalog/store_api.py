@@ -15,6 +15,7 @@ from typing import Any
 
 import httpx
 
+from wootpilot.application.errors import ExternalServiceError
 from wootpilot.domain.models import (
     AvailabilitySnapshot,
     Money,
@@ -30,8 +31,16 @@ from wootpilot.observability import log_event
 logger = logging.getLogger(__name__)
 
 
-class CatalogContextError(Exception):
+class CatalogContextError(ExternalServiceError):
     """Controlled failure raised when a catalog connector cannot load context."""
+
+    def __init__(self, code: str = "woocommerce_store_api_context_failed") -> None:
+        super().__init__(
+            code,
+            operation="catalog_context",
+            retryable=True,
+            status_code=None,
+        )
 
 
 class StoreApiCatalog:
@@ -54,7 +63,7 @@ class StoreApiCatalog:
                 capability="product_search",
             )
         except (httpx.HTTPError, ValueError) as exc:
-            raise CatalogContextError("woocommerce_store_api_context_failed") from exc
+            raise CatalogContextError() from exc
         snapshots = [store_api_product_to_snapshot(product) for product in products]
         risks = (
             [RiskSignal.catalog_no_match.value]
@@ -76,7 +85,7 @@ class StoreApiCatalog:
                 extra=_store_api_filter_params(query),
             )
         except (httpx.HTTPError, ValueError) as exc:
-            raise CatalogContextError("woocommerce_store_api_context_failed") from exc
+            raise CatalogContextError() from exc
         snapshots = [store_api_product_to_snapshot(product) for product in products]
         return [
             snapshot
@@ -102,7 +111,7 @@ class StoreApiCatalog:
                 extra={"sku": sku},
             )
         except (httpx.HTTPError, ValueError) as exc:
-            raise CatalogContextError("woocommerce_store_api_context_failed") from exc
+            raise CatalogContextError() from exc
         for product in products:
             if str(product.get("sku") or "").casefold() == sku.casefold():
                 return store_api_product_to_snapshot(product)
@@ -112,7 +121,7 @@ class StoreApiCatalog:
         try:
             categories = await self._get_categories()
         except (httpx.HTTPError, ValueError) as exc:
-            raise CatalogContextError("woocommerce_store_api_context_failed") from exc
+            raise CatalogContextError() from exc
         return [store_api_category_to_snapshot(item) for item in categories]
 
     async def _get_products(
@@ -144,9 +153,9 @@ class StoreApiCatalog:
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 404:
                 return None
-            raise CatalogContextError("woocommerce_store_api_context_failed") from exc
+            raise CatalogContextError() from exc
         except (httpx.HTTPError, ValueError) as exc:
-            raise CatalogContextError("woocommerce_store_api_context_failed") from exc
+            raise CatalogContextError() from exc
 
     async def _get_categories(self) -> list[dict[str, Any]]:
         url = f"{self.base_url}/wp-json/wc/store/v1/products/categories"
@@ -184,7 +193,7 @@ class StoreApiCatalog:
                 result_count=len(products),
             )
             return products
-        except Exception:
+        except (httpx.HTTPError, ValueError):
             self._log_store_api_call(
                 capability=capability,
                 status="failed",
@@ -220,7 +229,7 @@ class StoreApiCatalog:
                 result_count=1,
             )
             return data
-        except Exception:
+        except (httpx.HTTPError, ValueError):
             self._log_store_api_call(
                 capability=capability,
                 status="failed",

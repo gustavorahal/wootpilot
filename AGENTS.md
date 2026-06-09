@@ -13,13 +13,85 @@ These rules apply to this entire repository.
 - The local Chatwoot source code lives in `../chatwoot` and can be used to investigate behavior, models, jobs, integrations, and self-hosting details.
 - The local Chatwoot mobile app source code lives in `../chatwoot-mobile-app` and can be used to investigate the mobile agent experience.
 
-## Code Documentation
+## Code Quality Standards
+
+- All Python code MUST include type hints and return types.
+- Use descriptive, self-explanatory variable names.
+- Attempt to break up complex functions that are more than 20 lines into smaller, focused functions where it makes sense.
+
+```python
+def filter_unknown_users(users: list[str], known_users: set[str]) -> list[str]:
+    """Single line description of the function.
+
+    Any additional context about the function can go here.
+
+    Args:
+        users: List of user identifiers to filter.
+        known_users: Set of known/valid user identifiers.
+
+    Returns:
+        List of users that are not in the `known_users` set.
+    """
+```
+
+## Testing Requirements
+
+- Every new feature or bugfix MUST be covered by unit tests.
+- Unit tests live in `tests/unit_tests/` and must not make network calls.
+- Integration tests live in `tests/integration_tests/` and may make network calls.
+- We use pytest as the testing framework; if in doubt, check other existing tests for examples.
+- The testing file structure should mirror the source code structure.
+
+Checklist:
+
+- Tests fail when your new logic is broken.
+- Happy path is covered.
+- Edge cases and error conditions are tested.
+- Fixtures or mocks are used for external dependencies.
+- Tests are deterministic and not flaky.
+- The test suite fails if your new logic is broken.
+
+## Security and Risk Assessment
+
+- Do not use `eval()`, `exec()`, or `pickle` on user-controlled input.
+- Use proper exception handling. Do not use bare `except:`, and use a `msg` variable for error messages.
+- Remove unreachable or commented-out code before committing.
+- Consider race conditions and resource leaks, including file handles, sockets, and threads.
+- Ensure proper resource cleanup for file handles, connections, and other external resources.
+
+## Documentation Standards
 
 - When writing code, add docstrings or inline documentation where they help humans understand intent, behavior, or rationale.
 - Prefer documentation that explains why something exists, what assumptions or tradeoffs shaped it, and how it should be used.
 - Public functions, classes, modules, non-obvious algorithms, domain rules, and important architectural boundaries should usually have docstrings.
 - Avoid documentation that merely restates obvious implementation details. The goal is educational clarity, not noise.
 - Treat code as something future contributors will learn from: it should be readable on its own, and documented where context would otherwise be lost.
+- Use Google-style docstrings with an `Args` section for all public functions.
+- Put types in function signatures, NOT in docstrings.
+- If a default is present, DO NOT repeat it in the docstring unless there is post-processing or the value is set conditionally.
+- Document all parameters, return values, and exceptions.
+- Ensure American English spelling, for example `behavior`, not `behaviour`.
+- Do NOT use Sphinx-style double backtick formatting like ``code``. Use single backticks such as `code` for inline code references in docstrings and comments.
+
+```python
+def send_email(to: str, msg: str, *, priority: str = "normal") -> bool:
+    """Send an email to a recipient with specified priority.
+
+    Any additional context about the function can go here.
+
+    Args:
+        to: The email address of the recipient.
+        msg: The message body to send.
+        priority: Email priority level.
+
+    Returns:
+        `True` if email was sent successfully, `False` otherwise.
+
+    Raises:
+        InvalidEmailError: If the email address format is invalid.
+        SMTPConnectionError: If unable to connect to email server.
+    """
+```
 
 ## Validation
 

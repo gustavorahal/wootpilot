@@ -5,8 +5,13 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
+from wootpilot.application.errors import (
+    ModelProviderError,
+    ModelProviderResponseError,
+    ModelProviderTransportError,
+)
 from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
@@ -96,7 +101,15 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         started = time.perf_counter()
         try:
             from langchain_openrouter import ChatOpenRouter
+        except ImportError as exc:
+            error = ModelProviderResponseError(
+                exc.__class__.__name__,
+                operation="openrouter_import",
+                retryable=False,
+            )
+            return self._failure_result(error, started)
 
+        try:
             parsed, raw_metadata, structured_method = await self._invoke_structured(
                 ChatOpenRouter,
                 message=message,
@@ -124,20 +137,8 @@ class OpenRouterModelProposalPort(ModelProposalPort):
                 proposal=proposal,
                 metadata=metadata,
             )
-        except Exception as exc:  # provider SDK exceptions vary across versions
-            name = exc.__class__.__name__
-            retryable = any(
-                term in name.lower() for term in ("timeout", "rate", "connection")
-            )
-            payload: dict[str, Any] = {
-                "provider": "openrouter",
-                "model": self.settings.openrouter_model,
-                "error_type": name,
-                "latency_ms": round((time.perf_counter() - started) * 1000),
-            }
-            if retryable:
-                return ModelProposalResult(retryable_error=name, metadata=payload)
-            return ModelProposalResult(permanent_error=name, metadata=payload)
+        except ModelProviderError as exc:
+            return self._failure_result(exc, started)
 
     async def _invoke_structured(
         self,
@@ -146,7 +147,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         message: NormalizedMessage,
         catalog_context: StructuredCatalogContext,
     ) -> tuple[AgentProposalSchema, dict[str, Any], str]:
-        last_error: Exception | None = None
+        last_error: ModelProviderError | None = None
         for method in ("json_schema", "function_calling"):
             try:
                 model = chat_model_class(
@@ -170,16 +171,29 @@ class OpenRouterModelProposalPort(ModelProposalPort):
                         if isinstance(result, dict)
                         else "missing parsed output"
                     )
-                    raise ValueError(str(parsing_error))
+                    raise ModelProviderResponseError(
+                        str(parsing_error),
+                        operation="openrouter_structured_output",
+                        retryable=False,
+                    )
                 raw = result.get("raw") if isinstance(result, dict) else None
                 metadata = self._raw_metadata(raw)
                 if not isinstance(parsed, AgentProposalSchema):
                     parsed = AgentProposalSchema.model_validate(parsed)
                 return parsed, metadata, method
-            except Exception as exc:
-                last_error = exc
+            except (
+                TimeoutError,
+                ConnectionError,
+                ValueError,
+                ValidationError,
+                ModelProviderError,
+            ) as exc:
+                last_error = _model_provider_error(
+                    exc,
+                    operation=f"openrouter_structured_output.{method}",
+                )
                 if method == "function_calling":
-                    raise
+                    raise last_error from exc
         raise last_error or RuntimeError("structured OpenRouter invocation failed")
 
     def _raw_metadata(self, raw: Any) -> dict[str, Any]:
@@ -192,6 +206,21 @@ class OpenRouterModelProposalPort(ModelProposalPort):
             "provider_generation_id": response_metadata.get("id"),
             "token_usage": usage_metadata,
         }
+
+    def _failure_result(
+        self,
+        exc: ModelProviderError,
+        started: float,
+    ) -> ModelProposalResult:
+        payload: dict[str, Any] = {
+            "provider": "openrouter",
+            "model": self.settings.openrouter_model,
+            "error_type": exc.code,
+            "latency_ms": round((time.perf_counter() - started) * 1000),
+        }
+        if exc.retryable:
+            return ModelProposalResult(retryable_error=exc.code, metadata=payload)
+        return ModelProposalResult(permanent_error=exc.code, metadata=payload)
 
     def _messages(
         self, message: NormalizedMessage, catalog_context: StructuredCatalogContext
@@ -254,4 +283,28 @@ def _price_can_be_shown_to_model(item) -> bool:
         and not item.price.quote_required
         and not item.price.stale
         and item.availability.is_available is not False
+    )
+
+
+def _model_provider_error(
+    exc: TimeoutError
+    | ConnectionError
+    | ValueError
+    | ValidationError
+    | ModelProviderError,
+    *,
+    operation: str,
+) -> ModelProviderError:
+    if isinstance(exc, ModelProviderError):
+        return exc
+    if isinstance(exc, (TimeoutError, ConnectionError)):
+        return ModelProviderTransportError(
+            exc.__class__.__name__,
+            operation=operation,
+            retryable=True,
+        )
+    return ModelProviderResponseError(
+        exc.__class__.__name__,
+        operation=operation,
+        retryable=False,
     )

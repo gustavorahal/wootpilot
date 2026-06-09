@@ -7,11 +7,17 @@ import logging
 import time
 from datetime import UTC, datetime
 from hashlib import sha256
+from json import JSONDecodeError
 from typing import Any
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from wootpilot.application.errors import (
+    ChatwootApiError,
+    ChatwootResponseError,
+    ChatwootTransportError,
+)
 from wootpilot.domain.models import (
     AttachmentMetadata,
     ChannelEvent,
@@ -354,6 +360,13 @@ class ChatwootClient:
             response.raise_for_status()
             data = response.json()
             message = data.get("id") or data.get("payload", {}).get("id")
+            if message in {None, ""}:
+                raise ChatwootResponseError(
+                    "chatwoot_response_missing_message_id",
+                    operation=operation,
+                    retryable=False,
+                    status_code=status_code,
+                )
             provider_message_id = str(message or "")
             self._log_api_call(
                 operation=operation,
@@ -365,17 +378,18 @@ class ChatwootClient:
                 private=private,
             )
             return provider_message_id
-        except Exception:
+        except (httpx.HTTPError, JSONDecodeError, ValueError, ChatwootApiError) as exc:
+            error = _chatwoot_error(operation, exc, status_code=status_code)
             self._log_api_call(
                 operation=operation,
                 conversation_id=conversation_id,
                 status="failed",
-                status_code=status_code,
+                status_code=error.status_code,
                 latency_ms=round((time.perf_counter() - started) * 1000),
                 private=private,
                 level=logging.WARNING,
             )
-            raise
+            raise error from exc
 
     async def set_conversation_status(
         self,
@@ -505,19 +519,20 @@ class ChatwootClient:
                 label_count=label_count,
             )
             return response.json()
-        except Exception:
+        except (httpx.HTTPError, JSONDecodeError, ValueError, ChatwootApiError) as exc:
+            error = _chatwoot_error(operation, exc, status_code=status_code)
             self._log_api_call(
                 operation=operation,
                 conversation_id=conversation_id,
                 status="failed",
-                status_code=status_code,
+                status_code=error.status_code,
                 latency_ms=round((time.perf_counter() - started) * 1000),
                 private=private,
                 conversation_status=conversation_status,
                 label_count=label_count,
                 level=logging.WARNING,
             )
-            raise
+            raise error from exc
 
     async def _send_request(
         self,
@@ -593,3 +608,38 @@ def _conversation_safety_from_response(
         labels=labels,
         custom_attributes=custom_attributes,
     )
+
+
+def _chatwoot_error(
+    operation: str,
+    exc: httpx.HTTPError | ValueError | ChatwootApiError,
+    *,
+    status_code: int | None,
+) -> ChatwootApiError:
+    if isinstance(exc, ChatwootApiError):
+        return exc
+    if isinstance(exc, httpx.HTTPStatusError):
+        response_status = exc.response.status_code
+        return ChatwootResponseError(
+            f"chatwoot_http_{response_status}",
+            operation=operation,
+            retryable=_retryable_status(response_status),
+            status_code=response_status,
+        )
+    if isinstance(exc, httpx.HTTPError):
+        return ChatwootTransportError(
+            exc.__class__.__name__,
+            operation=operation,
+            retryable=True,
+            status_code=status_code,
+        )
+    return ChatwootResponseError(
+        exc.__class__.__name__,
+        operation=operation,
+        retryable=False,
+        status_code=status_code,
+    )
+
+
+def _retryable_status(status_code: int | None) -> bool:
+    return status_code in {408, 409, 425, 429, 500, 502, 503, 504}

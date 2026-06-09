@@ -3,9 +3,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import pytest
 import respx
 from httpx import Response
 
+from wootpilot.application.errors import ChatwootResponseError
 from wootpilot.integrations.chatwoot import ChatwootClient, provider_event_id
 from wootpilot.settings import Settings
 
@@ -141,3 +143,37 @@ async def test_chatwoot_client_adds_conversation_label_without_dropping_existing
     assert log_record.wootpilot_fields["status_code"] == 200
     assert log_record.wootpilot_fields["label_count"] == 2
     assert "wootpilot-needs-human" not in str(log_record.wootpilot_fields)
+
+
+@respx.mock
+async def test_chatwoot_client_raises_typed_response_error(caplog) -> None:
+    settings_values: dict[str, Any] = {
+        "chatwoot_base_url": "https://chatwoot.example.test",
+        "chatwoot_account_id": "1",
+        "chatwoot_api_token": "token",
+        "chatwoot_webhook_secret": "secret",
+    }
+    settings = Settings(**settings_values)
+    respx.post(
+        "https://chatwoot.example.test/api/v1/accounts/1/"
+        "conversations/3/messages"
+    ).mock(return_value=Response(503, json={"error": "temporarily unavailable"}))
+    caplog.set_level(logging.WARNING, logger="wootpilot.integrations.chatwoot")
+
+    with pytest.raises(ChatwootResponseError) as error:
+        await ChatwootClient(settings).create_message(
+            conversation_id="3",
+            content="Suggested reply",
+            private=True,
+        )
+
+    assert error.value.code == "chatwoot_http_503"
+    assert error.value.retryable is True
+    log_record = next(
+        record
+        for record in caplog.records
+        if getattr(record, "wootpilot_event", "")
+        == "chatwoot_api_call_completed"
+    )
+    assert log_record.wootpilot_fields["status"] == "failed"
+    assert log_record.wootpilot_fields["status_code"] == 503

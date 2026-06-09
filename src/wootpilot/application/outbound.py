@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wootpilot.application.errors import ChatwootApiError
 from wootpilot.application.policy import public_price_policy_rule
 from wootpilot.domain.models import (
     AgentActionKind,
@@ -61,7 +62,7 @@ class ExecuteOutboundActions:
                     content=action.content,
                     private=action.action_kind is AgentActionKind.private_note,
                 )
-            except Exception as exc:
+            except ChatwootApiError as exc:
                 await self._mark_send_failure(action, exc)
                 counts["failed"] += 1
                 continue
@@ -97,12 +98,12 @@ class ExecuteOutboundActions:
         )
 
     async def _mark_send_failure(
-        self, action: QueuedOutboundAction, exc: Exception
+        self, action: QueuedOutboundAction, exc: ChatwootApiError
     ) -> None:
         attempt_count = action.attempt_count + 1
         status = self._failure_status(exc, attempt_count)
         next_attempt_at = self._next_attempt_at(status)
-        failure_reason = exc.__class__.__name__
+        failure_reason = exc.code
         await self.repo.mark_outbound_action(
             action_id=action.id,
             status=status,
@@ -142,9 +143,9 @@ class ExecuteOutboundActions:
         )
 
     def _failure_status(
-        self, exc: Exception, attempt_count: int
+        self, exc: ChatwootApiError, attempt_count: int
     ) -> OutboundActionStatus:
-        if _retryable(exc) and attempt_count < self.settings.outbound_max_attempts:
+        if exc.retryable and attempt_count < self.settings.outbound_max_attempts:
             return OutboundActionStatus.retryable_failure
         return OutboundActionStatus.permanent_failure
 
@@ -187,7 +188,7 @@ class ExecuteOutboundActions:
                 conversation_id=action.conversation_id,
                 status=target_status,
             )
-        except Exception as exc:
+        except ChatwootApiError as exc:
             log_event(
                 logger,
                 "outbound_status_update_failed",
@@ -198,9 +199,9 @@ class ExecuteOutboundActions:
                 conversation_id=action.conversation_id,
                 action_kind=action.action_kind.value,
                 target_status=target_status,
-                failure_reason=exc.__class__.__name__,
+                failure_reason=exc.code,
             )
-            return f"status_update_failed:{exc.__class__.__name__}"
+            return f"status_update_failed:{exc.code}"
         return None
 
     async def _apply_private_review_label(
@@ -218,7 +219,7 @@ class ExecuteOutboundActions:
                 conversation_id=action.conversation_id,
                 labels=[target_label],
             )
-        except Exception as exc:
+        except ChatwootApiError as exc:
             log_event(
                 logger,
                 "outbound_label_update_failed",
@@ -229,9 +230,9 @@ class ExecuteOutboundActions:
                 conversation_id=action.conversation_id,
                 action_kind=action.action_kind.value,
                 label=target_label,
-                failure_reason=exc.__class__.__name__,
+                failure_reason=exc.code,
             )
-            return f"label_update_failed:{exc.__class__.__name__}"
+            return f"label_update_failed:{exc.code}"
         return None
 
     def _log_action_result(
@@ -334,11 +335,6 @@ class ExecuteOutboundActions:
         if channel_state.assigned_agent_id or channel_state.assigned_team_id:
             return PolicyRule.channel_assigned_to_human
         return None
-
-
-def _retryable(exc: Exception) -> bool:
-    status_code = getattr(getattr(exc, "response", None), "status_code", None)
-    return status_code in {408, 409, 425, 429, 500, 502, 503, 504}
 
 
 def _reason_value(reason: PolicyRule | str) -> str:
