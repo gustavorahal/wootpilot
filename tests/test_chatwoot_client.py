@@ -177,3 +177,27 @@ async def test_chatwoot_client_raises_typed_response_error(caplog) -> None:
     )
     assert log_record.wootpilot_fields["status"] == "failed"
     assert log_record.wootpilot_fields["status_code"] == 503
+
+
+@respx.mock
+async def test_chatwoot_client_rejects_invalid_success_payload() -> None:
+    settings_values: dict[str, Any] = {
+        "chatwoot_base_url": "https://chatwoot.example.test",
+        "chatwoot_account_id": "1",
+        "chatwoot_api_token": "token",
+        "chatwoot_webhook_secret": "secret",
+    }
+    settings = Settings(**settings_values)
+    respx.post(
+        "https://chatwoot.example.test/api/v1/accounts/1/"
+        "conversations/3/messages"
+    ).mock(return_value=Response(200, json={"payload": []}))
+
+    with pytest.raises(ChatwootResponseError) as error:
+        await ChatwootClient(settings).create_message(
+            conversation_id="3",
+            content="Suggested reply",
+            private=True,
+        )
+
+    assert error.value.code == "chatwoot_response_invalid_message_payload"

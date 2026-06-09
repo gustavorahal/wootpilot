@@ -23,6 +23,15 @@ class ExternalServiceError(WootPilotError):
         retryable: bool,
         status_code: int | None = None,
     ) -> None:
+        """Create a controlled external-service failure.
+
+        Args:
+            code: Stable application-facing error code for logging and persistence.
+            operation: Integration operation that failed.
+            retryable: Whether retrying the same operation may succeed.
+            status_code: HTTP status code when the provider returned one.
+        """
+
         super().__init__(code)
         self.code = code
         self.operation = operation
@@ -52,4 +61,3 @@ class ModelProviderTransportError(ModelProviderError):
 
 class ModelProviderResponseError(ModelProviderError):
     """Model provider returned unsupported or invalid structured data."""
-

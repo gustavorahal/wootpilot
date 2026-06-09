@@ -359,15 +359,11 @@ class ChatwootClient:
             )
             response.raise_for_status()
             data = response.json()
-            message = data.get("id") or data.get("payload", {}).get("id")
-            if message in {None, ""}:
-                raise ChatwootResponseError(
-                    "chatwoot_response_missing_message_id",
-                    operation=operation,
-                    retryable=False,
-                    status_code=status_code,
-                )
-            provider_message_id = str(message or "")
+            provider_message_id = _message_id_from_create_response(
+                data,
+                operation=operation,
+                status_code=status_code,
+            )
             self._log_api_call(
                 operation=operation,
                 conversation_id=conversation_id,
@@ -608,6 +604,38 @@ def _conversation_safety_from_response(
         labels=labels,
         custom_attributes=custom_attributes,
     )
+
+
+def _message_id_from_create_response(
+    data: Any,
+    *,
+    operation: str,
+    status_code: int | None,
+) -> str:
+    if not isinstance(data, dict):
+        raise ChatwootResponseError(
+            "chatwoot_response_invalid_message_payload",
+            operation=operation,
+            retryable=False,
+            status_code=status_code,
+        )
+    payload = data.get("payload")
+    if payload is not None and not isinstance(payload, dict):
+        raise ChatwootResponseError(
+            "chatwoot_response_invalid_message_payload",
+            operation=operation,
+            retryable=False,
+            status_code=status_code,
+        )
+    message = data.get("id") or (payload or {}).get("id")
+    if message in {None, ""}:
+        raise ChatwootResponseError(
+            "chatwoot_response_missing_message_id",
+            operation=operation,
+            retryable=False,
+            status_code=status_code,
+        )
+    return str(message)
 
 
 def _chatwoot_error(
