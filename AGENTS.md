@@ -36,11 +36,14 @@ def filter_unknown_users(users: list[str], known_users: set[str]) -> list[str]:
 
 ## Testing Requirements
 
-- Every new feature or bugfix MUST be covered by unit tests.
-- Unit tests live in `tests/unit_tests/` and must not make network calls.
-- Integration tests live in `tests/integration_tests/` and may make network calls.
-- We use pytest as the testing framework; if in doubt, check other existing tests for examples.
-- The testing file structure should mirror the source code structure.
+- New features and bugfixes should include tests unless the change is documentation-only or there is a clear reason tests would not add value.
+- Tests currently live under `tests/`. Keep test files organized by behavior or module, following existing project patterns.
+- Prefer fast, deterministic tests that do not make network calls.
+- Use fakes, fixtures, recorded payloads, or local SQLite databases for external systems and persistence behavior.
+- Do not add live network calls to the default test suite.
+- If a test requires real external services, credentials, or long-running infrastructure, mark it explicitly and keep it out of the default `./scripts/dev-check` path.
+- Use pytest as the testing framework; if in doubt, check other existing tests for examples.
+- The test suite should fail when the behavior under test is broken.
 
 Checklist:
 
@@ -72,6 +75,14 @@ Checklist:
 - Document parameters, return values, and exceptions when doing so adds useful context beyond the type signature.
 - Ensure American English spelling, for example `behavior`, not `behaviour`.
 - Do NOT use Sphinx-style double backtick formatting like ``code``. Use single backticks such as `code` for inline code references in docstrings and comments.
+
+### Module Public API
+
+- Use `__all__` in modules that are intended to expose a stable import surface, especially boundary modules used across layers.
+- Do not add `__all__` mechanically to every file. Prefer it where it clarifies what other modules should import.
+- If a package `__init__.py` re-exports the intended public API, leaf modules do not also need `__all__` unless they are themselves a documented import target.
+- Use leading underscores for module-local helpers, internal DTOs, wiring functions, and implementation details that should not be treated as supported API.
+- Tests may import underscored names when intentionally exercising implementation details, but prefer public behavior tests when practical.
 
 ```python
 def send_email(to: str, msg: str, *, priority: str = "normal") -> bool:
