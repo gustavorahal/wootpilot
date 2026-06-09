@@ -34,6 +34,15 @@ from wootpilot.time import IdGenerator
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "ChannelSafetyState",
+    "ChatwootClient",
+    "event_type",
+    "provider_event_id",
+    "translate_channel_event",
+    "translate_message",
+]
+
 
 class ChannelSafetyState(BaseModel):
     """Fresh channel state used by final public-send policy checks."""

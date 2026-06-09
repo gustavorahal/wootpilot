@@ -39,6 +39,8 @@ from wootpilot.workflow.graph import build_support_graph
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["RunCustomerSupportWorkflow"]
+
 
 class RunCustomerSupportWorkflow:
     """Run WootPilot's customer-support decision workflow for one message.

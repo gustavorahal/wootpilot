@@ -9,6 +9,8 @@ from pathlib import Path
 from wootpilot.domain.models import CheckpointerProfile
 from wootpilot.settings import Settings
 
+__all__ = ["CheckpointerConfigurationError", "checkpointer_from_settings"]
+
 
 class CheckpointerConfigurationError(RuntimeError):
     """Raised when the configured checkpoint backend cannot be created."""

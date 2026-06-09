@@ -21,9 +21,11 @@ from wootpilot.time import Clock
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["app", "chatwoot_webhook", "health"]
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Initialize process-wide dependencies before serving requests.
 
     The app keeps database setup explicit here so request handlers can receive
@@ -40,16 +42,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(title="WootPilot", lifespan=lifespan)
+app = FastAPI(title="WootPilot", lifespan=_lifespan)
 
 
-def settings_dependency() -> Settings:
+def _settings_dependency() -> Settings:
     """Return cached runtime settings for FastAPI dependency injection."""
 
     return get_settings()
 
 
-async def session_dependency(request: Request) -> AsyncIterator[AsyncSession]:
+async def _session_dependency(request: Request) -> AsyncIterator[AsyncSession]:
     """Yield one transactional database session per request.
 
     The broad exception guard is intentionally limited to rollback cleanup and
@@ -71,7 +73,7 @@ async def session_dependency(request: Request) -> AsyncIterator[AsyncSession]:
 
 @app.get("/health")
 async def health(
-    settings: Annotated[Settings, Depends(settings_dependency)],
+    settings: Annotated[Settings, Depends(_settings_dependency)],
 ) -> dict[str, str]:
     """Return a small readiness payload for local tunnels and process checks."""
 
@@ -81,8 +83,8 @@ async def health(
 @app.post("/webhooks/chatwoot")
 async def chatwoot_webhook(
     request: Request,
-    settings: Annotated[Settings, Depends(settings_dependency)],
-    session: Annotated[AsyncSession, Depends(session_dependency)],
+    settings: Annotated[Settings, Depends(_settings_dependency)],
+    session: Annotated[AsyncSession, Depends(_session_dependency)],
 ) -> HandleWebhookResult:
     """Authenticate and ingest one Chatwoot webhook delivery.
 

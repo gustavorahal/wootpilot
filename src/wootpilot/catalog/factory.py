@@ -12,6 +12,12 @@ from wootpilot.domain.models import (
 from wootpilot.domain.ports import ProductCatalogConnector
 from wootpilot.settings import Settings
 
+__all__ = [
+    "CatalogConnectorRegistry",
+    "catalog_connector_from_settings",
+    "default_catalog_installation_from_settings",
+]
+
 
 class CatalogConnectorRegistry:
     """Selects configured catalog adapters by explicit installation capability."""

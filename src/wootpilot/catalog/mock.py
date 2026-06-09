@@ -16,6 +16,8 @@ from wootpilot.domain.models import (
     StructuredCatalogContext,
 )
 
+__all__ = ["MockCatalog"]
+
 
 class MockCatalog:
     """Searches the committed WooCommerce Store API fixture without network access."""

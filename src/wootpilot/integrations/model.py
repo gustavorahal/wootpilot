@@ -24,6 +24,13 @@ from wootpilot.domain.models import (
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.settings import Settings
 
+__all__ = [
+    "FakeModelProposalPort",
+    "OpenRouterModelProposalPort",
+    "catalog_products_for_prompt",
+    "model_port_from_settings",
+]
+
 
 class FakeModelProposalPort(ModelProposalPort):
     """Deterministic adapter used by default CI and local observe smoke tests."""
@@ -65,7 +72,7 @@ class FakeModelProposalPort(ModelProposalPort):
         )
 
 
-class AgentProposalSchema(BaseModel):
+class _AgentProposalSchema(BaseModel):
     """Provider-facing structured output schema validated before domain mapping."""
 
     action_kind: AgentActionKind
@@ -157,7 +164,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         *,
         message: NormalizedMessage,
         catalog_context: StructuredCatalogContext,
-    ) -> tuple[AgentProposalSchema, dict[str, Any], str]:
+    ) -> tuple[_AgentProposalSchema, dict[str, Any], str]:
         last_error: ModelProviderError | None = None
         for method in ("json_schema", "function_calling"):
             try:
@@ -168,7 +175,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
                     max_tokens=800,
                 )
                 structured = model.with_structured_output(
-                    AgentProposalSchema,
+                    _AgentProposalSchema,
                     method=method,
                     include_raw=True,
                 )
@@ -189,8 +196,8 @@ class OpenRouterModelProposalPort(ModelProposalPort):
                     )
                 raw = result.get("raw") if isinstance(result, dict) else None
                 metadata = self._raw_metadata(raw)
-                if not isinstance(parsed, AgentProposalSchema):
-                    parsed = AgentProposalSchema.model_validate(parsed)
+                if not isinstance(parsed, _AgentProposalSchema):
+                    parsed = _AgentProposalSchema.model_validate(parsed)
                 return parsed, metadata, method
             except (
                 TimeoutError,

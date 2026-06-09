@@ -30,6 +30,13 @@ from wootpilot.observability import log_event
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "CatalogContextError",
+    "StoreApiCatalog",
+    "store_api_category_to_snapshot",
+    "store_api_product_to_snapshot",
+]
+
 
 class CatalogContextError(ExternalServiceError):
     """Controlled failure raised when a catalog connector cannot load context."""

@@ -10,6 +10,8 @@ from fastapi import HTTPException
 
 from wootpilot.settings import Settings
 
+__all__ = ["verify_chatwoot_signature"]
+
 
 def verify_chatwoot_signature(
     *,

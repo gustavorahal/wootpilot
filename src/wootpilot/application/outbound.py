@@ -27,6 +27,8 @@ from wootpilot.time import Clock
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["ExecuteOutboundActions"]
+
 
 class ExecuteOutboundActions:
     """Sends queued actions idempotently after final deterministic checks."""

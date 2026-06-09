@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
+__all__ = ["Clock", "IdGenerator"]
+
 
 class Clock:
     """Clock port for injecting deterministic time in tests."""

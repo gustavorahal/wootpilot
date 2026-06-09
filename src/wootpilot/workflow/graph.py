@@ -31,6 +31,14 @@ from wootpilot.domain.models import (
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.time import Clock, IdGenerator
 
+__all__ = [
+    "WORKFLOW_BRANCH_DESCRIPTIONS",
+    "WORKFLOW_NODE_DESCRIPTIONS",
+    "WorkflowBranch",
+    "WorkflowState",
+    "build_support_graph",
+]
+
 WORKFLOW_NODE_DESCRIPTIONS: dict[str, str] = {}
 """Human-readable node descriptions populated from graph node docstrings."""
 

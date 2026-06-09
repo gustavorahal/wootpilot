@@ -12,6 +12,8 @@ from wootpilot.evals.golden import load_golden_cases, run_golden_case
 from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.settings import Settings, get_settings
 
+__all__ = ["main"]
+
 
 def main() -> None:
     """Run local operational commands for database, catalog, and workflow checks."""

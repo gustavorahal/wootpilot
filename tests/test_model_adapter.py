@@ -18,15 +18,15 @@ from wootpilot.domain.models import (
     StructuredCatalogContext,
 )
 from wootpilot.integrations.model import (
-    AgentProposalSchema,
     OpenRouterModelProposalPort,
+    _AgentProposalSchema,
 )
 from wootpilot.settings import Settings
 
 
 def test_agent_proposal_schema_rejects_malformed_model_output() -> None:
     with pytest.raises(ValidationError):
-        AgentProposalSchema.model_validate(
+        _AgentProposalSchema.model_validate(
             {
                 "action_kind": "public_message",
                 "summary": "Invalid confidence",
@@ -150,7 +150,7 @@ class SuccessfulChatOpenRouter:
         self.kwargs = kwargs
 
     def with_structured_output(self, schema, *, method: str, include_raw: bool):
-        assert schema is AgentProposalSchema
+        assert schema is _AgentProposalSchema
         assert method == "json_schema"
         assert include_raw is True
         return FakeStructuredRunnable()

@@ -18,6 +18,18 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+__all__ = [
+    "AgentRunRow",
+    "AuditRecordRow",
+    "Base",
+    "ContextSnapshotRow",
+    "ConversationMessageRow",
+    "ConversationStateRow",
+    "OutboundActionRow",
+    "PolicyDecisionRow",
+    "RawEventRow",
+]
+
 
 class Base(DeclarativeBase):
     pass

@@ -34,6 +34,8 @@ from wootpilot.persistence.repositories import Repository, row_to_state
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
 
+__all__ = ["HandleWebhookEvent", "HandleWebhookResult"]
+
 
 class HandleWebhookResult(TypedDict):
     """Typed response shape returned directly by the ASGI route."""

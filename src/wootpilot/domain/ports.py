@@ -14,6 +14,8 @@ from wootpilot.domain.models import (
     StructuredCatalogContext,
 )
 
+__all__ = ["ModelProposalPort", "ProductCatalogConnector"]
+
 
 class ModelProposalPort(Protocol):
     """Produces a structured support proposal from prepared, policy-safe inputs."""

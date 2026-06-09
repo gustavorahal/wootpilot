@@ -41,6 +41,14 @@ from wootpilot.persistence.models import (
     RawEventRow,
 )
 
+__all__ = [
+    "Repository",
+    "queued_outbound_actions_statement",
+    "row_to_message",
+    "row_to_outbound_action",
+    "row_to_state",
+]
+
 
 def row_to_message(row: ConversationMessageRow) -> NormalizedMessage:
     """Translate a stored message row into the typed domain contract."""

@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+__all__ = [
+    "ChatwootApiError",
+    "ChatwootResponseError",
+    "ChatwootTransportError",
+    "ExternalServiceError",
+    "ModelProviderError",
+    "ModelProviderResponseError",
+    "ModelProviderTransportError",
+    "WootPilotError",
+]
+
 
 class WootPilotError(Exception):
     """Base class for expected WootPilot application failures."""

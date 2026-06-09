@@ -1,4 +1,12 @@
-"""Golden conversation evaluation runner for the support workflow."""
+"""Golden conversation evaluation runner for the support workflow.
+
+Golden cases are deterministic workflow regression checks. They exercise the
+LangGraph policy/routing graph with synthetic domain inputs and a fake model
+port, so changes in graph behavior are visible without depending on Chatwoot,
+OpenRouter, the database, or a live catalog connector. This is not an
+end-to-end test harness; it is a compact behavior contract for the workflow's
+final decision.
+"""
 
 from __future__ import annotations
 
@@ -24,8 +32,13 @@ from wootpilot.domain.models import (
 from wootpilot.workflow.graph import build_support_graph
 
 
-class GoldenConversation(BaseModel):
-    """A deterministic, provider-free workflow behavior expectation."""
+class GoldenConversationCase(BaseModel):
+    """Fixture schema for one provider-free workflow expectation.
+
+    A case contains the customer message, conversation state flags, catalog
+    risk signals, and model proposal that should be fed into the graph, plus
+    the final workflow status/action/rules expected from those inputs.
+    """
 
     model_config = ConfigDict(strict=True)
 
@@ -53,10 +66,10 @@ class GoldenConversation(BaseModel):
         return AgentActionKind(value) if isinstance(value, str) else value
 
 
-class StaticProposalPort:
+class _StaticProposalPort:
     """Model port that returns the proposal encoded in a golden fixture."""
 
-    def __init__(self, case: GoldenConversation) -> None:
+    def __init__(self, case: GoldenConversationCase) -> None:
         self.case = case
 
     async def propose(self, **kwargs: object) -> ModelProposalResult:
@@ -75,9 +88,23 @@ class StaticProposalPort:
         )
 
 
-async def run_golden_case(case: GoldenConversation) -> dict[str, Any]:
+async def run_golden_case(case: GoldenConversationCase) -> dict[str, Any]:
+    """Run one golden fixture through the real support workflow graph.
+
+    The graph receives synthetic `NormalizedMessage`, `ConversationState`, and
+    `StructuredCatalogContext` objects so the eval stays focused on policy and
+    routing behavior. `_StaticProposalPort` injects fixture-defined model output
+    instead of calling an LLM provider.
+
+    Args:
+        case: Validated golden conversation fixture.
+
+    Returns:
+        Compact workflow decision data used by the CLI to compare expectations.
+    """
+
     now = datetime.now(UTC)
-    graph = build_support_graph(model_port=StaticProposalPort(case))
+    graph = build_support_graph(model_port=_StaticProposalPort(case))
     result = await graph.ainvoke(
         {
             "normalized_message": NormalizedMessage(
@@ -105,6 +132,9 @@ async def run_golden_case(case: GoldenConversation) -> dict[str, Any]:
             ),
             "catalog_context": StructuredCatalogContext(
                 query=case.message,
+                # Golden fixtures currently exercise catalog policy through
+                # risk signals only; product snapshots can be added later when
+                # price/availability examples need full catalog context.
                 products=[],
                 risk_signals=case.catalog_risk_signals,
             ),
@@ -128,8 +158,20 @@ async def run_golden_case(case: GoldenConversation) -> dict[str, Any]:
     }
 
 
-def load_golden_cases(path: Path) -> list[GoldenConversation]:
+def load_golden_cases(path: Path) -> list[GoldenConversationCase]:
+    """Load and validate golden workflow fixtures from a JSON file.
+
+    Args:
+        path: JSON file containing a list of golden conversation objects.
+
+    Returns:
+        Validated golden cases ready for graph execution.
+
+    Raises:
+        ValueError: If the JSON root is not a list.
+    """
+
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, list):
         raise ValueError("golden conversation fixture must contain a list")
-    return [GoldenConversation.model_validate(item) for item in data]
+    return [GoldenConversationCase.model_validate(item) for item in data]

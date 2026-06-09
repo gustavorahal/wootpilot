@@ -16,6 +16,14 @@ from sqlalchemy.pool import NullPool
 from wootpilot.persistence.models import Base
 from wootpilot.settings import Settings
 
+__all__ = [
+    "init_database",
+    "make_engine",
+    "make_session_factory",
+    "session_scope",
+    "sqlite_pragmas",
+]
+
 
 def make_engine(settings: Settings) -> AsyncEngine:
     """Create an async SQLAlchemy engine with WootPilot runtime defaults.

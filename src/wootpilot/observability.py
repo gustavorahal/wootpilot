@@ -15,6 +15,18 @@ from collections.abc import Mapping
 from enum import Enum
 from typing import Any
 
+__all__ = [
+    "JsonEventFormatter",
+    "configure_logging",
+    "log_event",
+    "outbound_log_fields",
+    "workflow_log_fields",
+    "workflow_trace_complete",
+    "workflow_trace_enabled",
+    "workflow_trace_start",
+    "workflow_trace_update",
+]
+
 RESERVED_LOG_RECORD_KEYS = frozenset(
     {
         "args",
