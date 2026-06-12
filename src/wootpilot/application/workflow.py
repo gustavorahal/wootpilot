@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,79 +68,26 @@ class RunCustomerSupportWorkflow:
         self.proposal_generator = proposal_generator
         self.clock = clock or Clock()
         self.ids = ids or IdGenerator()
-        self.context_loader = WorkflowContextLoader(
-            settings=self.settings,
-            repo=self.repo,
-            clock=self.clock,
-            ids=self.ids,
-        )
-        self.graph_runner = SupportGraphRunner(
-            settings=self.settings,
-            proposal_generator=self.proposal_generator,
-            clock=self.clock,
-            ids=self.ids,
-        )
-        self.recorder = WorkflowRunRecorder(
-            settings=self.settings,
-            repo=self.repo,
-            clock=self.clock,
-            ids=self.ids,
-        )
 
     async def run(
         self, message: NormalizedMessage, state: ConversationState
     ) -> WorkflowDecision:
         """Run one customer turn through context loading, graph, and recording."""
 
-        context = await self.context_loader.load(message)
-        result = await self.graph_runner.run(
+        context = await self._load_catalog_context(message)
+        result = await self._run_graph(
             message=message,
             state=state,
-            context=context.catalog_context,
+            context=context,
         )
-        return await self.recorder.record(
+        return await self._record_result(
             message=message,
             context=context,
             result=result,
         )
 
-
-@dataclass(frozen=True)
-class WorkflowContext:
-    """Prepared context and durable snapshot identity for one workflow turn.
-
-    The graph should receive compact, policy-aware domain context rather than
-    reaching into live connectors. The recorder needs the matching snapshot id so
-    audit rows can explain exactly what the graph saw.
-    """
-
-    catalog_context: CatalogContext
-    snapshot_id: str
-
-
-class WorkflowContextLoader:
-    """Loads external business context and persists the graph-visible snapshot.
-
-    This object owns the pre-graph context boundary. It deliberately converts
-    connector failures into a risk-bearing empty context so the deterministic
-    workflow can fail closed or ask for review without losing auditability.
-    """
-
-    def __init__(
-        self,
-        *,
-        settings: Settings,
-        repo: Repository,
-        clock: Clock,
-        ids: IdGenerator,
-    ) -> None:
-        self.settings = settings
-        self.repo = repo
-        self.clock = clock
-        self.ids = ids
-
-    async def load(self, message: NormalizedMessage) -> WorkflowContext:
-        """Return persisted catalog context for a normalized customer message."""
+    async def _load_catalog_context(self, message: NormalizedMessage) -> CatalogContext:
+        """Load and persist the catalog facts the graph will be allowed to see."""
 
         catalog = catalog_connector_from_settings(self.settings)
         try:
@@ -167,32 +113,9 @@ class WorkflowContextLoader:
             snapshot=context.model_dump(mode="json", exclude={"snapshot_id"}),
             created_at=self.clock.now(),
         )
-        return WorkflowContext(catalog_context=context, snapshot_id=snapshot_id)
+        return context
 
-
-class SupportGraphRunner:
-    """Application boundary for executing the support workflow graph.
-
-    The runner receives already-normalized inputs, builds the initial
-    `WorkflowState`, configures checkpointing/tracing, and returns LangGraph's
-    final merged state. Policy decisions, persistence, and outbound effects stay
-    outside the graph runner so execution remains replayable and easy to audit.
-    """
-
-    def __init__(
-        self,
-        *,
-        settings: Settings,
-        proposal_generator: ModelProposalPort,
-        clock: Clock,
-        ids: IdGenerator,
-    ) -> None:
-        self.settings = settings
-        self.proposal_generator = proposal_generator
-        self.clock = clock
-        self.ids = ids
-
-    async def run(
+    async def _run_graph(
         self,
         *,
         message: NormalizedMessage,
@@ -279,34 +202,11 @@ class SupportGraphRunner:
         )
         return result
 
-
-class WorkflowRunRecorder:
-    """Persists the graph outcome as WootPilot-owned operational records.
-
-    The graph returns a decision and intermediate policy state, but it does not
-    know about database rows or Chatwoot effects. The recorder translates that
-    final state into the audit ledger and outbox so execution remains replayable
-    and inspectable.
-    """
-
-    def __init__(
-        self,
-        *,
-        settings: Settings,
-        repo: Repository,
-        clock: Clock,
-        ids: IdGenerator,
-    ) -> None:
-        self.settings = settings
-        self.repo = repo
-        self.clock = clock
-        self.ids = ids
-
-    async def record(
+    async def _record_result(
         self,
         *,
         message: NormalizedMessage,
-        context: WorkflowContext,
+        context: CatalogContext,
         result: dict[str, Any],
     ) -> WorkflowDecision:
         """Persist a completed graph state and return its final decision."""
@@ -349,7 +249,7 @@ class WorkflowRunRecorder:
                 agent_run_id,
                 message,
                 decision,
-                context.catalog_context,
+                context,
             )
         await self._insert_audit_record(
             agent_run_id=agent_run_id,
@@ -371,7 +271,7 @@ class WorkflowRunRecorder:
         *,
         agent_run_id: str,
         message: NormalizedMessage,
-        context: WorkflowContext,
+        context: CatalogContext,
         decision: WorkflowDecision,
         terminal_policy_id: str | None,
     ) -> None:
@@ -381,7 +281,7 @@ class WorkflowRunRecorder:
             normalized_message_id=message.id,
             agent_run_id=agent_run_id,
             policy_decision_id=terminal_policy_id,
-            context_snapshot_ids=[context.snapshot_id],
+            context_snapshot_ids=[_catalog_snapshot_id(context)],
             event_type=AuditEventType.support_workflow_completed,
             summary=decision.summary,
             details={
@@ -479,3 +379,11 @@ def _workflow_thread_id(message: NormalizedMessage) -> str:
         f"tenant:{message.tenant_id}:channel:{message.channel_id}:"
         f"conversation:{message.conversation_id}:message:{message.message_id}"
     )
+
+
+def _catalog_snapshot_id(context: CatalogContext) -> str:
+    """Return the persisted snapshot id attached before graph execution."""
+
+    if context.snapshot_id is None:
+        raise RuntimeError("catalog context must have a snapshot_id before recording")
+    return context.snapshot_id

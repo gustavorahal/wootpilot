@@ -16,9 +16,9 @@ from langchain_core.runnables.graph_mermaid import draw_mermaid_png
 
 from wootpilot.domain.models import ModelProposalResult
 from wootpilot.time import Clock, IdGenerator
-from wootpilot.workflow.branches import WORKFLOW_BRANCH_DESCRIPTIONS
 from wootpilot.workflow.graph import build_graph
 from wootpilot.workflow.nodes import WorkflowNodes
+from wootpilot.workflow.routes import WORKFLOW_BRANCH_DESCRIPTIONS
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DOCS = ROOT / "docs" / "reference"
@@ -78,7 +78,7 @@ def sync_node_descriptions_for_diagram(
         "should_invoke": nodes.should_invoke,
         "triage_message": nodes.triage_message,
         "policy_gate": nodes.policy_gate,
-        "llm_proposal": nodes.llm_proposal,
+        "generate_proposal": nodes.generate_proposal,
         "validate_outbound_action": nodes.validate_outbound_action,
         "route_final_decision": nodes.route_final_decision,
         "build_observe_decision": nodes.build_observe_decision,

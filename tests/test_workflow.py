@@ -155,7 +155,7 @@ def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
 
     assert "eligible_customer_public_turn" in mermaid
     assert "stop_pre_model_policy_block" in mermaid
-    assert "continue_model_proposed_action" in mermaid
+    assert "continue_proposal_generated" in mermaid
     assert "queue_private_review_note" in mermaid
     assert "route_final_decision" in mermaid
     assert "observe_only" in mermaid

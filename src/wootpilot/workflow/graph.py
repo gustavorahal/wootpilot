@@ -2,14 +2,14 @@
 
 The workflow package is split by reading concern:
 
-- Workflow vocabulary lives in `state.py` and `branches.py`.
+- Workflow state lives in `state.py`.
 - Node behavior lives in `nodes.py`: what each workflow step does.
-- Routing behavior lives in `routing.py`: which path comes next.
+- Route vocabulary and routing behavior live in `routes.py`.
 - Decision construction lives in `decisions.py`: how final outcomes are shaped.
 - Graph assembly lives here in `graph.py`: LangGraph node and edge wiring.
 
 This module intentionally keeps only the assembly layer so the central workflow
-map stays easy to scan before readers jump into state, nodes, routing, or
+map stays easy to scan before readers jump into state, nodes, routes, or
 decision helpers.
 """
 
@@ -19,16 +19,14 @@ from langgraph.graph import END, StateGraph
 
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.time import Clock, IdGenerator
-from wootpilot.workflow.branches import (
+from wootpilot.workflow.nodes import WorkflowNodes
+from wootpilot.workflow.routes import (
     WORKFLOW_BRANCH_DESCRIPTIONS,
     WorkflowBranch,
-)
-from wootpilot.workflow.nodes import WorkflowNodes
-from wootpilot.workflow.routing import (
     route_after_final_decision,
     route_after_invoke,
-    route_after_llm,
     route_after_policy,
+    route_after_proposal,
     route_after_validate,
 )
 from wootpilot.workflow.state import WorkflowState
@@ -39,6 +37,7 @@ __all__ = [
     "WorkflowState",
     "build_graph",
 ]
+
 
 def build_graph(
     *,
@@ -64,7 +63,7 @@ def build_graph(
     graph.add_node("should_invoke", nodes.should_invoke)
     graph.add_node("triage_message", nodes.triage_message)
     graph.add_node("policy_gate", nodes.policy_gate)
-    graph.add_node("llm_proposal", nodes.llm_proposal)
+    graph.add_node("generate_proposal", nodes.generate_proposal)
     graph.add_node("validate_outbound_action", nodes.validate_outbound_action)
     graph.add_node("route_final_decision", nodes.route_final_decision)
     graph.add_node("build_observe_decision", nodes.build_observe_decision)
@@ -90,15 +89,15 @@ def build_graph(
         route_after_policy,
         {
             WorkflowBranch.stop_pre_model_policy_block: END,
-            WorkflowBranch.continue_policy_allows_model: "llm_proposal",
+            WorkflowBranch.continue_policy_allows_model: "generate_proposal",
         },
     )
     graph.add_conditional_edges(
-        "llm_proposal",
-        route_after_llm,
+        "generate_proposal",
+        route_after_proposal,
         {
             WorkflowBranch.stop_model_proposal_failed: END,
-            WorkflowBranch.continue_model_proposed_action: "validate_outbound_action",
+            WorkflowBranch.continue_proposal_generated: "validate_outbound_action",
         },
     )
     graph.add_conditional_edges(

@@ -96,12 +96,12 @@ def test_workflow_trace_update_prints_developer_content(capsys) -> None:
 
     workflow_trace_update(
         enabled=True,
-        node="llm_proposal",
+        node="generate_proposal",
         update={"agent_proposal": Proposal()},
     )
 
     captured = capsys.readouterr()
-    assert "llm_proposal" in captured.err
+    assert "generate_proposal" in captured.err
     assert '"proposal_action": "public_message"' in captured.err
     assert "Customer-visible generated reply" in captured.err
     assert "Internal suggested note" in captured.err

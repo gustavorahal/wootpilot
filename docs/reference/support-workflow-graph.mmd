@@ -8,7 +8,7 @@ graph TD;
 	should_invoke("should_invoke<br/>Checks whether this message should run WootPilot.")
 	triage_message("triage_message<br/>Classifies intent and risk signals from the customer text.")
 	policy_gate("policy_gate<br/>Applies deterministic pre-model conversation policy.")
-	llm_proposal("llm_proposal<br/>Asks the model for a structured support action proposal.")
+	generate_proposal("generate_proposal<br/>Generates a structured support action proposal.")
 	validate_outbound_action("validate_outbound_action<br/>Checks the proposed action before any queueing.")
 	route_final_decision("route_final_decision<br/>Chooses the final non-sending, note, or public action.")
 	build_observe_decision("build_observe_decision<br/>Records a proposal without creating an outbound action.")
@@ -17,10 +17,10 @@ graph TD;
 	build_missing_proposal_failure("build_missing_proposal_failure<br/>Fails defensively if no model proposal exists.")
 	__end__([<p>__end__</p>]):::last
 	__start__ --> should_invoke;
-	llm_proposal -. "stop_model_proposal_failed<br/>Stop because the model/provider did not propose." .-> __end__;
-	llm_proposal -. "continue_model_proposed_action<br/>Continue with the model's proposed action." .-> validate_outbound_action;
+	generate_proposal -. "stop_model_proposal_failed<br/>Stop because the model/provider did not propose." .-> __end__;
+	generate_proposal -. "continue_proposal_generated<br/>Continue with the generated proposal." .-> validate_outbound_action;
 	policy_gate -. "stop_pre_model_policy_block<br/>Stop before model call due to conversation policy." .-> __end__;
-	policy_gate -. "continue_policy_allows_model<br/>Continue because pre-model policy allows it." .-> llm_proposal;
+	policy_gate -. "continue_policy_allows_model<br/>Continue because pre-model policy allows it." .-> generate_proposal;
 	route_final_decision -. "stop_missing_model_proposal<br/>Stop if an approved path somehow lacks a proposal." .-> build_missing_proposal_failure;
 	route_final_decision -. "observe_only<br/>Observe mode records the proposal only." .-> build_observe_decision;
 	route_final_decision -. "queue_assist_private_note<br/>Assist mode and non-public proposals become private notes." .-> build_private_note_action;

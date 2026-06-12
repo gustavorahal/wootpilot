@@ -35,7 +35,7 @@ Current nodes:
 should_invoke
 triage_message
 policy_gate
-llm_proposal
+generate_proposal
 validate_outbound_action
 route_final_decision
 build_observe_decision
@@ -45,7 +45,9 @@ build_missing_proposal_failure
 ```
 
 Conditional route names are descriptive `WorkflowBranch` enum values so the
-generated graph diagram reads as product documentation.
+generated graph diagram reads as product documentation. The branch enum and
+route functions live together in
+[`src/wootpilot/workflow/routes.py`](../../src/wootpilot/workflow/routes.py).
 
 ## Checkpointing
 
@@ -70,8 +72,9 @@ stored in WootPilot tables instead.
 
 ## Streaming
 
-`RunCustomerSupportWorkflow` uses LangGraph streaming for local/public-dev
-workflow visibility when `WORKFLOW_TRACE=true`. It streams both:
+`RunCustomerSupportWorkflow` uses LangGraph streaming directly for
+local/public-dev workflow visibility when `WORKFLOW_TRACE=true`. It streams
+both:
 
 - `updates`, for node-by-node terminal trace output;
 - `values`, to capture the final graph state.

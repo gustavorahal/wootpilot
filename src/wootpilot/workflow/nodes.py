@@ -74,8 +74,8 @@ class WorkflowNodes:
             }
         return {"pre_model_policy_decision": decision}
 
-    async def llm_proposal(self, state: WorkflowState) -> dict:
-        """Asks the model for a structured support action proposal."""
+    async def generate_proposal(self, state: WorkflowState) -> dict:
+        """Generates a structured support action proposal."""
 
         result: ModelProposalResult = await self.proposal_generator.propose(
             message=state["normalized_message"],
