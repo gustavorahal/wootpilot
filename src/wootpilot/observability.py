@@ -10,13 +10,18 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 from collections.abc import Mapping
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from wootpilot.settings import Settings
 
 __all__ = [
     "JsonEventFormatter",
+    "configure_langsmith",
     "configure_logging",
     "log_event",
     "outbound_log_fields",
@@ -92,6 +97,28 @@ def configure_logging(level: str) -> None:
         return
     for handler in root.handlers:
         handler.setFormatter(formatter)
+
+
+def configure_langsmith(settings: Settings) -> None:
+    """Configure LangSmith tracing for LangChain and LangGraph integrations.
+
+    LangSmith reads process environment variables when LangChain/LangGraph runs
+    are invoked. Keeping the mapping here lets WootPilot expose typed settings
+    while still using the standard LangSmith integration path.
+    """
+
+    if not settings.langsmith_tracing:
+        os.environ["LANGSMITH_TRACING"] = "false"
+        return
+    if not settings.langsmith_api_key:
+        raise ValueError("LANGSMITH_API_KEY is required when LANGSMITH_TRACING=true")
+    os.environ["LANGSMITH_TRACING"] = "true"
+    os.environ["LANGSMITH_API_KEY"] = settings.langsmith_api_key
+    os.environ["LANGSMITH_PROJECT"] = settings.langsmith_project
+    if settings.langsmith_endpoint:
+        os.environ["LANGSMITH_ENDPOINT"] = settings.langsmith_endpoint
+    else:
+        os.environ.pop("LANGSMITH_ENDPOINT", None)
 
 
 def log_event(

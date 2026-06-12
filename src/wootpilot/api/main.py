@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from wootpilot.application.security import verify_chatwoot_signature
 from wootpilot.application.webhooks import HandleWebhookEvent, HandleWebhookResult
 from wootpilot.domain.models import Provider, RuntimeEnvironment
-from wootpilot.observability import configure_logging, log_event
+from wootpilot.observability import configure_langsmith, configure_logging, log_event
 from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.settings import Settings, get_settings
 from wootpilot.time import Clock
@@ -37,6 +37,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     settings = get_settings()
     configure_logging(settings.log_level)
+    configure_langsmith(settings)
     if _should_initialize_database_on_startup(settings):
         await init_database(settings)
     app.state.session_factory = make_session_factory(settings)

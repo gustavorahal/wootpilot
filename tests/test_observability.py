@@ -2,14 +2,53 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+
+import pytest
 
 from wootpilot.observability import (
     JsonEventFormatter,
+    configure_langsmith,
     log_event,
     workflow_log_fields,
     workflow_trace_enabled,
     workflow_trace_update,
 )
+from wootpilot.settings import Settings
+
+
+def test_configure_langsmith_disables_tracing(monkeypatch) -> None:
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+
+    configure_langsmith(Settings(langsmith_tracing=False))
+
+    assert os.environ["LANGSMITH_TRACING"] == "false"
+
+
+def test_configure_langsmith_sets_standard_environment(monkeypatch) -> None:
+    monkeypatch.delenv("LANGSMITH_TRACING", raising=False)
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.delenv("LANGSMITH_PROJECT", raising=False)
+    monkeypatch.delenv("LANGSMITH_ENDPOINT", raising=False)
+
+    configure_langsmith(
+        Settings(
+            langsmith_tracing=True,
+            langsmith_api_key="lsv2-test",
+            langsmith_project="wootpilot-tests",
+            langsmith_endpoint="https://langsmith.example.test",
+        )
+    )
+
+    assert os.environ["LANGSMITH_TRACING"] == "true"
+    assert os.environ["LANGSMITH_API_KEY"] == "lsv2-test"
+    assert os.environ["LANGSMITH_PROJECT"] == "wootpilot-tests"
+    assert os.environ["LANGSMITH_ENDPOINT"] == "https://langsmith.example.test"
+
+
+def test_configure_langsmith_requires_api_key() -> None:
+    with pytest.raises(ValueError, match="LANGSMITH_API_KEY"):
+        configure_langsmith(Settings(langsmith_tracing=True, langsmith_api_key=""))
 
 
 def test_workflow_log_fields_flag_high_latency_without_content() -> None:

@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     log_level: str = "info"
     workflow_trace: bool = True
     model_high_latency_ms: int = 10000
+    langsmith_tracing: bool = False
+    langsmith_api_key: str = ""
+    langsmith_project: str = "wootpilot-local"
+    langsmith_endpoint: str = ""
     public_base_url: AnyHttpUrl = "http://localhost:8000"  # type: ignore[assignment]
     webhook_path: str = "/webhooks/chatwoot"
     local_health_url: str = "http://127.0.0.1:8000/health"

@@ -25,6 +25,7 @@ from wootpilot.domain.models import (
 )
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.observability import (
+    configure_langsmith,
     log_event,
     workflow_log_fields,
     workflow_trace_complete,
@@ -64,6 +65,7 @@ class RunCustomerSupportWorkflow:
         ids: IdGenerator | None = None,
     ):
         self.settings = settings
+        configure_langsmith(settings)
         self.repo = Repository(session)
         self.proposal_generator = proposal_generator
         self.clock = clock or Clock()

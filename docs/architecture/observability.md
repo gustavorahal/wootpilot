@@ -39,6 +39,27 @@ Trace output prints graph node progress and pretty JSON payloads. Unlike normal
 logs, this local trace intentionally includes customer messages and model-visible
 text so a developer can debug end-to-end Chatwoot tests from the terminal.
 
+## LangSmith
+
+`LANGSMITH_TRACING=true` enables LangSmith tracing for LangGraph and LangChain
+work. WootPilot maps typed settings into LangSmith's standard environment
+variables during startup:
+
+```text
+LANGSMITH_TRACING
+LANGSMITH_API_KEY
+LANGSMITH_PROJECT
+LANGSMITH_ENDPOINT
+```
+
+`LANGSMITH_API_KEY` is required when tracing is enabled. `LANGSMITH_ENDPOINT` is
+only needed for self-hosted LangSmith.
+
+LangSmith traces are content-rich observability data. They can include customer
+messages, catalog context, prompts, proposed replies, provider metadata, and
+errors. Keep hosted LangSmith disabled unless the deployment is allowed to send
+that data outside the WootPilot environment.
+
 ## Audit Records
 
 Audit records persist product-relevant explanations in the database. They connect

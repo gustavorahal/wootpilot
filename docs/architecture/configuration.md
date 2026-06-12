@@ -60,6 +60,10 @@ belong in infra env-example directories.
 ENV
 LOG_LEVEL
 WORKFLOW_TRACE
+LANGSMITH_TRACING
+LANGSMITH_API_KEY
+LANGSMITH_PROJECT
+LANGSMITH_ENDPOINT
 PUBLIC_BASE_URL
 WEBHOOK_PATH
 
@@ -79,6 +83,12 @@ It is not necessarily the same as the Chatwoot URL.
 trace in `local` and `public_dev` environments, including customer messages and
 model-proposed text. It is ignored in `test` and `production`, where structured
 JSON logs and audit records remain the observability path.
+`LANGSMITH_TRACING=true` enables hosted LangSmith tracing for LangChain and
+LangGraph runs. It requires `LANGSMITH_API_KEY`; `LANGSMITH_PROJECT` selects the
+destination project, and `LANGSMITH_ENDPOINT` is only needed for self-hosted
+LangSmith. Hosted traces may include customer messages, catalog context,
+prompts, model outputs, and provider metadata, so keep this disabled unless the
+deployment is allowed to send that data to LangSmith.
 `RESPONSE_LOCALE` controls the language profile used for model prompts and
 deterministic fake proposals. The default is `pt-BR`, because the first live
 customer target is Brazilian Portuguese. Keep this explicit in deployments so

@@ -9,6 +9,7 @@ from pathlib import Path
 from wootpilot.application.outbound import ExecuteOutboundActions
 from wootpilot.catalog.factory import catalog_connector_from_settings
 from wootpilot.evals.golden import load_golden_cases, run_golden_case
+from wootpilot.observability import configure_langsmith
 from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.settings import Settings, get_settings
 
@@ -32,6 +33,7 @@ def main() -> None:
     search.add_argument("query")
     args = parser.parse_args()
     settings = get_settings()
+    configure_langsmith(settings)
     if args.command == "init-db":
         asyncio.run(init_database(settings))
         print("database initialized")
