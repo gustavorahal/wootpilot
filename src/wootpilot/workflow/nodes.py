@@ -33,7 +33,7 @@ __all__ = ["WorkflowNodes"]
 class WorkflowNodes:
     """Executable node collection for one compiled support workflow graph."""
 
-    model_port: ModelProposalPort
+    proposal_generator: ModelProposalPort
     clock: Clock
     ids: IdGenerator
 
@@ -77,7 +77,7 @@ class WorkflowNodes:
     async def llm_proposal(self, state: WorkflowState) -> dict:
         """Asks the model for a structured support action proposal."""
 
-        result: ModelProposalResult = await self.model_port.propose(
+        result: ModelProposalResult = await self.proposal_generator.propose(
             message=state["normalized_message"],
             conversation_state=state["conversation_state"],
             catalog_context=state["catalog_context"],

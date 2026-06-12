@@ -60,13 +60,13 @@ class RunCustomerSupportWorkflow:
         *,
         settings: Settings,
         session: AsyncSession,
-        model_port: ModelProposalPort,
+        proposal_generator: ModelProposalPort,
         clock: Clock | None = None,
         ids: IdGenerator | None = None,
     ):
         self.settings = settings
         self.repo = Repository(session)
-        self.model_port = model_port
+        self.proposal_generator = proposal_generator
         self.clock = clock or Clock()
         self.ids = ids or IdGenerator()
         self.context_loader = WorkflowContextLoader(
@@ -77,7 +77,7 @@ class RunCustomerSupportWorkflow:
         )
         self.graph_runner = SupportGraphRunner(
             settings=self.settings,
-            model_port=self.model_port,
+            proposal_generator=self.proposal_generator,
             clock=self.clock,
             ids=self.ids,
         )
@@ -171,23 +171,24 @@ class WorkflowContextLoader:
 
 
 class SupportGraphRunner:
-    """Builds and invokes the LangGraph support workflow for prepared inputs.
+    """Application boundary for executing the support workflow graph.
 
-    LangGraph checkpointing and local tracing are runtime concerns, not policy or
-    persistence concerns. Keeping them here lets the application use case read as
-    a product flow while preserving the graph execution details in one place.
+    The runner receives already-normalized inputs, builds the initial
+    `WorkflowState`, configures checkpointing/tracing, and returns LangGraph's
+    final merged state. Policy decisions, persistence, and outbound effects stay
+    outside the graph runner so execution remains replayable and easy to audit.
     """
 
     def __init__(
         self,
         *,
         settings: Settings,
-        model_port: ModelProposalPort,
+        proposal_generator: ModelProposalPort,
         clock: Clock,
         ids: IdGenerator,
     ) -> None:
         self.settings = settings
-        self.model_port = model_port
+        self.proposal_generator = proposal_generator
         self.clock = clock
         self.ids = ids
 
@@ -203,7 +204,7 @@ class SupportGraphRunner:
         thread_id = _workflow_thread_id(message)
         async with checkpointer_from_settings(self.settings) as checkpointer:
             graph = build_graph(
-                model_port=self.model_port,
+                proposal_generator=self.proposal_generator,
                 clock=self.clock,
                 ids=self.ids,
                 checkpointer=checkpointer,

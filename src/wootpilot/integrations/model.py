@@ -27,18 +27,18 @@ from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.settings import Settings
 
 __all__ = [
-    "FakeModelProposalPort",
+    "FakeProposalGenerator",
     "MODEL_PROMPT_VERSION",
-    "OpenRouterModelProposalPort",
+    "OpenRouterProposalGenerator",
     "catalog_products_for_prompt",
-    "model_port_from_settings",
+    "proposal_generator_from_settings",
     "support_proposal_prompt_messages",
 ]
 
 MODEL_PROMPT_VERSION = "support-proposal-v1"
 
 
-class FakeModelProposalPort(ModelProposalPort):
+class FakeProposalGenerator(ModelProposalPort):
     """Deterministic adapter used by default CI and local observe smoke tests."""
 
     def __init__(self, response_locale: CustomerLocale = CustomerLocale.pt_br) -> None:
@@ -86,8 +86,8 @@ class _AgentProposalSchema(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
 
 
-class OpenRouterModelProposalPort(ModelProposalPort):
-    """LangChain/OpenRouter adapter hidden behind WootPilot's proposal port."""
+class OpenRouterProposalGenerator(ModelProposalPort):
+    """LangChain/OpenRouter adapter that generates structured proposals."""
 
     def __init__(self, settings: Settings) -> None:
         """Store model settings while keeping provider imports lazy."""
@@ -276,12 +276,12 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         )
 
 
-def model_port_from_settings(settings: Settings) -> ModelProposalPort:
-    """Build the configured model proposal adapter."""
+def proposal_generator_from_settings(settings: Settings) -> ModelProposalPort:
+    """Build the configured proposal generator."""
 
     if settings.model_provider is ModelProvider.openrouter:
-        return OpenRouterModelProposalPort(settings)
-    return FakeModelProposalPort(settings.response_locale)
+        return OpenRouterProposalGenerator(settings)
+    return FakeProposalGenerator(settings.response_locale)
 
 
 def support_proposal_prompt_messages(

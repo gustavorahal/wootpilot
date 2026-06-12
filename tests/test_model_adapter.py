@@ -19,7 +19,7 @@ from wootpilot.domain.models import (
 )
 from wootpilot.integrations.model import (
     MODEL_PROMPT_VERSION,
-    OpenRouterModelProposalPort,
+    OpenRouterProposalGenerator,
     _AgentProposalSchema,
 )
 from wootpilot.settings import Settings
@@ -40,7 +40,7 @@ async def test_openrouter_adapter_maps_structured_response_and_metadata(
     monkeypatch,
 ) -> None:
     _install_fake_langchain_openrouter(monkeypatch, SuccessfulChatOpenRouter)
-    port = OpenRouterModelProposalPort(_openrouter_settings())
+    port = OpenRouterProposalGenerator(_openrouter_settings())
 
     result = await port.propose(
         message=_message(),
@@ -70,7 +70,7 @@ async def test_openrouter_adapter_maps_structured_response_and_metadata(
 async def test_openrouter_adapter_falls_back_to_function_calling(monkeypatch) -> None:
     FallbackChatOpenRouter.calls = []
     _install_fake_langchain_openrouter(monkeypatch, FallbackChatOpenRouter)
-    port = OpenRouterModelProposalPort(_openrouter_settings())
+    port = OpenRouterProposalGenerator(_openrouter_settings())
 
     result = await port.propose(
         message=_message(),
@@ -85,7 +85,7 @@ async def test_openrouter_adapter_falls_back_to_function_calling(monkeypatch) ->
 
 async def test_openrouter_adapter_classifies_retryable_errors(monkeypatch) -> None:
     _install_fake_langchain_openrouter(monkeypatch, TimeoutChatOpenRouter)
-    port = OpenRouterModelProposalPort(_openrouter_settings())
+    port = OpenRouterProposalGenerator(_openrouter_settings())
 
     result = await port.propose(
         message=_message(),
@@ -102,7 +102,7 @@ async def test_openrouter_adapter_classifies_retryable_errors(monkeypatch) -> No
 
 async def test_openrouter_adapter_classifies_permanent_errors(monkeypatch) -> None:
     _install_fake_langchain_openrouter(monkeypatch, PermanentChatOpenRouter)
-    port = OpenRouterModelProposalPort(_openrouter_settings())
+    port = OpenRouterProposalGenerator(_openrouter_settings())
 
     result = await port.propose(
         message=_message(),
@@ -117,7 +117,7 @@ async def test_openrouter_adapter_classifies_permanent_errors(monkeypatch) -> No
 
 
 async def test_openrouter_adapter_fails_closed_without_api_key() -> None:
-    port = OpenRouterModelProposalPort(Settings(openrouter_api_key=""))
+    port = OpenRouterProposalGenerator(Settings(openrouter_api_key=""))
 
     result = await port.propose(
         message=_message(),
@@ -137,7 +137,7 @@ async def test_openrouter_adapter_does_not_classify_unexpected_errors(
     monkeypatch,
 ) -> None:
     _install_fake_langchain_openrouter(monkeypatch, BuggyChatOpenRouter)
-    port = OpenRouterModelProposalPort(_openrouter_settings())
+    port = OpenRouterProposalGenerator(_openrouter_settings())
 
     with pytest.raises(RuntimeError, match="local adapter bug"):
         await port.propose(

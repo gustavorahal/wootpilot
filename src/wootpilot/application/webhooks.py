@@ -28,7 +28,7 @@ from wootpilot.integrations.chatwoot import (
     translate_channel_event,
     translate_message,
 )
-from wootpilot.integrations.model import model_port_from_settings
+from wootpilot.integrations.model import proposal_generator_from_settings
 from wootpilot.persistence.models import RawEventRow
 from wootpilot.persistence.repositories import Repository, row_to_state
 from wootpilot.settings import Settings
@@ -124,7 +124,7 @@ class HandleWebhookEvent:
         workflow = RunCustomerSupportWorkflow(
             settings=self.settings,
             session=self.session,
-            model_port=model_port_from_settings(self.settings),
+            proposal_generator=proposal_generator_from_settings(self.settings),
             clock=self.clock,
             ids=self.ids,
         )

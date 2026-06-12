@@ -42,7 +42,7 @@ __all__ = [
 
 def build_graph(
     *,
-    model_port: ModelProposalPort,
+    proposal_generator: ModelProposalPort,
     clock: Clock | None = None,
     ids: IdGenerator | None = None,
     checkpointer=None,
@@ -55,7 +55,7 @@ def build_graph(
     """
 
     nodes = WorkflowNodes(
-        model_port=model_port,
+        proposal_generator=proposal_generator,
         clock=clock or Clock(),
         ids=ids or IdGenerator(),
     )

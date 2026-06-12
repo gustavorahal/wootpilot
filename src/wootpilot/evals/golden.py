@@ -2,10 +2,10 @@
 
 Golden cases are deterministic workflow regression checks. They exercise the
 LangGraph policy/routing graph with synthetic domain inputs and a fake model
-port, so changes in graph behavior are visible without depending on Chatwoot,
-OpenRouter, the database, or a live catalog connector. This is not an
-end-to-end test harness; it is a compact behavior contract for the workflow's
-final decision.
+proposal generator, so changes in graph behavior are visible without depending
+on Chatwoot, OpenRouter, the database, or a live catalog connector. This is not
+an end-to-end test harness; it is a compact behavior contract for the
+workflow's final decision.
 """
 
 from __future__ import annotations
@@ -66,8 +66,8 @@ class GoldenConversationCase(BaseModel):
         return AgentActionKind(value) if isinstance(value, str) else value
 
 
-class _StaticProposalPort:
-    """Model port that returns the proposal encoded in a golden fixture."""
+class _StaticProposalGenerator:
+    """Proposal generator that returns the action encoded in a golden fixture."""
 
     def __init__(self, case: GoldenConversationCase) -> None:
         self.case = case
@@ -93,8 +93,8 @@ async def run_golden_case(case: GoldenConversationCase) -> dict[str, Any]:
 
     The graph receives synthetic `NormalizedMessage`, `ConversationState`, and
     `CatalogContext` objects so the eval stays focused on policy and
-    routing behavior. `_StaticProposalPort` injects fixture-defined model output
-    instead of calling an LLM provider.
+    routing behavior. `_StaticProposalGenerator` injects fixture-defined model
+    output instead of calling an LLM provider.
 
     Args:
         case: Validated golden conversation fixture.
@@ -104,7 +104,7 @@ async def run_golden_case(case: GoldenConversationCase) -> dict[str, Any]:
     """
 
     now = datetime.now(UTC)
-    graph = build_graph(model_port=_StaticProposalPort(case))
+    graph = build_graph(proposal_generator=_StaticProposalGenerator(case))
     result = await graph.ainvoke(
         {
             "normalized_message": NormalizedMessage(

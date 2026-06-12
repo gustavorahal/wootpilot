@@ -28,17 +28,17 @@ WORKFLOW_NODE_DESCRIPTIONS: dict[str, str] = {}
 """Node descriptions used only while rendering workflow documentation."""
 
 
-class DiagramModelPort:
-    """Minimal model port for compiling the graph without provider credentials."""
+class DiagramProposalGenerator:
+    """Minimal proposal generator for compiling graph documentation."""
 
     async def propose(self, **kwargs) -> ModelProposalResult:
         raise RuntimeError("Diagram rendering compiles the graph but never invokes it.")
 
 
 def main() -> None:
-    model_port = DiagramModelPort()
-    sync_node_descriptions_for_diagram(model_port)
-    graph = build_graph(model_port=model_port).get_graph()
+    proposal_generator = DiagramProposalGenerator()
+    sync_node_descriptions_for_diagram(proposal_generator)
+    graph = build_graph(proposal_generator=proposal_generator).get_graph()
     mermaid = _annotate_mermaid(graph.draw_mermaid())
     MERMAID_PATH.write_text(mermaid, encoding="utf-8")
     PNG_PATH.write_bytes(
@@ -63,11 +63,13 @@ def _annotate_mermaid(mermaid: str) -> str:
     return annotated + "\n"
 
 
-def sync_node_descriptions_for_diagram(model_port: DiagramModelPort) -> None:
+def sync_node_descriptions_for_diagram(
+    proposal_generator: DiagramProposalGenerator,
+) -> None:
     """Refresh Mermaid node descriptions from workflow node docstrings."""
 
     nodes = WorkflowNodes(
-        model_port=model_port,
+        proposal_generator=proposal_generator,
         clock=Clock(),
         ids=IdGenerator(),
     )
