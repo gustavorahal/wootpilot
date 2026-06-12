@@ -29,7 +29,7 @@ from wootpilot.domain.models import (
     ModelProposalResult,
     NormalizedMessage,
 )
-from wootpilot.workflow.graph import build_support_graph
+from wootpilot.workflow.graph import build_graph
 
 
 class GoldenConversationCase(BaseModel):
@@ -104,7 +104,7 @@ async def run_golden_case(case: GoldenConversationCase) -> dict[str, Any]:
     """
 
     now = datetime.now(UTC)
-    graph = build_support_graph(model_port=_StaticProposalPort(case))
+    graph = build_graph(model_port=_StaticProposalPort(case))
     result = await graph.ainvoke(
         {
             "normalized_message": NormalizedMessage(

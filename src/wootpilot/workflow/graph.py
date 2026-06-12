@@ -23,7 +23,7 @@ from wootpilot.workflow.branches import (
     WORKFLOW_BRANCH_DESCRIPTIONS,
     WorkflowBranch,
 )
-from wootpilot.workflow.nodes import SupportWorkflowNodes
+from wootpilot.workflow.nodes import WorkflowNodes
 from wootpilot.workflow.routing import (
     route_after_final_decision,
     route_after_invoke,
@@ -37,10 +37,10 @@ __all__ = [
     "WORKFLOW_BRANCH_DESCRIPTIONS",
     "WorkflowBranch",
     "WorkflowState",
-    "build_support_graph",
+    "build_graph",
 ]
 
-def build_support_graph(
+def build_graph(
     *,
     model_port: ModelProposalPort,
     clock: Clock | None = None,
@@ -54,7 +54,7 @@ def build_support_graph(
     modules so the central graph topology stays easy to scan.
     """
 
-    nodes = SupportWorkflowNodes(
+    nodes = WorkflowNodes(
         model_port=model_port,
         clock=clock or Clock(),
         ids=ids or IdGenerator(),

@@ -17,8 +17,8 @@ from langchain_core.runnables.graph_mermaid import draw_mermaid_png
 from wootpilot.domain.models import ModelProposalResult
 from wootpilot.time import Clock, IdGenerator
 from wootpilot.workflow.branches import WORKFLOW_BRANCH_DESCRIPTIONS
-from wootpilot.workflow.graph import build_support_graph
-from wootpilot.workflow.nodes import SupportWorkflowNodes
+from wootpilot.workflow.graph import build_graph
+from wootpilot.workflow.nodes import WorkflowNodes
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DOCS = ROOT / "docs" / "reference"
@@ -38,7 +38,7 @@ class DiagramModelPort:
 def main() -> None:
     model_port = DiagramModelPort()
     sync_node_descriptions_for_diagram(model_port)
-    graph = build_support_graph(model_port=model_port).get_graph()
+    graph = build_graph(model_port=model_port).get_graph()
     mermaid = _annotate_mermaid(graph.draw_mermaid())
     MERMAID_PATH.write_text(mermaid, encoding="utf-8")
     PNG_PATH.write_bytes(
@@ -66,7 +66,7 @@ def _annotate_mermaid(mermaid: str) -> str:
 def sync_node_descriptions_for_diagram(model_port: DiagramModelPort) -> None:
     """Refresh Mermaid node descriptions from workflow node docstrings."""
 
-    nodes = SupportWorkflowNodes(
+    nodes = WorkflowNodes(
         model_port=model_port,
         clock=Clock(),
         ids=IdGenerator(),

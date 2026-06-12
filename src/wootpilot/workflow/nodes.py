@@ -26,11 +26,11 @@ from wootpilot.workflow.decisions import (
 )
 from wootpilot.workflow.state import WorkflowState
 
-__all__ = ["SupportWorkflowNodes"]
+__all__ = ["WorkflowNodes"]
 
 
 @dataclass(frozen=True)
-class SupportWorkflowNodes:
+class WorkflowNodes:
     """Executable node collection for one compiled support workflow graph."""
 
     model_port: ModelProposalPort

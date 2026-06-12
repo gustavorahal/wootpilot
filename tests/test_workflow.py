@@ -33,7 +33,7 @@ from wootpilot.persistence.database import init_database, make_session_factory
 from wootpilot.persistence.repositories import Repository, row_to_state
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
-from wootpilot.workflow.graph import build_support_graph
+from wootpilot.workflow.graph import build_graph
 
 
 class PublicProposalPort:
@@ -77,7 +77,7 @@ class HiddenPriceProposalPort:
 
 
 async def test_observe_graph_returns_stable_proposed_decision() -> None:
-    graph = build_support_graph(model_port=FakeModelProposalPort())
+    graph = build_graph(model_port=FakeModelProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {
@@ -111,7 +111,7 @@ async def test_observe_graph_returns_stable_proposed_decision() -> None:
 
 
 async def test_observe_graph_keeps_public_proposal_as_non_sending_proposal() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    graph = build_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {
@@ -149,7 +149,7 @@ def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
     script = runpy.run_path("scripts/render-support-workflow-graph.py")
     model_port = script["DiagramModelPort"]()
     script["sync_node_descriptions_for_diagram"](model_port)
-    graph = build_support_graph(model_port=model_port)
+    graph = build_graph(model_port=model_port)
 
     mermaid = graph.get_graph().draw_mermaid()
 
@@ -168,7 +168,7 @@ def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
 
 
 async def test_public_reply_graph_blocks_assigned_conversations() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    graph = build_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {
@@ -205,7 +205,7 @@ async def test_public_reply_graph_blocks_assigned_conversations() -> None:
 
 
 async def test_public_reply_graph_blocks_resolved_conversations() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    graph = build_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {
@@ -242,7 +242,7 @@ async def test_public_reply_graph_blocks_resolved_conversations() -> None:
 
 
 async def test_public_reply_graph_blocks_portuguese_human_escalation() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    graph = build_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     message = _message(now).model_copy(
         update={"content": "Quero falar com um atendente humano."}
@@ -264,7 +264,7 @@ async def test_public_reply_graph_blocks_portuguese_human_escalation() -> None:
 
 
 async def test_public_reply_graph_routes_portuguese_discount_to_review() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    graph = build_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     message = _message(now).model_copy(
         update={"content": "Tem desconto no pix para esse produto?"}
@@ -287,7 +287,7 @@ async def test_public_reply_graph_routes_portuguese_discount_to_review() -> None
 
 
 async def test_public_reply_allows_exact_mentionable_catalog_price() -> None:
-    graph = build_support_graph(model_port=PriceProposalPort())
+    graph = build_graph(model_port=PriceProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {
@@ -307,7 +307,7 @@ async def test_public_reply_allows_exact_mentionable_catalog_price() -> None:
 
 
 async def test_public_reply_blocks_exact_price_without_mentionable_snapshot() -> None:
-    graph = build_support_graph(model_port=HiddenPriceProposalPort())
+    graph = build_graph(model_port=HiddenPriceProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {
@@ -575,7 +575,7 @@ async def test_sqlite_loaded_human_active_until_blocks_without_naive_datetime_er
 
 
 async def test_assist_mode_ignores_human_active_window_for_private_notes() -> None:
-    graph = build_support_graph(model_port=PublicProposalPort())
+    graph = build_graph(model_port=PublicProposalPort())
     now = datetime.now(UTC)
     result = await graph.ainvoke(
         {

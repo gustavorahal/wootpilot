@@ -37,7 +37,7 @@ from wootpilot.persistence.repositories import Repository
 from wootpilot.settings import Settings
 from wootpilot.time import Clock, IdGenerator
 from wootpilot.workflow.checkpoints import checkpointer_from_settings
-from wootpilot.workflow.graph import build_support_graph
+from wootpilot.workflow.graph import build_graph
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +202,7 @@ class SupportGraphRunner:
 
         thread_id = _workflow_thread_id(message)
         async with checkpointer_from_settings(self.settings) as checkpointer:
-            graph = build_support_graph(
+            graph = build_graph(
                 model_port=self.model_port,
                 clock=self.clock,
                 ids=self.ids,
