@@ -232,6 +232,15 @@ class OpenRouterProposalGenerator(ModelProposalPort):
                 )
                 if method == "function_calling":
                     raise last_error from exc
+            except Exception as exc:
+                if not _is_provider_api_exception(exc):
+                    raise
+                last_error = _model_provider_error(
+                    exc,
+                    operation=f"openrouter_structured_output.{method}",
+                )
+                if method == "function_calling":
+                    raise last_error from exc
         raise last_error or RuntimeError("structured OpenRouter invocation failed")
 
     def _raw_metadata(self, raw: Any) -> dict[str, Any]:
@@ -439,7 +448,8 @@ def _model_provider_error(
     | ConnectionError
     | ValueError
     | ValidationError
-    | ModelProviderError,
+    | ModelProviderError
+    | Exception,
     *,
     operation: str,
 ) -> ModelProviderError:
@@ -455,4 +465,17 @@ def _model_provider_error(
         exc.__class__.__name__,
         operation=operation,
         retryable=False,
+    )
+
+
+def _is_provider_api_exception(exc: Exception) -> bool:
+    """Return whether an exception came from the model provider stack."""
+
+    module = exc.__class__.__module__
+    return (
+        module.startswith("openrouter")
+        or module.startswith("httpx")
+        or module.startswith("httpcore")
+        or module.startswith("langchain")
+        or module.startswith("langchain_core")
     )

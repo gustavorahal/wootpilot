@@ -116,6 +116,24 @@ async def test_openrouter_adapter_classifies_permanent_errors(monkeypatch) -> No
     assert result.metadata["error_type"] == "ValueError"
 
 
+async def test_openrouter_adapter_classifies_provider_response_errors(
+    monkeypatch,
+) -> None:
+    _install_fake_langchain_openrouter(monkeypatch, ProviderErrorChatOpenRouter)
+    port = OpenRouterProposalGenerator(_openrouter_settings())
+
+    result = await port.propose(
+        message=_message(),
+        conversation_state=_state(),
+        catalog_context=CatalogContext(query="aircooled"),
+    )
+
+    assert result.proposal is None
+    assert result.retryable_error is None
+    assert result.permanent_error == "BadRequestResponseError"
+    assert result.metadata["error_type"] == "BadRequestResponseError"
+
+
 async def test_openrouter_adapter_fails_closed_without_api_key() -> None:
     port = OpenRouterProposalGenerator(Settings(openrouter_api_key=""))
 
@@ -186,6 +204,25 @@ class BuggyChatOpenRouter:
     def __init__(self, **kwargs) -> None:
         del kwargs
         raise RuntimeError("local adapter bug")
+
+
+class ProviderErrorChatOpenRouter:
+    def __init__(self, **kwargs) -> None:
+        self.kwargs = kwargs
+
+    def with_structured_output(self, schema, *, method: str, include_raw: bool):
+        del schema, method, include_raw
+        return ProviderErrorRunnable()
+
+
+class BadRequestResponseError(Exception):
+    __module__ = "openrouter.errors.badrequestresponse_error"
+
+
+class ProviderErrorRunnable:
+    async def ainvoke(self, messages):
+        del messages
+        raise BadRequestResponseError("Provider returned error")
 
 
 class FakeStructuredRunnable:
