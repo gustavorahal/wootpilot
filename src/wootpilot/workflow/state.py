@@ -7,10 +7,10 @@ from typing import Annotated, NotRequired, TypedDict
 from wootpilot.domain.models import (
     AgentProposal,
     AutomationMode,
+    CatalogContext,
     ConversationState,
     NormalizedMessage,
     PolicyDecision,
-    StructuredCatalogContext,
     TriageResult,
     WorkflowDecision,
 )
@@ -39,7 +39,7 @@ class WorkflowState(TypedDict):
         "Current replyability, assignment, pause, and human-activity state.",
     ]
     catalog_context: Annotated[
-        StructuredCatalogContext,
+        CatalogContext,
         "Product and catalog context loaded before model proposal.",
     ]
     automation_mode: Annotated[

@@ -12,6 +12,7 @@ from wootpilot.domain.models import (
     AgentProposal,
     AutomationMode,
     AvailabilitySnapshot,
+    CatalogContext,
     CheckpointerProfile,
     ConversationState,
     ConversationStatus,
@@ -26,7 +27,6 @@ from wootpilot.domain.models import (
     Provider,
     RawEventStatus,
     RuntimeEnvironment,
-    StructuredCatalogContext,
 )
 from wootpilot.integrations.model import FakeModelProposalPort
 from wootpilot.persistence.database import init_database, make_session_factory
@@ -102,7 +102,7 @@ async def test_observe_graph_returns_stable_proposed_decision() -> None:
                 replyable=True,
                 updated_at=now,
             ),
-            "catalog_context": StructuredCatalogContext(query="TBI"),
+            "catalog_context": CatalogContext(query="TBI"),
             "automation_mode": AutomationMode.observe,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
@@ -136,7 +136,7 @@ async def test_observe_graph_keeps_public_proposal_as_non_sending_proposal() -> 
                 replyable=True,
                 updated_at=now,
             ),
-            "catalog_context": StructuredCatalogContext(query="TBI"),
+            "catalog_context": CatalogContext(query="TBI"),
             "automation_mode": AutomationMode.observe,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
@@ -194,7 +194,7 @@ async def test_public_reply_graph_blocks_assigned_conversations() -> None:
                 replyable=True,
                 updated_at=now,
             ),
-            "catalog_context": StructuredCatalogContext(query="TBI"),
+            "catalog_context": CatalogContext(query="TBI"),
             "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
@@ -231,7 +231,7 @@ async def test_public_reply_graph_blocks_resolved_conversations() -> None:
                 replyable=True,
                 updated_at=now,
             ),
-            "catalog_context": StructuredCatalogContext(query="TBI"),
+            "catalog_context": CatalogContext(query="TBI"),
             "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
@@ -252,7 +252,7 @@ async def test_public_reply_graph_blocks_portuguese_human_escalation() -> None:
         {
             "normalized_message": message,
             "conversation_state": _state(now),
-            "catalog_context": StructuredCatalogContext(query=message.content),
+            "catalog_context": CatalogContext(query=message.content),
             "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
@@ -274,7 +274,7 @@ async def test_public_reply_graph_routes_portuguese_discount_to_review() -> None
         {
             "normalized_message": message,
             "conversation_state": _state(now),
-            "catalog_context": StructuredCatalogContext(query=message.content),
+            "catalog_context": CatalogContext(query=message.content),
             "automation_mode": AutomationMode.public_reply,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},
@@ -293,7 +293,7 @@ async def test_public_reply_allows_exact_mentionable_catalog_price() -> None:
         {
             "normalized_message": _message(now),
             "conversation_state": _state(now),
-            "catalog_context": StructuredCatalogContext(
+            "catalog_context": CatalogContext(
                 query="aircooled harness",
                 products=[_product(can_mention_price=True)],
             ),
@@ -313,7 +313,7 @@ async def test_public_reply_blocks_exact_price_without_mentionable_snapshot() ->
         {
             "normalized_message": _message(now),
             "conversation_state": _state(now),
-            "catalog_context": StructuredCatalogContext(
+            "catalog_context": CatalogContext(
                 query="hidden price product",
                 products=[_product(can_mention_price=False)],
             ),
@@ -583,7 +583,7 @@ async def test_assist_mode_ignores_human_active_window_for_private_notes() -> No
             "conversation_state": _state(now).model_copy(
                 update={"human_active_until": now + timedelta(minutes=15)}
             ),
-            "catalog_context": StructuredCatalogContext(query="TBI"),
+            "catalog_context": CatalogContext(query="TBI"),
             "automation_mode": AutomationMode.assist,
         },
         config={"configurable": {"thread_id": "tenant:t1:channel:c1:conversation:v1"}},

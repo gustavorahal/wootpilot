@@ -159,7 +159,7 @@ class ProductSearchQuery(BaseModel):
     fitment_hints: list[str] = Field(default_factory=list)
 
 
-class StructuredCatalogContext(BaseModel):
+class CatalogContext(BaseModel):
     """Catalog context attached to one workflow run.
 
     The `snapshot_id` points at the persisted copy used by audit records. Model

@@ -8,12 +8,12 @@ from typing import Any
 
 from wootpilot.domain.models import (
     AvailabilitySnapshot,
+    CatalogContext,
     Money,
     PriceSnapshot,
     ProductCategory,
     ProductSearchQuery,
     ProductSnapshot,
-    StructuredCatalogContext,
 )
 from wootpilot.text import searchable_text
 
@@ -30,7 +30,7 @@ class MockCatalog:
         self.data = json.loads(path.read_text(encoding="utf-8"))
         self.products: list[dict[str, Any]] = list(self.data.get("products", []))
 
-    async def search(self, query: str, limit: int = 5) -> StructuredCatalogContext:
+    async def search(self, query: str, limit: int = 5) -> CatalogContext:
         """Return fixture-backed catalog context for a free-text query."""
 
         return self.search_sync(query=query, limit=limit)
@@ -67,12 +67,12 @@ class MockCatalog:
                 categories[category.category_id] = category
         return sorted(categories.values(), key=lambda item: item.name.casefold())
 
-    def search_sync(self, query: str, limit: int = 5) -> StructuredCatalogContext:
+    def search_sync(self, query: str, limit: int = 5) -> CatalogContext:
         """Synchronous search helper used by tests and the async adapter method."""
 
         products = self._search_products(ProductSearchQuery(query=query, limit=limit))
         risks = ["catalog.no_match"] if not products and query.strip() else []
-        return StructuredCatalogContext(
+        return CatalogContext(
             query=query, products=products, risk_signals=risks
         )
 

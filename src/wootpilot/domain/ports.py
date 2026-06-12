@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import Protocol
 
 from wootpilot.domain.models import (
+    CatalogContext,
     ConversationState,
     ModelProposalResult,
     NormalizedMessage,
     ProductCategory,
     ProductSearchQuery,
     ProductSnapshot,
-    StructuredCatalogContext,
 )
 
 __all__ = ["ModelProposalPort", "ProductCatalogConnector"]
@@ -25,7 +25,7 @@ class ModelProposalPort(Protocol):
         *,
         message: NormalizedMessage,
         conversation_state: ConversationState,
-        catalog_context: StructuredCatalogContext,
+        catalog_context: CatalogContext,
     ) -> ModelProposalResult:
         """Return a proposal result without performing customer-visible effects."""
         ...
@@ -34,7 +34,7 @@ class ModelProposalPort(Protocol):
 class ProductCatalogConnector(Protocol):
     """Read-only product catalog capability used to build agent context."""
 
-    async def search(self, query: str, limit: int = 5) -> StructuredCatalogContext:
+    async def search(self, query: str, limit: int = 5) -> CatalogContext:
         """Return lightweight catalog context for free-text customer messages."""
         ...
 

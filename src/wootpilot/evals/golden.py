@@ -21,13 +21,13 @@ from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
     AutomationMode,
+    CatalogContext,
     ConversationState,
     MessageAuthorType,
     MessageDirection,
     MessageVisibility,
     ModelProposalResult,
     NormalizedMessage,
-    StructuredCatalogContext,
 )
 from wootpilot.workflow.graph import build_support_graph
 
@@ -92,7 +92,7 @@ async def run_golden_case(case: GoldenConversationCase) -> dict[str, Any]:
     """Run one golden fixture through the real support workflow graph.
 
     The graph receives synthetic `NormalizedMessage`, `ConversationState`, and
-    `StructuredCatalogContext` objects so the eval stays focused on policy and
+    `CatalogContext` objects so the eval stays focused on policy and
     routing behavior. `_StaticProposalPort` injects fixture-defined model output
     instead of calling an LLM provider.
 
@@ -130,7 +130,7 @@ async def run_golden_case(case: GoldenConversationCase) -> dict[str, Any]:
                 human_active_until=now if case.state.get("human_active") else None,
                 updated_at=now,
             ),
-            "catalog_context": StructuredCatalogContext(
+            "catalog_context": CatalogContext(
                 query=case.message,
                 # Golden fixtures currently exercise catalog policy through
                 # risk signals only; product snapshots can be added later when

@@ -10,12 +10,12 @@ from pydantic import ValidationError
 
 from wootpilot.domain.models import (
     AgentActionKind,
+    CatalogContext,
     ConversationState,
     MessageAuthorType,
     MessageDirection,
     MessageVisibility,
     NormalizedMessage,
-    StructuredCatalogContext,
 )
 from wootpilot.integrations.model import (
     MODEL_PROMPT_VERSION,
@@ -45,7 +45,7 @@ async def test_openrouter_adapter_maps_structured_response_and_metadata(
     result = await port.propose(
         message=_message(),
         conversation_state=_state(),
-        catalog_context=StructuredCatalogContext(
+        catalog_context=CatalogContext(
             query="aircooled",
             snapshot_id="snapshot-1",
         ),
@@ -75,7 +75,7 @@ async def test_openrouter_adapter_falls_back_to_function_calling(monkeypatch) ->
     result = await port.propose(
         message=_message(),
         conversation_state=_state(),
-        catalog_context=StructuredCatalogContext(query="aircooled"),
+        catalog_context=CatalogContext(query="aircooled"),
     )
 
     assert result.proposal is not None
@@ -90,7 +90,7 @@ async def test_openrouter_adapter_classifies_retryable_errors(monkeypatch) -> No
     result = await port.propose(
         message=_message(),
         conversation_state=_state(),
-        catalog_context=StructuredCatalogContext(query="aircooled"),
+        catalog_context=CatalogContext(query="aircooled"),
     )
 
     assert result.proposal is None
@@ -107,7 +107,7 @@ async def test_openrouter_adapter_classifies_permanent_errors(monkeypatch) -> No
     result = await port.propose(
         message=_message(),
         conversation_state=_state(),
-        catalog_context=StructuredCatalogContext(query="aircooled"),
+        catalog_context=CatalogContext(query="aircooled"),
     )
 
     assert result.proposal is None
@@ -122,7 +122,7 @@ async def test_openrouter_adapter_fails_closed_without_api_key() -> None:
     result = await port.propose(
         message=_message(),
         conversation_state=_state(),
-        catalog_context=StructuredCatalogContext(query="aircooled"),
+        catalog_context=CatalogContext(query="aircooled"),
     )
 
     assert result.proposal is None
@@ -143,7 +143,7 @@ async def test_openrouter_adapter_does_not_classify_unexpected_errors(
         await port.propose(
             message=_message(),
             conversation_state=_state(),
-            catalog_context=StructuredCatalogContext(query="aircooled"),
+            catalog_context=CatalogContext(query="aircooled"),
         )
 
 

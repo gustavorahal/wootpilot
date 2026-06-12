@@ -15,12 +15,12 @@ from wootpilot.application.policy import (
 from wootpilot.domain.models import (
     AgentActionKind,
     AutomationMode,
+    CatalogContext,
     ConversationState,
     ConversationStatus,
     OutboundActionStatus,
     PolicyRule,
     QueuedOutboundAction,
-    StructuredCatalogContext,
 )
 from wootpilot.integrations.chatwoot import ChannelSafetyState, ChatwootClient
 from wootpilot.observability import log_event, outbound_log_fields
@@ -366,9 +366,9 @@ def _public_price_rule_from_safety_context(
 
     catalog_payload = (safety_context or {}).get("catalog_context")
     if not isinstance(catalog_payload, dict):
-        catalog_context = StructuredCatalogContext(query="")
+        catalog_context = CatalogContext(query="")
     else:
-        catalog_context = StructuredCatalogContext.model_validate(catalog_payload)
+        catalog_context = CatalogContext.model_validate(catalog_payload)
     return public_price_policy_rule(content, catalog_context)
 
 

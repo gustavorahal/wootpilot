@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 from wootpilot.domain.models import (
     AvailabilitySnapshot,
+    CatalogContext,
     ConversationState,
     MessageAuthorType,
     MessageDirection,
@@ -13,7 +14,6 @@ from wootpilot.domain.models import (
     NormalizedMessage,
     PriceSnapshot,
     ProductSnapshot,
-    StructuredCatalogContext,
 )
 from wootpilot.integrations.model import (
     MODEL_PROMPT_VERSION,
@@ -23,7 +23,7 @@ from wootpilot.integrations.model import (
 
 
 def test_catalog_products_for_prompt_redacts_non_mentionable_prices() -> None:
-    context = StructuredCatalogContext(
+    context = CatalogContext(
         query="price",
         products=[
             _product(
@@ -91,7 +91,7 @@ def test_support_proposal_prompt_versions_untrusted_customer_text() -> None:
             assigned_agent_id="agent-1",
             updated_at=now,
         ),
-        catalog_context=StructuredCatalogContext(query="policy"),
+        catalog_context=CatalogContext(query="policy"),
     )
 
     system = messages[0][1]

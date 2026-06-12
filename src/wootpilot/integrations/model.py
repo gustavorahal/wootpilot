@@ -16,12 +16,12 @@ from wootpilot.application.errors import (
 from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
+    CatalogContext,
     ConversationState,
     CustomerLocale,
     ModelProposalResult,
     ModelProvider,
     NormalizedMessage,
-    StructuredCatalogContext,
 )
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.settings import Settings
@@ -49,7 +49,7 @@ class FakeModelProposalPort(ModelProposalPort):
         *,
         message: NormalizedMessage,
         conversation_state: ConversationState,
-        catalog_context: StructuredCatalogContext,
+        catalog_context: CatalogContext,
     ) -> ModelProposalResult:
         """Return a predictable proposal without contacting an LLM provider."""
 
@@ -99,7 +99,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         *,
         message: NormalizedMessage,
         conversation_state: ConversationState,
-        catalog_context: StructuredCatalogContext,
+        catalog_context: CatalogContext,
     ) -> ModelProposalResult:
         """Ask OpenRouter for a structured proposal and classify provider errors.
 
@@ -170,7 +170,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         *,
         message: NormalizedMessage,
         conversation_state: ConversationState,
-        catalog_context: StructuredCatalogContext,
+        catalog_context: CatalogContext,
         response_locale: CustomerLocale,
     ) -> tuple[_AgentProposalSchema, dict[str, Any], str]:
         """Invoke the provider with a locale-aware prompt and strict schema.
@@ -265,7 +265,7 @@ class OpenRouterModelProposalPort(ModelProposalPort):
         *,
         message: NormalizedMessage,
         conversation_state: ConversationState,
-        catalog_context: StructuredCatalogContext,
+        catalog_context: CatalogContext,
         response_locale: CustomerLocale,
     ) -> list[tuple[str, str]]:
         return support_proposal_prompt_messages(
@@ -288,7 +288,7 @@ def support_proposal_prompt_messages(
     *,
     message: NormalizedMessage,
     conversation_state: ConversationState,
-    catalog_context: StructuredCatalogContext,
+    catalog_context: CatalogContext,
     response_locale: CustomerLocale = CustomerLocale.pt_br,
 ) -> list[tuple[str, str]]:
     """Build the versioned proposal prompt sent through LangChain adapters."""
@@ -371,7 +371,7 @@ def _fake_proposal_text(
 
 
 def catalog_products_for_prompt(
-    catalog_context: StructuredCatalogContext,
+    catalog_context: CatalogContext,
 ) -> list[dict[str, Any]]:
     """Build model-visible catalog rows without leaking unsafe exact prices.
 

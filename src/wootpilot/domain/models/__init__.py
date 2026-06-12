@@ -14,13 +14,13 @@ definition" one year from now.
 from wootpilot.domain.models.audit import AuditEventType, ContextSnapshotKind
 from wootpilot.domain.models.catalog import (
     AvailabilitySnapshot,
+    CatalogContext,
     Money,
     PriceSnapshot,
     ProductCategory,
     ProductSearchQuery,
     ProductSnapshot,
     RiskSignal,
-    StructuredCatalogContext,
 )
 from wootpilot.domain.models.connectors import (
     ConnectorCapability,
@@ -108,7 +108,7 @@ __all__ = [
     "RawEventStatus",
     "RiskSignal",
     "RuntimeEnvironment",
-    "StructuredCatalogContext",
+    "CatalogContext",
     "TriageResult",
     "WebhookResultStatus",
     "WebhookSignatureMode",

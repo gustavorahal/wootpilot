@@ -2,7 +2,7 @@
 
 The Store API is used read-only and without WooCommerce admin credentials. It
 gives WootPilot a realistic catalog source while preserving the same
-policy-aware `StructuredCatalogContext` shape used by the mock adapter.
+policy-aware `CatalogContext` shape used by the mock adapter.
 """
 
 from __future__ import annotations
@@ -18,13 +18,13 @@ import httpx
 from wootpilot.application.errors import ExternalServiceError
 from wootpilot.domain.models import (
     AvailabilitySnapshot,
+    CatalogContext,
     Money,
     PriceSnapshot,
     ProductCategory,
     ProductSearchQuery,
     ProductSnapshot,
     RiskSignal,
-    StructuredCatalogContext,
 )
 from wootpilot.observability import log_event
 from wootpilot.text import searchable_text
@@ -70,7 +70,7 @@ class StoreApiCatalog:
         self.base_url = base_url.rstrip("/")
         self.client = client
 
-    async def search(self, query: str, limit: int = 5) -> StructuredCatalogContext:
+    async def search(self, query: str, limit: int = 5) -> CatalogContext:
         """Return policy-aware catalog context for a customer text query.
 
         Raises:
@@ -92,7 +92,7 @@ class StoreApiCatalog:
             if query.strip() and not snapshots
             else []
         )
-        return StructuredCatalogContext(
+        return CatalogContext(
             query=query,
             products=snapshots,
             risk_signals=risks,

@@ -15,13 +15,13 @@ from wootpilot.domain.models import (
     AgentRunStatus,
     AuditEventType,
     AutomationMode,
+    CatalogContext,
     ContextSnapshotKind,
     ConversationState,
     NormalizedMessage,
     OutboundActionStatus,
     PolicyDecision,
     RiskSignal,
-    StructuredCatalogContext,
     WorkflowDecision,
 )
 from wootpilot.domain.ports import ModelProposalPort
@@ -115,7 +115,7 @@ class WorkflowContext:
     audit rows can explain exactly what the graph saw.
     """
 
-    catalog_context: StructuredCatalogContext
+    catalog_context: CatalogContext
     snapshot_id: str
 
 
@@ -147,13 +147,13 @@ class WorkflowContextLoader:
         try:
             context = await catalog.search(message.content)
         except CatalogContextError:
-            context = StructuredCatalogContext(
+            context = CatalogContext(
                 query=message.content,
                 products=[],
                 risk_signals=[RiskSignal.catalog_load_failed.value],
             )
         snapshot_id = self.ids.new()
-        context = StructuredCatalogContext(
+        context = CatalogContext(
             query=context.query,
             products=context.products,
             risk_signals=context.risk_signals,
@@ -196,7 +196,7 @@ class SupportGraphRunner:
         *,
         message: NormalizedMessage,
         state: ConversationState,
-        context: StructuredCatalogContext,
+        context: CatalogContext,
     ) -> dict[str, Any]:
         """Invoke the compiled graph and return its final merged state."""
 
@@ -425,7 +425,7 @@ class WorkflowRunRecorder:
         agent_run_id: str,
         message: NormalizedMessage,
         decision: WorkflowDecision,
-        context: StructuredCatalogContext,
+        context: CatalogContext,
     ) -> None:
         """Persist a workflow decision as an idempotent outbound action.
 

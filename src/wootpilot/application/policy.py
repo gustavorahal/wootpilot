@@ -9,6 +9,7 @@ from wootpilot.domain.models import (
     AgentActionKind,
     AgentProposal,
     AutomationMode,
+    CatalogContext,
     ConversationState,
     ConversationStatus,
     NormalizedMessage,
@@ -16,7 +17,6 @@ from wootpilot.domain.models import (
     PolicyOutcome,
     PolicyRule,
     PolicyStage,
-    StructuredCatalogContext,
     TriageResult,
 )
 from wootpilot.text import searchable_text
@@ -168,7 +168,7 @@ def validate_proposal(
     proposal: AgentProposal | None,
     automation_mode: AutomationMode,
     triage: TriageResult,
-    catalog_context: StructuredCatalogContext,
+    catalog_context: CatalogContext,
     now: datetime,
     ids: IdGenerator,
 ) -> PolicyDecision:
@@ -211,7 +211,7 @@ def validate_proposal(
 
 def public_price_policy_rule(
     text: str,
-    catalog_context: StructuredCatalogContext,
+    catalog_context: CatalogContext,
 ) -> PolicyRule | None:
     """Return a block rule when public text makes an unsafe price claim.
 
