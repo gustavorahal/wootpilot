@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,12 +42,15 @@ from wootpilot.persistence.models import (
 )
 
 __all__ = [
+    "OUTBOUND_NOTIFY_CHANNEL",
     "Repository",
     "queued_outbound_actions_statement",
     "row_to_message",
     "row_to_outbound_action",
     "row_to_state",
 ]
+
+OUTBOUND_NOTIFY_CHANNEL = "wootpilot_outbound_queue"
 
 
 def row_to_message(row: ConversationMessageRow) -> NormalizedMessage:
@@ -135,6 +138,15 @@ def _utc_aware(value: datetime) -> datetime:
 
 def _utc_aware_optional(value: datetime | None) -> datetime | None:
     return _utc_aware(value) if value is not None else None
+
+
+def _message_id_is_after(candidate: str, source: str) -> bool:
+    """Compare provider message ids as chronological tie-breakers."""
+
+    try:
+        return int(candidate) > int(source)
+    except ValueError:
+        return candidate > source
 
 
 class Repository:
@@ -415,24 +427,33 @@ class Repository:
                     )
                 )
                 await self.session.flush()
+                await self._notify_outbound_available()
         except IntegrityError:
             return False
         return True
 
     async def claim_queued_outbound_actions(
-        self, *, limit: int = 10, now: datetime, claimed_at: datetime
+        self,
+        *,
+        limit: int = 10,
+        now: datetime,
+        claimed_at: datetime,
+        public_reply_delay: timedelta = timedelta(0),
     ) -> list[QueuedOutboundAction]:
         """Atomically claim due outbound actions for one executor transaction.
 
         PostgreSQL row locks are held only until the caller commits. Claimed rows
         are moved to `executing` before that commit so other workers cannot pick
-        up the same rows after locks are released.
+        up the same rows after locks are released. Public replies can have a
+        short eligibility delay so rapid follow-up customer messages supersede
+        stale replies before anything is sent.
         """
 
         statement = queued_outbound_actions_statement(
             limit=limit,
             now=now,
             dialect_name=self.session.bind.dialect.name if self.session.bind else "",
+            public_reply_delay=public_reply_delay,
         )
         rows = list(await self.session.scalars(statement))
         for row in rows:
@@ -441,6 +462,119 @@ class Repository:
             row.next_attempt_at = None
         await self.session.flush()
         return [row_to_outbound_action(row) for row in rows]
+
+    async def has_newer_customer_public_message(
+        self,
+        *,
+        tenant_id: str,
+        channel_id: str,
+        conversation_id: str,
+        source_message_id: str,
+    ) -> bool:
+        """Return whether a newer customer turn exists after a queued action source."""
+
+        source_result = await self.session.execute(
+            select(
+                ConversationMessageRow.created_at,
+                ConversationMessageRow.message_id,
+            ).where(
+                ConversationMessageRow.tenant_id == tenant_id,
+                ConversationMessageRow.channel_id == channel_id,
+                ConversationMessageRow.conversation_id == conversation_id,
+                ConversationMessageRow.message_id == source_message_id,
+            )
+        )
+        source_row = source_result.one_or_none()
+        if source_row is None:
+            return False
+        source_created_at = source_row.created_at
+        source_message_id = source_row.message_id
+
+        newer_message_id = await self.session.scalar(
+            select(ConversationMessageRow.id)
+            .where(
+                ConversationMessageRow.tenant_id == tenant_id,
+                ConversationMessageRow.channel_id == channel_id,
+                ConversationMessageRow.conversation_id == conversation_id,
+                ConversationMessageRow.direction == MessageDirection.inbound.value,
+                ConversationMessageRow.visibility == MessageVisibility.public.value,
+                ConversationMessageRow.author_type == MessageAuthorType.customer.value,
+                ConversationMessageRow.created_at > source_created_at,
+            )
+            .limit(1)
+        )
+        if newer_message_id is not None:
+            return True
+
+        same_time_message_ids = list(
+            await self.session.scalars(
+                select(ConversationMessageRow.message_id).where(
+                    ConversationMessageRow.tenant_id == tenant_id,
+                    ConversationMessageRow.channel_id == channel_id,
+                    ConversationMessageRow.conversation_id == conversation_id,
+                    ConversationMessageRow.direction == MessageDirection.inbound.value,
+                    ConversationMessageRow.visibility
+                    == MessageVisibility.public.value,
+                    ConversationMessageRow.author_type
+                    == MessageAuthorType.customer.value,
+                    ConversationMessageRow.created_at == source_created_at,
+                    ConversationMessageRow.message_id != source_message_id,
+                )
+            )
+        )
+        return any(
+            _message_id_is_after(message_id, source_message_id)
+            for message_id in same_time_message_ids
+        )
+
+    async def next_outbound_action_due_at(
+        self,
+        *,
+        now: datetime,
+        public_reply_delay: timedelta,
+    ) -> datetime | None:
+        """Return the next time a queued or retryable outbound action may run."""
+
+        private_queued_at = await self.session.scalar(
+            select(func.min(OutboundActionRow.created_at)).where(
+                OutboundActionRow.status == OutboundActionStatus.queued.value,
+                OutboundActionRow.action_kind != AgentActionKind.public_message.value,
+            )
+        )
+        public_queued_at = await self.session.scalar(
+            select(func.min(OutboundActionRow.created_at)).where(
+                OutboundActionRow.status == OutboundActionStatus.queued.value,
+                OutboundActionRow.action_kind == AgentActionKind.public_message.value,
+            )
+        )
+        retryable_due_at = await self.session.scalar(
+            select(func.min(OutboundActionRow.next_attempt_at)).where(
+                OutboundActionRow.status
+                == OutboundActionStatus.retryable_failure.value,
+                OutboundActionRow.next_attempt_at.is_not(None),
+            )
+        )
+
+        due_times = []
+        if private_queued_at is not None:
+            due_times.append(now)
+        if public_queued_at is not None:
+            due_times.append(_utc_aware(public_queued_at) + public_reply_delay)
+        if retryable_due_at is not None:
+            due_times.append(_utc_aware(retryable_due_at))
+        return min(due_times) if due_times else None
+
+    async def _notify_outbound_available(self) -> None:
+        """Wake Postgres outbound workers after a durable queue insert.
+
+        `NOTIFY` is intentionally best-effort and transaction-scoped. It only
+        nudges sleeping workers; the `outbound_actions` table remains the source
+        of truth for what should be sent.
+        """
+
+        if self.session.bind is None or self.session.bind.dialect.name != "postgresql":
+            return
+        await self.session.execute(text(f"NOTIFY {OUTBOUND_NOTIFY_CHANNEL}"))
 
     async def mark_outbound_action(
         self,
@@ -506,7 +640,11 @@ class Repository:
 
 
 def queued_outbound_actions_statement(
-    *, limit: int, now: datetime, dialect_name: str
+    *,
+    limit: int,
+    now: datetime,
+    dialect_name: str,
+    public_reply_delay: timedelta = timedelta(0),
 ):
     """Build the worker dequeue query.
 
@@ -515,19 +653,22 @@ def queued_outbound_actions_statement(
     because the alpha profile runs a single executor.
     """
 
+    public_reply_available_at = now - public_reply_delay
+    queued_action_due = and_(
+        OutboundActionRow.status == OutboundActionStatus.queued.value,
+        or_(
+            OutboundActionRow.action_kind != AgentActionKind.public_message.value,
+            OutboundActionRow.created_at <= public_reply_available_at,
+        ),
+    )
+    retryable_action_due = and_(
+        OutboundActionRow.status == OutboundActionStatus.retryable_failure.value,
+        OutboundActionRow.next_attempt_at.is_not(None),
+        OutboundActionRow.next_attempt_at <= now,
+    )
     statement = (
         select(OutboundActionRow)
-        .where(
-            or_(
-                OutboundActionRow.status == OutboundActionStatus.queued.value,
-                and_(
-                    OutboundActionRow.status
-                    == OutboundActionStatus.retryable_failure.value,
-                    OutboundActionRow.next_attempt_at.is_not(None),
-                    OutboundActionRow.next_attempt_at <= now,
-                ),
-            )
-        )
+        .where(or_(queued_action_due, retryable_action_due))
         .order_by(OutboundActionRow.created_at)
         .limit(limit)
     )

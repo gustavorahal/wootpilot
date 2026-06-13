@@ -131,6 +131,40 @@ The WootPilot terminal is also where local JSON logs appear. In `local` and
 `public_dev` environments, `WORKFLOW_TRACE=true` prints the workflow steps as
 they complete, including the customer message and proposed response text.
 
+When the workflow logs `queued_action`, WootPilot has approved and stored an
+outbound action, but it has not sent the Chatwoot/WhatsApp message yet. Sending
+is handled by the outbound executor so public replies can be retried
+idempotently and re-checked immediately before delivery. Public replies wait
+2 seconds before they are eligible to send; if a newer customer message arrives
+in the same conversation during that window, the older queued public reply is
+marked `superseded` and is never sent. Private notes are eligible immediately.
+
+Terminal 3: keep the outbound worker running.
+
+```sh
+uv run wootpilot outbound-worker --limit 10 --interval 0.5
+```
+
+For a one-shot manual drain, use:
+
+```sh
+uv run wootpilot execute-outbound --limit 10
+```
+
+Worker output for one delivered reply looks like:
+
+```text
+sent=1 blocked=0 failed=0 superseded=0
+```
+
+If `blocked`, `failed`, or `superseded` is non-zero, inspect recent outbound
+rows:
+
+```sh
+sqlite3 data/wootpilot-public-dev.db \
+  "select status, action_kind, conversation_id, provider_message_id, failure_reason from outbound_actions order by created_at desc limit 5;"
+```
+
 Build the application container:
 
 ```sh
@@ -149,6 +183,7 @@ Run local helper commands:
 
 ```sh
 uv run wootpilot catalog-search "chicote aircooled"
+uv run wootpilot outbound-worker --limit 10 --interval 0.5
 uv run wootpilot execute-outbound --limit 10
 uv run wootpilot eval-golden
 ```

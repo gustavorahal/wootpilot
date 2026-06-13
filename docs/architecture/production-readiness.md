@@ -94,8 +94,11 @@ RESPONSE_LOCALE=pt-BR
 Postgres is the production database target for public replies and multiple
 outbound workers. Queue workers compile the dequeue query with
 `FOR UPDATE SKIP LOCKED` on Postgres and move selected rows to `executing`
-before committing the claim. Install the optional dependency profile before
-enabling `CHECKPOINTER=postgres`:
+before committing the claim. Inserted outbound actions issue
+`NOTIFY wootpilot_outbound_queue` on Postgres, but that notification is only a
+wake-up signal. `outbound_actions` remains the durable source of truth, and
+workers still claim rows with normal SQL. Install the optional dependency
+profile before enabling `CHECKPOINTER=postgres`:
 
 ```sh
 uv sync --extra postgres
@@ -155,13 +158,26 @@ The configured Chatwoot API token must be able to:
 Run the outbound executor as a single worker on SQLite:
 
 ```sh
-uv run wootpilot execute-outbound --limit 10
+uv run wootpilot outbound-worker --limit 10 --interval 0.5
 ```
 
+Use `uv run wootpilot execute-outbound --limit 10` for one-shot manual queue
+drains during debugging or maintenance.
+
 On Postgres, multiple workers may run because queued rows are selected with
-`FOR UPDATE SKIP LOCKED`. Public message execution still performs final checks
-for automation mode, content leakage, local human-active state, local
-pause/replyable state, and fresh Chatwoot conversation safety.
+`FOR UPDATE SKIP LOCKED`. Workers listen on `wootpilot_outbound_queue` for fast
+wakeups after inserts, cap waits by the next known retry/debounce due time, and
+still use the interval as a fallback timeout. Public message execution still
+performs final checks for automation mode, content leakage, local human-active
+state, local pause/replyable state, newer customer messages, and fresh Chatwoot
+conversation safety.
+
+Public replies are claimable only after the configured public-reply delay. The
+default is 2 seconds. If a newer public inbound customer message arrives in the
+same conversation before send, the queued public reply is persisted as
+`status="superseded"` with failure reason
+`conversation.superseded_by_new_customer_message` and is never retried. Private
+notes are eligible immediately and are not superseded by newer customer messages.
 
 ## Rollback And Queue Draining
 

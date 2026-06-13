@@ -75,6 +75,7 @@ RESPONSE_LOCALE
 HUMAN_OPERATOR_ACTIVE_TTL_SECONDS
 OUTBOUND_RETRY_DELAY_SECONDS
 OUTBOUND_MAX_ATTEMPTS
+OUTBOUND_PUBLIC_REPLY_DELAY_SECONDS
 ```
 
 `PUBLIC_BASE_URL` is the URL Chatwoot uses to call WootPilot webhooks.
@@ -102,6 +103,9 @@ send customer-visible messages.
 Retryable outbound channel failures are retried after
 `OUTBOUND_RETRY_DELAY_SECONDS` until `OUTBOUND_MAX_ATTEMPTS`
 is reached, then the action is marked as a permanent failure.
+Public replies become eligible after `OUTBOUND_PUBLIC_REPLY_DELAY_SECONDS`.
+Private notes remain immediately eligible. This short delay lets rapid follow-up
+customer messages supersede stale public replies before they leave the queue.
 
 ## Chatwoot Variables
 

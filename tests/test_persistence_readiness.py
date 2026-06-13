@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from importlib.metadata import metadata
 from pathlib import Path
 
@@ -8,7 +8,10 @@ from sqlalchemy.dialects import postgresql, sqlite
 
 from wootpilot.domain.models import CheckpointerProfile, RuntimeEnvironment
 from wootpilot.persistence.database import init_database, sqlite_pragmas
-from wootpilot.persistence.repositories import queued_outbound_actions_statement
+from wootpilot.persistence.repositories import (
+    OUTBOUND_NOTIFY_CHANNEL,
+    queued_outbound_actions_statement,
+)
 from wootpilot.settings import Settings
 from wootpilot.workflow.checkpoints import (
     checkpointer_from_settings,
@@ -105,3 +108,26 @@ def test_outbound_dequeue_query_includes_only_due_retryable_actions() -> None:
     assert "outbound_actions.next_attempt_at IS NOT NULL" in compiled
     assert "<=" in compiled
     assert str(now.year) in compiled
+
+
+def test_outbound_dequeue_query_debounces_public_messages() -> None:
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    statement = queued_outbound_actions_statement(
+        limit=5,
+        now=now,
+        dialect_name="sqlite",
+        public_reply_delay=timedelta(seconds=2),
+    )
+    compiled = str(
+        statement.compile(
+            dialect=sqlite.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+
+    assert "outbound_actions.action_kind != 'public_message'" in compiled
+    assert "outbound_actions.created_at <= '2026-01-01 11:59:58.000000'" in compiled
+
+
+def test_outbound_notify_channel_is_stable() -> None:
+    assert OUTBOUND_NOTIFY_CHANNEL == "wootpilot_outbound_queue"

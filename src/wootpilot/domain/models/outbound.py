@@ -19,6 +19,7 @@ class OutboundActionStatus(StrEnum):
     retryable_failure = "retryable_failure"
     permanent_failure = "permanent_failure"
     blocked_by_policy = "blocked_by_policy"
+    superseded = "superseded"
 
 
 class QueuedOutboundAction(BaseModel):

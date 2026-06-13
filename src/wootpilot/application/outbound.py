@@ -56,28 +56,39 @@ class ExecuteOutboundActions:
             limit: Maximum number of queued or due retryable actions to inspect.
 
         Returns:
-            Counts for sent, blocked, and failed actions.
+            Counts for sent, blocked, failed, and superseded actions.
 
         Raises:
             Exception: Unexpected application errors escape so operators see
                 bugs instead of persisted provider-failure rows.
         """
 
-        counts = {"sent": 0, "blocked": 0, "failed": 0}
+        counts = {"sent": 0, "blocked": 0, "failed": 0, "superseded": 0}
         for _ in range(limit):
             actions = await self.repo.claim_queued_outbound_actions(
                 limit=1,
                 now=self.clock.now(),
                 claimed_at=self.clock.now(),
+                public_reply_delay=timedelta(
+                    seconds=self.settings.outbound_public_reply_delay_seconds
+                ),
             )
             await self.repo.session.commit()
             if not actions:
                 break
             action = actions[0]
+            if await self._is_superseded(action):
+                await self._mark_superseded(action)
+                counts["superseded"] += 1
+                continue
             blocked_reason = await self._blocked_reason(action)
             if blocked_reason:
                 await self._mark_blocked(action, blocked_reason)
                 counts["blocked"] += 1
+                continue
+            if await self._is_superseded(action):
+                await self._mark_superseded(action)
+                counts["superseded"] += 1
                 continue
             try:
                 provider_message_id = await self.chatwoot.create_message(
@@ -108,6 +119,24 @@ class ExecuteOutboundActions:
         self._log_action_result(
             action,
             status=OutboundActionStatus.blocked_by_policy,
+            failure_reason=failure_reason,
+        )
+
+    async def _mark_superseded(self, action: QueuedOutboundAction) -> None:
+        failure_reason = (
+            PolicyRule.conversation_superseded_by_new_customer_message.value
+        )
+        await self.repo.mark_outbound_action(
+            action_id=action.id,
+            status=OutboundActionStatus.superseded,
+            updated_at=self.clock.now(),
+            failure_reason=failure_reason,
+            clear_next_attempt_at=True,
+        )
+        await self.repo.session.commit()
+        self._log_action_result(
+            action,
+            status=OutboundActionStatus.superseded,
             failure_reason=failure_reason,
         )
 
@@ -248,6 +277,16 @@ class ExecuteOutboundActions:
             )
             return f"label_update_failed:{exc.code}"
         return None
+
+    async def _is_superseded(self, action: QueuedOutboundAction) -> bool:
+        if action.action_kind is not AgentActionKind.public_message:
+            return False
+        return await self.repo.has_newer_customer_public_message(
+            tenant_id=action.tenant_id,
+            channel_id=action.channel_id,
+            conversation_id=action.conversation_id,
+            source_message_id=action.source_message_id,
+        )
 
     def _log_action_result(
         self,

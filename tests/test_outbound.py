@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from wootpilot.application.errors import ChatwootResponseError
 from wootpilot.application.outbound import ExecuteOutboundActions
@@ -46,7 +48,9 @@ class FakeChatwootWriter:
         )
         return "provider-123"
 
-    async def get_conversation_safety(self, *, conversation_id: str):
+    async def get_conversation_safety(
+        self, *, conversation_id: str
+    ) -> ChannelSafetyState:
         return self.safety or ChannelSafetyState(
             conversation_id=conversation_id,
             replyable=True,
@@ -83,6 +87,24 @@ class ObservingChatwootWriter(FakeChatwootWriter):
             content=content,
             private=private,
         )
+
+
+class SupersedingDuringSafetyWriter(FakeChatwootWriter):
+    def __init__(self, factory: Any, message_created_at: datetime) -> None:
+        super().__init__()
+        self.factory = factory
+        self.message_created_at = message_created_at
+
+    async def get_conversation_safety(self, *, conversation_id: str):
+        async with self.factory() as session:
+            await insert_customer_message(
+                session,
+                message_id="5",
+                raw_event_id="raw-event-during-safety",
+                created_at=self.message_created_at,
+            )
+            await session.commit()
+        return await super().get_conversation_safety(conversation_id=conversation_id)
 
 
 class RetryableFailingChatwootWriter(FakeChatwootWriter):
@@ -171,7 +193,7 @@ async def test_outbound_executor_sends_private_note(tmp_path: Path, caplog) -> N
         counts = await executor.run_once()
         await session.commit()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.calls == [
         {"conversation_id": "3", "content": "Suggested reply", "private": True}
     ]
@@ -228,6 +250,411 @@ async def test_public_reply_executor_sends_public_message_when_state_is_safe(
             content="Thanks, this product is available.",
             status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
+            created_at=now - timedelta(seconds=3),
+        )
+        await session.commit()
+
+    writer = FakeChatwootWriter()
+    async with factory() as session:
+        counts = await ExecuteOutboundActions(
+            settings=settings,
+            session=session,
+            chatwoot=writer,  # type: ignore[arg-type]
+        ).run_once()
+        await session.commit()
+
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
+    assert writer.calls == [
+        {
+            "conversation_id": "3",
+            "content": "Thanks, this product is available.",
+            "private": False,
+        }
+    ]
+    assert writer.status_calls == []
+
+
+async def test_public_message_younger_than_delay_is_not_claimed(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "public-young.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    action_id = ids.new()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=action_id,
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.public_message,
+            content="Thanks, this product is available.",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:public_message",
+            created_at=now - timedelta(seconds=1),
+        )
+
+        claimed = await repo.claim_queued_outbound_actions(
+            now=now,
+            claimed_at=now,
+            public_reply_delay=timedelta(seconds=2),
+        )
+        await session.commit()
+
+    assert claimed == []
+    assert outbound_status(db_path) == ("queued", None)
+
+
+async def test_public_message_older_than_delay_is_claimed(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "public-old-enough.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=ids.new(),
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.public_message,
+            content="Thanks, this product is available.",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:public_message",
+            created_at=now - timedelta(seconds=3),
+        )
+
+        claimed = await repo.claim_queued_outbound_actions(
+            now=now,
+            claimed_at=now,
+            public_reply_delay=timedelta(seconds=2),
+        )
+        await session.commit()
+
+    assert len(claimed) == 1
+    assert claimed[0].action_kind is AgentActionKind.public_message
+    assert outbound_status(db_path) == ("executing", None)
+
+
+async def test_private_note_is_claimed_without_public_reply_delay(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "private-immediate-claim.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=ids.new(),
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.private_note,
+            content="Suggested reply",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:private_note",
+            created_at=now,
+        )
+
+        claimed = await repo.claim_queued_outbound_actions(
+            now=now,
+            claimed_at=now,
+            public_reply_delay=timedelta(seconds=2),
+        )
+        await session.commit()
+
+    assert len(claimed) == 1
+    assert claimed[0].action_kind is AgentActionKind.private_note
+    assert outbound_status(db_path) == ("executing", None)
+
+
+async def test_next_due_time_uses_public_reply_delay(tmp_path: Path) -> None:
+    db_path = tmp_path / "next-public-due.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    created_at = now - timedelta(seconds=1)
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=ids.new(),
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.public_message,
+            content="Thanks, this product is available.",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:public_message",
+            created_at=created_at,
+        )
+
+        due_at = await repo.next_outbound_action_due_at(
+            now=now,
+            public_reply_delay=timedelta(seconds=2),
+        )
+
+    assert due_at == created_at + timedelta(seconds=2)
+
+
+async def test_next_due_time_uses_now_for_queued_private_note(tmp_path: Path) -> None:
+    db_path = tmp_path / "next-private-due.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now)
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=ids.new(),
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.private_note,
+            content="Suggested reply",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:private_note",
+            created_at=now,
+        )
+
+        due_at = await repo.next_outbound_action_due_at(
+            now=now,
+            public_reply_delay=timedelta(seconds=2),
+        )
+
+    assert due_at == now
+
+
+async def test_public_reply_is_superseded_by_newer_customer_message(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "public-superseded.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        automation_mode=AutomationMode.public_reply,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    source_created_at = now - timedelta(seconds=5)
+    async with factory() as session:
+        await create_parent_agent_run(session, source_created_at)
+        await insert_customer_message(
+            session,
+            message_id="5",
+            raw_event_id="raw-event-2",
+            created_at=now - timedelta(seconds=1),
+        )
+        repo = Repository(session)
+        await repo.get_or_create_state(
+            id=ids.new(),
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            now=now,
+        )
+        await queue_public_action(repo, ids, now)
+        await session.commit()
+
+    writer = FakeChatwootWriter()
+    async with factory() as session:
+        counts = await ExecuteOutboundActions(
+            settings=settings,
+            session=session,
+            chatwoot=writer,  # type: ignore[arg-type]
+        ).run_once()
+        await session.commit()
+
+    assert counts == {"sent": 0, "blocked": 0, "failed": 0, "superseded": 1}
+    assert writer.calls == []
+    assert outbound_status(db_path) == (
+        "superseded",
+        "conversation.superseded_by_new_customer_message",
+    )
+
+
+async def test_public_reply_is_superseded_by_same_timestamp_newer_message_id(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "public-superseded-same-timestamp.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        automation_mode=AutomationMode.public_reply,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    source_created_at = now - timedelta(seconds=5)
+    async with factory() as session:
+        await create_parent_agent_run(session, source_created_at)
+        await insert_customer_message(
+            session,
+            message_id="5",
+            raw_event_id="raw-event-2",
+            created_at=source_created_at,
+        )
+        repo = Repository(session)
+        await repo.get_or_create_state(
+            id=ids.new(),
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            now=now,
+        )
+        await queue_public_action(repo, ids, now)
+        await session.commit()
+
+    writer = FakeChatwootWriter()
+    async with factory() as session:
+        counts = await ExecuteOutboundActions(
+            settings=settings,
+            session=session,
+            chatwoot=writer,  # type: ignore[arg-type]
+        ).run_once()
+        await session.commit()
+
+    assert counts == {"sent": 0, "blocked": 0, "failed": 0, "superseded": 1}
+    assert writer.calls == []
+    assert outbound_status(db_path) == (
+        "superseded",
+        "conversation.superseded_by_new_customer_message",
+    )
+
+
+async def test_public_reply_rechecks_superseded_after_channel_safety_read(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "public-superseded-during-safety.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        automation_mode=AutomationMode.public_reply,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now - timedelta(seconds=5))
+        repo = Repository(session)
+        await repo.get_or_create_state(
+            id=ids.new(),
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            now=now,
+        )
+        await queue_public_action(repo, ids, now)
+        await session.commit()
+
+    writer = SupersedingDuringSafetyWriter(
+        factory,
+        message_created_at=now - timedelta(seconds=1),
+    )
+    async with factory() as session:
+        counts = await ExecuteOutboundActions(
+            settings=settings,
+            session=session,
+            chatwoot=writer,  # type: ignore[arg-type]
+        ).run_once()
+        await session.commit()
+
+    assert counts == {"sent": 0, "blocked": 0, "failed": 0, "superseded": 1}
+    assert writer.calls == []
+    assert outbound_status(db_path) == (
+        "superseded",
+        "conversation.superseded_by_new_customer_message",
+    )
+
+
+async def test_private_note_is_not_superseded_by_newer_customer_message(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "private-not-superseded.db"
+    settings = Settings(
+        env=RuntimeEnvironment.test,
+        db_url=f"sqlite+aiosqlite:///{db_path}",
+        chatwoot_webhook_secret="secret",
+    )
+    await init_database(settings)
+    factory = make_session_factory(settings)
+    ids = IdGenerator()
+    now = Clock().now()
+    async with factory() as session:
+        await create_parent_agent_run(session, now - timedelta(seconds=5))
+        await insert_customer_message(
+            session,
+            message_id="5",
+            raw_event_id="raw-event-2",
+            created_at=now - timedelta(seconds=1),
+        )
+        repo = Repository(session)
+        await repo.insert_outbound_action(
+            id=ids.new(),
+            agent_run_id="agent-run-1",
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            source_message_id="4",
+            action_kind=AgentActionKind.private_note,
+            content="Suggested reply",
+            status=OutboundActionStatus.queued,
+            idempotency_key="1:2:3:4:private_note",
             created_at=now,
         )
         await session.commit()
@@ -241,15 +668,11 @@ async def test_public_reply_executor_sends_public_message_when_state_is_safe(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.calls == [
-        {
-            "conversation_id": "3",
-            "content": "Thanks, this product is available.",
-            "private": False,
-        }
+        {"conversation_id": "3", "content": "Suggested reply", "private": True}
     ]
-    assert writer.status_calls == []
+    assert outbound_status(db_path) == ("sent", None)
 
 
 async def test_outbound_executor_commits_executing_before_channel_calls(
@@ -287,7 +710,7 @@ async def test_outbound_executor_commits_executing_before_channel_calls(
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.status_seen_during_safety == ("executing", None)
     assert writer.status_seen_during_send == ("executing", None)
     assert outbound_status(db_path) == ("sent", None)
@@ -331,7 +754,7 @@ async def test_public_reply_executor_sets_status_after_public_message_when_enabl
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.calls == [
         {
             "conversation_id": "3",
@@ -371,7 +794,7 @@ async def test_retryable_chatwoot_failure_schedules_next_attempt(
             content="Suggested reply",
             status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:private_note",
-            created_at=now,
+            created_at=now - timedelta(seconds=3),
         )
         await session.commit()
 
@@ -383,7 +806,7 @@ async def test_retryable_chatwoot_failure_schedules_next_attempt(
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 0, "blocked": 0, "failed": 1}
+    assert counts == {"sent": 0, "blocked": 0, "failed": 1, "superseded": 0}
     assert writer.calls == [
         {"conversation_id": "3", "content": "Suggested reply", "private": True}
     ]
@@ -535,7 +958,7 @@ async def test_private_review_note_marks_conversation_as_needing_human(
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.label_calls == [
         {"conversation_id": "3", "labels": ["wootpilot-needs-human"]}
     ]
@@ -581,7 +1004,7 @@ async def test_plain_private_note_does_not_mark_needs_human(
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.label_calls == []
 
 
@@ -633,7 +1056,7 @@ async def test_due_retryable_action_is_retried_and_marked_sent(
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.calls == [
         {"conversation_id": "3", "content": "Suggested reply", "private": True}
     ]
@@ -690,7 +1113,7 @@ async def test_not_due_retryable_action_is_not_retried(tmp_path: Path) -> None:
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 0, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.calls == []
     state = outbound_retry_state(db_path)
     assert state["status"] == "retryable_failure"
@@ -738,7 +1161,7 @@ async def test_retryable_failure_becomes_permanent_at_max_attempts(
             chatwoot=writer,  # type: ignore[arg-type]
         ).run_once()
 
-    assert counts == {"sent": 0, "blocked": 0, "failed": 1}
+    assert counts == {"sent": 0, "blocked": 0, "failed": 1, "superseded": 0}
     state = outbound_retry_state(db_path)
     assert state["status"] == "permanent_failure"
     assert state["attempt_count"] == 1
@@ -782,7 +1205,7 @@ async def test_public_message_is_blocked_when_human_becomes_active(
             content="Thanks, this product is available.",
             status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
-            created_at=now,
+            created_at=now - timedelta(seconds=3),
         )
         await session.commit()
 
@@ -796,7 +1219,7 @@ async def test_public_message_is_blocked_when_human_becomes_active(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
@@ -844,7 +1267,7 @@ async def test_public_message_is_blocked_when_conversation_is_paused(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -887,7 +1310,7 @@ async def test_public_message_is_blocked_when_channel_is_not_replyable(
             content="Thanks, this product is available.",
             status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
-            created_at=now,
+            created_at=now - timedelta(seconds=3),
         )
         await session.commit()
 
@@ -902,7 +1325,7 @@ async def test_public_message_is_blocked_when_channel_is_not_replyable(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
@@ -951,7 +1374,7 @@ async def test_public_message_is_blocked_when_channel_is_paused(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -997,7 +1420,7 @@ async def test_public_message_is_blocked_when_channel_id_mismatches(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -1041,7 +1464,7 @@ async def test_public_message_is_blocked_when_conversation_is_assigned(
             content="Thanks, this product is available.",
             status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
-            created_at=now,
+            created_at=now - timedelta(seconds=3),
         )
         await session.commit()
 
@@ -1054,7 +1477,7 @@ async def test_public_message_is_blocked_when_conversation_is_assigned(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
@@ -1101,7 +1524,7 @@ async def test_public_message_is_blocked_when_conversation_is_resolved(
             content="Thanks, this product is available.",
             status=OutboundActionStatus.queued,
             idempotency_key="1:2:3:4:public_message",
-            created_at=now,
+            created_at=now - timedelta(seconds=3),
         )
         await session.commit()
 
@@ -1114,7 +1537,7 @@ async def test_public_message_is_blocked_when_conversation_is_resolved(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.connect() as conn:
@@ -1161,7 +1584,7 @@ async def test_public_message_is_blocked_when_not_public_reply(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -1205,7 +1628,7 @@ async def test_public_message_is_blocked_when_content_leaks_reasoning(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -1254,7 +1677,7 @@ async def test_public_message_is_blocked_when_content_leaks_portuguese_policy(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -1303,7 +1726,7 @@ async def test_public_message_price_claim_is_blocked_without_safety_snapshot(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 0, "blocked": 1, "failed": 0}
+    assert counts == {"sent": 0, "blocked": 1, "failed": 0, "superseded": 0}
     assert writer.calls == []
     assert outbound_status(db_path) == (
         "blocked_by_policy",
@@ -1377,7 +1800,7 @@ async def test_public_message_price_claim_uses_queued_safety_snapshot(
         ).run_once()
         await session.commit()
 
-    assert counts == {"sent": 1, "blocked": 0, "failed": 0}
+    assert counts == {"sent": 1, "blocked": 0, "failed": 0, "superseded": 0}
     assert writer.calls == [
         {
             "conversation_id": "3",
@@ -1387,7 +1810,7 @@ async def test_public_message_price_claim_uses_queued_safety_snapshot(
     ]
 
 
-async def create_parent_agent_run(session, now) -> None:
+async def create_parent_agent_run(session: AsyncSession, now: datetime) -> None:
     session.add(
         RawEventRow(
             id="raw-event-1",
@@ -1434,10 +1857,50 @@ async def create_parent_agent_run(session, now) -> None:
     await session.flush()
 
 
+async def insert_customer_message(
+    session: AsyncSession,
+    *,
+    message_id: str,
+    raw_event_id: str,
+    created_at: datetime,
+) -> None:
+    session.add(
+        RawEventRow(
+            id=raw_event_id,
+            provider="chatwoot",
+            provider_event_id=f"event-{id(session)}-{message_id}",
+            event_type="message_created",
+            payload_hash=f"hash-{message_id}",
+            payload={},
+            status="processed",
+            received_at=created_at,
+        )
+    )
+    await session.flush()
+    session.add(
+        ConversationMessageRow(
+            id=f"message-{message_id}",
+            raw_event_id=raw_event_id,
+            tenant_id="1",
+            channel_id="2",
+            conversation_id="3",
+            message_id=message_id,
+            contact_id="5",
+            direction="inbound",
+            visibility="public",
+            author_type="customer",
+            content="Follow-up question",
+            created_at=created_at,
+            message_metadata={},
+        )
+    )
+    await session.flush()
+
+
 async def queue_public_action(
     repo: Repository,
     ids: IdGenerator,
-    now,
+    now: datetime,
     *,
     content: str = "Thanks, this product is available.",
     safety_context: dict | None = None,
@@ -1454,7 +1917,7 @@ async def queue_public_action(
         safety_context=safety_context,
         status=OutboundActionStatus.queued,
         idempotency_key=f"1:2:3:4:public_message:{ids.new()}",
-        created_at=now,
+        created_at=now - timedelta(seconds=3),
     )
 
 

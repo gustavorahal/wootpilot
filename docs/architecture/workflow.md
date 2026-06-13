@@ -145,9 +145,19 @@ queued actions, re-checks local conversation state, re-reads fresh Chatwoot
 safety state before public replies, sends through Chatwoot, and records the
 result idempotently.
 
+`queued_action` means the workflow approved a pending effect. It does not mean a
+message has already been sent to Chatwoot or the customer.
+
 A public reply that was safe at proposal time can still be blocked at execution
 time if the conversation becomes assigned, resolved, paused, non-replyable, or
 human-active while the action waits in the queue.
+
+Public replies also wait for the outbound public-reply delay before they become
+claimable. During that debounce, a newer public inbound customer message in the
+same tenant, channel, and conversation supersedes the older queued public reply.
+The worker persists this as `status="superseded"` with failure reason
+`conversation.superseded_by_new_customer_message`; superseded actions are
+terminal and never retried. Private notes skip the debounce and supersede check.
 
 ## Structured Model Output
 

@@ -68,7 +68,9 @@ both a pre-model allow row and a post-model validation row linked to the same
 `outbound_actions` is the outbox for private notes and public replies. It tracks
 tenant/channel/conversation identity, source message id, action kind, content,
 safety context, status, provider message id, retry attempts, next attempt time,
-error code, failure reason, timestamps, and a unique idempotency key.
+error code, failure reason, timestamps, and a unique idempotency key. Superseded
+public replies remain here as `status="superseded"` with a stable failure reason
+so operators can see why an approved workflow result was not sent.
 
 `audit_records` ties raw events, normalized messages, agent runs, policy
 decisions, context snapshots, and workflow outcomes into an operator-readable
@@ -86,7 +88,9 @@ runs, audit records, and queued outbound actions after the graph returns.
 Outbound execution atomically claims due actions by moving them to `executing`,
 commits that claim before channel calls, performs the external Chatwoot write
 outside a long database transaction, then records sent, blocked, retryable
-failure, or permanent failure status.
+failure, superseded, or permanent failure status. On Postgres,
+`LISTEN/NOTIFY` only wakes sleeping workers after inserts; the table and claim
+query remain the source of truth.
 
 ## Constraints And Idempotency
 

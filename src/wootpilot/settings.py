@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     webhook_replay_window_seconds: int = 300
     outbound_retry_delay_seconds: int = 60
     outbound_max_attempts: int = 3
+    outbound_public_reply_delay_seconds: float = 2.0
 
     chatwoot_base_url: AnyHttpUrl = "http://localhost:3000"  # type: ignore[assignment]
     chatwoot_public_url: AnyHttpUrl = "http://localhost:3000"  # type: ignore[assignment]

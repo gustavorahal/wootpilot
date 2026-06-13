@@ -35,6 +35,9 @@ class PolicyRule(StrEnum):
     conversation_wootpilot_paused = "conversation.wootpilot_paused"
     conversation_human_active = "conversation.human_active"
     conversation_assigned_to_human = "conversation.assigned_to_human"
+    conversation_superseded_by_new_customer_message = (
+        "conversation.superseded_by_new_customer_message"
+    )
     conversation_safety_state_missing = "conversation.safety_state_missing"
     conversation_id_mismatch = "conversation.id_mismatch"
     channel_not_replyable = "channel.not_replyable"

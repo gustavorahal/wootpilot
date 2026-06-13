@@ -75,7 +75,14 @@ action.
 
 `ExecuteOutboundActions` owns effects back to Chatwoot. It claims queued actions,
 performs final deterministic checks, sends through `ChatwootClient`, and records
-sent, blocked, retryable, or failed outcomes.
+sent, blocked, retryable, superseded, or failed outcomes.
+
+Workflow decisions with `queued_action` are pending outbound effects. A separate
+executor must run before Chatwoot or the customer receives the message.
+Public replies are debounced before send eligibility so rapid follow-up customer
+messages can supersede older queued public replies. Superseded actions remain in
+`outbound_actions` as `status="superseded"` with failure reason
+`conversation.superseded_by_new_customer_message`.
 
 The graph itself does not call Chatwoot, read connectors, or write database
 rows. It receives prepared domain objects and returns workflow decisions.
