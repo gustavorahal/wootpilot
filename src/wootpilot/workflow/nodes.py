@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
+
+from langgraph.types import Command
 
 from wootpilot.application.policy import (
     pre_model_policy,
     triage_message,
     validate_proposal,
 )
-from wootpilot.domain.models import ModelProposalResult, PolicyOutcome
+from wootpilot.domain.models import (
+    AgentActionKind,
+    AutomationMode,
+    ModelProposalResult,
+    PolicyOutcome,
+)
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.time import Clock, IdGenerator
 from wootpilot.workflow.decisions import (
@@ -28,6 +36,8 @@ from wootpilot.workflow.state import WorkflowState
 
 __all__ = ["WorkflowNodes"]
 
+END_NODE: Literal["__end__"] = "__end__"
+
 
 @dataclass(frozen=True)
 class WorkflowNodes:
@@ -37,20 +47,29 @@ class WorkflowNodes:
     clock: Clock
     ids: IdGenerator
 
-    async def should_invoke(self, state: WorkflowState) -> dict:
+    async def should_invoke(
+        self,
+        state: WorkflowState,
+    ) -> Command[Literal["triage_message", "__end__"]]:
         """Checks whether this message should run WootPilot."""
 
         message = state["normalized_message"]
         if message.is_customer_public_inbound():
-            return {}
-        return {"workflow_decision": non_customer_turn_decision()}
+            return Command(update={}, goto="triage_message")
+        return Command(
+            update={"workflow_decision": non_customer_turn_decision()},
+            goto=END_NODE,
+        )
 
-    async def triage_message(self, state: WorkflowState) -> dict:
+    async def triage_message(self, state: WorkflowState) -> dict[str, object]:
         """Classifies intent and risk signals from the customer text."""
 
         return {"triage_result": triage_message(state["normalized_message"])}
 
-    async def policy_gate(self, state: WorkflowState) -> dict:
+    async def policy_gate(
+        self,
+        state: WorkflowState,
+    ) -> Command[Literal["generate_proposal", "__end__"]]:
         """Applies deterministic pre-model conversation policy."""
 
         triage = state.get("triage_result")
@@ -65,16 +84,25 @@ class WorkflowNodes:
             ids=self.ids,
         )
         if decision.outcome is PolicyOutcome.block:
-            return {
-                "pre_model_policy_decision": decision,
-                "workflow_decision": pre_model_policy_blocked_decision(
-                    decision=decision,
-                    triage=triage,
-                ),
-            }
-        return {"pre_model_policy_decision": decision}
+            return Command(
+                update={
+                    "pre_model_policy_decision": decision,
+                    "workflow_decision": pre_model_policy_blocked_decision(
+                        decision=decision,
+                        triage=triage,
+                    ),
+                },
+                goto=END_NODE,
+            )
+        return Command(
+            update={"pre_model_policy_decision": decision},
+            goto="generate_proposal",
+        )
 
-    async def generate_proposal(self, state: WorkflowState) -> dict:
+    async def generate_proposal(
+        self,
+        state: WorkflowState,
+    ) -> Command[Literal["validate_outbound_action", "__end__"]]:
         """Generates a structured support action proposal."""
 
         result: ModelProposalResult = await self.proposal_generator.propose(
@@ -84,19 +112,38 @@ class WorkflowNodes:
         )
         provider_error = result.retryable_error or result.permanent_error
         if provider_error:
-            return {
-                "agent_proposal": None,
+            return Command(
+                update={
+                    "agent_proposal": None,
+                    "model_metadata": result.metadata,
+                    "provider_error": provider_error,
+                    "workflow_decision": model_proposal_failed_decision(
+                        provider_error
+                    ),
+                },
+                goto=END_NODE,
+            )
+        return Command(
+            update={
+                "agent_proposal": result.proposal,
                 "model_metadata": result.metadata,
-                "provider_error": provider_error,
-                "workflow_decision": model_proposal_failed_decision(provider_error),
-            }
-        return {
-            "agent_proposal": result.proposal,
-            "model_metadata": result.metadata,
-            "provider_error": None,
-        }
+                "provider_error": None,
+            },
+            goto="validate_outbound_action",
+        )
 
-    async def validate_outbound_action(self, state: WorkflowState) -> dict:
+    async def validate_outbound_action(
+        self,
+        state: WorkflowState,
+    ) -> Command[
+        Literal[
+            "build_observe_decision",
+            "build_private_note_action",
+            "build_public_message_action",
+            "build_missing_proposal_failure",
+            "__end__",
+        ]
+    ]:
         """Checks the proposed action before any queueing."""
 
         proposal = state.get("agent_proposal")
@@ -119,34 +166,37 @@ class WorkflowNodes:
                 triage=triage,
             )
             if review_note:
-                return {
+                return Command(
+                    update={
+                        "post_model_policy_decision": decision,
+                        "workflow_decision": public_reply_review_decision(
+                            proposal=proposal,
+                            decision=decision,
+                            triage=triage,
+                            note=review_note,
+                        ),
+                    },
+                    goto=END_NODE,
+                )
+            return Command(
+                update={
                     "post_model_policy_decision": decision,
-                    "workflow_decision": public_reply_review_decision(
+                    "workflow_decision": post_model_policy_blocked_decision(
                         proposal=proposal,
                         decision=decision,
-                        triage=triage,
-                        note=review_note,
                     ),
-                }
-            return {
-                "post_model_policy_decision": decision,
-                "workflow_decision": post_model_policy_blocked_decision(
-                    proposal=proposal,
-                    decision=decision,
-                ),
-            }
-        return {"post_model_policy_decision": decision}
+                },
+                goto=END_NODE,
+            )
+        return Command(
+            update={"post_model_policy_decision": decision},
+            goto=_final_decision_destination(state),
+        )
 
-    async def route_final_decision(self, state: WorkflowState) -> dict:
-        """Chooses the final non-sending, note, or public action.
-
-        This node intentionally returns no state. It exists so the final routing
-        choice is visible in LangGraph topology diagrams.
-        """
-
-        return {}
-
-    async def build_observe_decision(self, state: WorkflowState) -> dict:
+    async def build_observe_decision(
+        self,
+        state: WorkflowState,
+    ) -> dict[str, object]:
         """Records a proposal without creating an outbound action."""
 
         proposal = state.get("agent_proposal")
@@ -154,7 +204,10 @@ class WorkflowNodes:
             return await self.build_missing_proposal_failure(state)
         return {"workflow_decision": observe_decision(proposal)}
 
-    async def build_private_note_action(self, state: WorkflowState) -> dict:
+    async def build_private_note_action(
+        self,
+        state: WorkflowState,
+    ) -> dict[str, object]:
         """Queues an internal note for a human agent."""
 
         proposal = state.get("agent_proposal")
@@ -162,7 +215,10 @@ class WorkflowNodes:
             return await self.build_missing_proposal_failure(state)
         return {"workflow_decision": private_note_decision(proposal)}
 
-    async def build_public_message_action(self, state: WorkflowState) -> dict:
+    async def build_public_message_action(
+        self,
+        state: WorkflowState,
+    ) -> dict[str, object]:
         """Queues a customer-visible reply for delivery."""
 
         proposal = state.get("agent_proposal")
@@ -170,7 +226,33 @@ class WorkflowNodes:
             return await self.build_missing_proposal_failure(state)
         return {"workflow_decision": public_message_decision(proposal)}
 
-    async def build_missing_proposal_failure(self, state: WorkflowState) -> dict:
+    async def build_missing_proposal_failure(
+        self,
+        state: WorkflowState,
+    ) -> dict[str, object]:
         """Fails defensively if no model proposal exists."""
 
         return {"workflow_decision": missing_model_proposal_decision()}
+
+
+def _final_decision_destination(
+    state: WorkflowState,
+) -> Literal[
+    "build_observe_decision",
+    "build_private_note_action",
+    "build_public_message_action",
+    "build_missing_proposal_failure",
+]:
+    """Choose the final observe, private-note, or public-reply builder."""
+
+    proposal = state.get("agent_proposal")
+    if state["automation_mode"] is AutomationMode.observe:
+        return "build_observe_decision"
+    if proposal is None:
+        return "build_missing_proposal_failure"
+    if (
+        state["automation_mode"] is AutomationMode.assist
+        or proposal.action_kind is not AgentActionKind.public_message
+    ):
+        return "build_private_note_action"
+    return "build_public_message_action"

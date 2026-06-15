@@ -8,7 +8,7 @@ adapter boundary.
 LangGraph owns the explicit support workflow:
 
 - node execution;
-- conditional routing;
+- command-driven routing;
 - checkpointing;
 - streaming updates for local terminal traces;
 - generated topology diagrams.
@@ -37,17 +37,16 @@ triage_message
 policy_gate
 generate_proposal
 validate_outbound_action
-route_final_decision
 build_observe_decision
 build_private_note_action
 build_public_message_action
 build_missing_proposal_failure
 ```
 
-Conditional route names are descriptive `WorkflowBranch` enum values so the
-generated graph diagram reads as product documentation. The branch enum and
-route functions live together in
-[`src/wootpilot/workflow/routes.py`](../../src/wootpilot/workflow/routes.py).
+Decision-making nodes return LangGraph `Command` values when they need to both
+update workflow state and choose the next node. That keeps route decisions next
+to the policy or model result that produced them, while `graph.py` remains a
+compact topology skeleton.
 
 ## Checkpointing
 

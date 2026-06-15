@@ -145,7 +145,7 @@ async def test_observe_graph_keeps_public_proposal_as_non_sending_proposal() -> 
     assert result["workflow_decision"].action_kind.value == "none"
 
 
-def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
+def test_support_graph_mermaid_includes_command_routed_destinations() -> None:
     script = runpy.run_path("scripts/render-support-workflow-graph.py")
     proposal_generator = script["DiagramProposalGenerator"]()
     script["sync_node_descriptions_for_diagram"](proposal_generator)
@@ -153,14 +153,13 @@ def test_support_graph_mermaid_includes_descriptive_branch_names() -> None:
 
     mermaid = graph.get_graph().draw_mermaid()
 
-    assert "eligible_customer_public_turn" in mermaid
-    assert "stop_pre_model_policy_block" in mermaid
-    assert "continue_proposal_generated" in mermaid
-    assert "queue_private_review_note" in mermaid
-    assert "route_final_decision" in mermaid
-    assert "observe_only" in mermaid
-    assert "queue_assist_private_note" in mermaid
-    assert "queue_public_reply" in mermaid
+    assert "should_invoke -.-> triage_message" in mermaid
+    assert "should_invoke -.-> __end__" in mermaid
+    assert "policy_gate -.-> generate_proposal" in mermaid
+    assert "generate_proposal -.-> validate_outbound_action" in mermaid
+    assert "validate_outbound_action -.-> build_observe_decision" in mermaid
+    assert "validate_outbound_action -.-> build_private_note_action" in mermaid
+    assert "validate_outbound_action -.-> build_public_message_action" in mermaid
     assert (
         script["WORKFLOW_NODE_DESCRIPTIONS"]["should_invoke"]
         == "Checks whether this message should run WootPilot."

@@ -18,7 +18,6 @@ from wootpilot.domain.models import ModelProposalResult
 from wootpilot.time import Clock, IdGenerator
 from wootpilot.workflow.graph import build_graph
 from wootpilot.workflow.nodes import WorkflowNodes
-from wootpilot.workflow.routes import WORKFLOW_BRANCH_DESCRIPTIONS
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DOCS = ROOT / "docs" / "reference"
@@ -55,12 +54,7 @@ def _annotate_mermaid(mermaid: str) -> str:
     """Add source-controlled descriptions to LangGraph's generated Mermaid."""
 
     lines = [_annotate_node_line(line) for line in mermaid.splitlines()]
-    annotated = "\n".join(lines)
-    for branch, description in WORKFLOW_BRANCH_DESCRIPTIONS.items():
-        label = f"-. &nbsp;{branch}&nbsp; .->"
-        rich_label = f'-. "{branch}<br/>{escape(description, quote=False)}" .->'
-        annotated = annotated.replace(label, rich_label)
-    return annotated + "\n"
+    return "\n".join(lines) + "\n"
 
 
 def sync_node_descriptions_for_diagram(
@@ -80,7 +74,6 @@ def sync_node_descriptions_for_diagram(
         "policy_gate": nodes.policy_gate,
         "generate_proposal": nodes.generate_proposal,
         "validate_outbound_action": nodes.validate_outbound_action,
-        "route_final_decision": nodes.route_final_decision,
         "build_observe_decision": nodes.build_observe_decision,
         "build_private_note_action": nodes.build_private_note_action,
         "build_public_message_action": nodes.build_public_message_action,

@@ -87,17 +87,15 @@ triage_message
 policy_gate
 generate_proposal
 validate_outbound_action
-route_final_decision
 build_observe_decision
 build_private_note_action
 build_public_message_action
 build_missing_proposal_failure
 ```
 
-Route names and routing functions live together in
-[`src/wootpilot/workflow/routes.py`](../../src/wootpilot/workflow/routes.py), so
-the graph wiring and generated diagram use the same product-readable branch
-vocabulary.
+Nodes that both update state and choose the next workflow step return LangGraph
+`Command` values. This keeps routing decisions beside the policy or model result
+that produced them while leaving `graph.py` focused on the static topology.
 
 The graph does not perform database writes, connector reads, or Chatwoot writes.
 `RunCustomerSupportWorkflow` loads catalog context, stores the context snapshot,

@@ -10,26 +10,24 @@ graph TD;
 	policy_gate("policy_gate<br/>Applies deterministic pre-model conversation policy.")
 	generate_proposal("generate_proposal<br/>Generates a structured support action proposal.")
 	validate_outbound_action("validate_outbound_action<br/>Checks the proposed action before any queueing.")
-	route_final_decision("route_final_decision<br/>Chooses the final non-sending, note, or public action.")
 	build_observe_decision("build_observe_decision<br/>Records a proposal without creating an outbound action.")
 	build_private_note_action("build_private_note_action<br/>Queues an internal note for a human agent.")
 	build_public_message_action("build_public_message_action<br/>Queues a customer-visible reply for delivery.")
 	build_missing_proposal_failure("build_missing_proposal_failure<br/>Fails defensively if no model proposal exists.")
 	__end__([<p>__end__</p>]):::last
 	__start__ --> should_invoke;
-	generate_proposal -. "stop_model_proposal_failed<br/>Stop because the model/provider did not propose." .-> __end__;
-	generate_proposal -. "continue_proposal_generated<br/>Continue with the generated proposal." .-> validate_outbound_action;
-	policy_gate -. "stop_pre_model_policy_block<br/>Stop before model call due to conversation policy." .-> __end__;
-	policy_gate -. "continue_policy_allows_model<br/>Continue because pre-model policy allows it." .-> generate_proposal;
-	route_final_decision -. "stop_missing_model_proposal<br/>Stop if an approved path somehow lacks a proposal." .-> build_missing_proposal_failure;
-	route_final_decision -. "observe_only<br/>Observe mode records the proposal only." .-> build_observe_decision;
-	route_final_decision -. "queue_assist_private_note<br/>Assist mode and non-public proposals become private notes." .-> build_private_note_action;
-	route_final_decision -. "queue_public_reply<br/>Public-reply mode may queue a customer-visible reply." .-> build_public_message_action;
-	should_invoke -. "ignore_non_customer_public_turn<br/>Inbound public customer message required." .-> __end__;
-	should_invoke -. "eligible_customer_public_turn<br/>Continue because the customer turn is eligible." .-> triage_message;
+	generate_proposal -.-> __end__;
+	generate_proposal -.-> validate_outbound_action;
+	policy_gate -.-> __end__;
+	policy_gate -.-> generate_proposal;
+	should_invoke -.-> __end__;
+	should_invoke -.-> triage_message;
 	triage_message --> policy_gate;
-	validate_outbound_action -. "queue_private_review_note<br/>Queue a private review note instead of public text." .-> __end__;
-	validate_outbound_action -. "continue_action_policy_approved<br/>Continue because proposal validation passed." .-> route_final_decision;
+	validate_outbound_action -.-> __end__;
+	validate_outbound_action -.-> build_missing_proposal_failure;
+	validate_outbound_action -.-> build_observe_decision;
+	validate_outbound_action -.-> build_private_note_action;
+	validate_outbound_action -.-> build_public_message_action;
 	build_missing_proposal_failure --> __end__;
 	build_observe_decision --> __end__;
 	build_private_note_action --> __end__;
