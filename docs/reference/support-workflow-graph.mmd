@@ -10,10 +10,6 @@ graph TD;
 	policy_gate("policy_gate<br/>Applies deterministic pre-model conversation policy.")
 	generate_proposal("generate_proposal<br/>Generates a structured support action proposal.")
 	validate_outbound_action("validate_outbound_action<br/>Checks the proposed action before any queueing.")
-	build_observe_decision("build_observe_decision<br/>Records a proposal without creating an outbound action.")
-	build_private_note_action("build_private_note_action<br/>Queues an internal note for a human agent.")
-	build_public_message_action("build_public_message_action<br/>Queues a customer-visible reply for delivery.")
-	build_missing_proposal_failure("build_missing_proposal_failure<br/>Fails defensively if no model proposal exists.")
 	__end__([<p>__end__</p>]):::last
 	__start__ --> should_invoke;
 	generate_proposal -.-> __end__;
@@ -24,14 +20,6 @@ graph TD;
 	should_invoke -.-> triage_message;
 	triage_message --> policy_gate;
 	validate_outbound_action -.-> __end__;
-	validate_outbound_action -.-> build_missing_proposal_failure;
-	validate_outbound_action -.-> build_observe_decision;
-	validate_outbound_action -.-> build_private_note_action;
-	validate_outbound_action -.-> build_public_message_action;
-	build_missing_proposal_failure --> __end__;
-	build_observe_decision --> __end__;
-	build_private_note_action --> __end__;
-	build_public_message_action --> __end__;
 	classDef default fill:#f2f0ff,line-height:1.2
 	classDef first fill-opacity:0
 	classDef last fill:#bfb6fc

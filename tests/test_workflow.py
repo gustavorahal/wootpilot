@@ -157,9 +157,7 @@ def test_support_graph_mermaid_includes_command_routed_destinations() -> None:
     assert "should_invoke -.-> __end__" in mermaid
     assert "policy_gate -.-> generate_proposal" in mermaid
     assert "generate_proposal -.-> validate_outbound_action" in mermaid
-    assert "validate_outbound_action -.-> build_observe_decision" in mermaid
-    assert "validate_outbound_action -.-> build_private_note_action" in mermaid
-    assert "validate_outbound_action -.-> build_public_message_action" in mermaid
+    assert "validate_outbound_action -.-> __end__" in mermaid
     assert (
         script["WORKFLOW_NODE_DESCRIPTIONS"]["should_invoke"]
         == "Checks whether this message should run WootPilot."
@@ -436,7 +434,7 @@ async def test_local_workflow_trace_streaming_returns_final_graph_state(
     captured = capsys.readouterr()
     assert decision.status.value == "queued_action"
     assert "workflow" in captured.err
-    assert "build_private_note_action" in captured.err
+    assert "validate_outbound_action" in captured.err
     assert "Do you have this product?" in captured.err
 
 

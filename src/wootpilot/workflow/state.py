@@ -15,20 +15,11 @@ from wootpilot.domain.models import (
     WorkflowDecision,
 )
 
-__all__ = ["WorkflowState"]
+__all__ = ["WorkflowInputState", "WorkflowOutputState", "WorkflowState"]
 
 
-class WorkflowState(TypedDict):
-    """State contract shared by every node in the support workflow graph.
-
-    LangGraph passes this dictionary from node to node. Each node reads the
-    inputs it needs and returns a partial update that LangGraph merges into the
-    next state. Required keys are prepared by the application service before the
-    graph starts; optional keys are produced as the workflow advances.
-
-    Keep these keys stable unless the workflow boundary is intentionally being
-    migrated. They are part of the checkpoint, audit, and node-to-node contract.
-    """
+class WorkflowInputState(TypedDict):
+    """Inputs prepared before one support workflow graph run."""
 
     normalized_message: Annotated[
         NormalizedMessage,
@@ -46,45 +37,51 @@ class WorkflowState(TypedDict):
         AutomationMode,
         "Tenant/channel automation mode: observe, assist, or public reply.",
     ]
+
+
+class WorkflowOutputState(TypedDict, total=False):
+    """Outputs consumed after one support workflow graph run."""
+
+    workflow_decision: Annotated[
+        WorkflowDecision,
+        "Final graph outcome consumed by audit and outbound queueing services.",
+    ]
+    pre_model_policy_decision: Annotated[
+        PolicyDecision,
+        "Deterministic policy result computed before any model call.",
+    ]
+    post_model_policy_decision: Annotated[
+        PolicyDecision,
+        "Deterministic validation result for the proposed outbound action.",
+    ]
+    model_metadata: Annotated[
+        dict,
+        "Provider metadata captured with the model proposal attempt.",
+    ]
+
+
+class WorkflowState(WorkflowInputState, WorkflowOutputState):
+    """Internal state shared by every node in the support workflow graph.
+
+    LangGraph passes this dictionary from node to node. Each node reads the
+    inputs it needs and returns a partial update that LangGraph merges into the
+    next state. Input keys are prepared by the application service before the
+    graph starts; output keys are returned after the graph finishes; internal
+    scratch keys are produced as the workflow advances.
+
+    Keep these keys stable unless the workflow boundary is intentionally being
+    migrated. They are part of the checkpoint, audit, and node-to-node contract.
+    """
+
     triage_result: NotRequired[
         Annotated[
             TriageResult,
             "Intent and risk signals produced from the customer message.",
         ]
     ]
-    pre_model_policy_decision: NotRequired[
-        Annotated[
-            PolicyDecision,
-            "Deterministic policy result computed before any model call.",
-        ]
-    ]
     agent_proposal: NotRequired[
         Annotated[
             AgentProposal | None,
             "Structured model proposal, or None when proposal generation failed.",
-        ]
-    ]
-    model_metadata: NotRequired[
-        Annotated[
-            dict,
-            "Provider metadata captured with the model proposal attempt.",
-        ]
-    ]
-    provider_error: NotRequired[
-        Annotated[
-            str | None,
-            "Retryable or permanent provider error from proposal generation.",
-        ]
-    ]
-    post_model_policy_decision: NotRequired[
-        Annotated[
-            PolicyDecision,
-            "Deterministic validation result for the proposed outbound action.",
-        ]
-    ]
-    workflow_decision: NotRequired[
-        Annotated[
-            WorkflowDecision,
-            "Final graph outcome consumed by audit and outbound queueing services.",
         ]
     ]

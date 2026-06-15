@@ -62,21 +62,32 @@ configurable escape hatches.
 
 The support graph lives in
 [`src/wootpilot/workflow/graph.py`](../../src/wootpilot/workflow/graph.py). It is
-a typed LangGraph `StateGraph` whose state is a `TypedDict` containing prepared
-domain objects:
+a typed LangGraph `StateGraph` with separate input, internal, and output
+`TypedDict` schemas.
+
+Input keys:
 
 ```text
 normalized_message
 conversation_state
 catalog_context
 automation_mode
+```
+
+Internal scratch keys:
+
+```text
 triage_result
-pre_model_policy_decision
 agent_proposal
-model_metadata
-provider_error
-post_model_policy_decision
+```
+
+Output keys:
+
+```text
 workflow_decision
+pre_model_policy_decision
+model_metadata
+post_model_policy_decision
 ```
 
 Current nodes:
@@ -87,10 +98,6 @@ triage_message
 policy_gate
 generate_proposal
 validate_outbound_action
-build_observe_decision
-build_private_note_action
-build_public_message_action
-build_missing_proposal_failure
 ```
 
 Nodes that both update state and choose the next workflow step return LangGraph

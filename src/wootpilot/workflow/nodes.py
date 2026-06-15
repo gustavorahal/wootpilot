@@ -17,6 +17,7 @@ from wootpilot.domain.models import (
     AutomationMode,
     ModelProposalResult,
     PolicyOutcome,
+    WorkflowDecision,
 )
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.time import Clock, IdGenerator
@@ -116,7 +117,6 @@ class WorkflowNodes:
                 update={
                     "agent_proposal": None,
                     "model_metadata": result.metadata,
-                    "provider_error": provider_error,
                     "workflow_decision": model_proposal_failed_decision(
                         provider_error
                     ),
@@ -127,7 +127,6 @@ class WorkflowNodes:
             update={
                 "agent_proposal": result.proposal,
                 "model_metadata": result.metadata,
-                "provider_error": None,
             },
             goto="validate_outbound_action",
         )
@@ -135,15 +134,7 @@ class WorkflowNodes:
     async def validate_outbound_action(
         self,
         state: WorkflowState,
-    ) -> Command[
-        Literal[
-            "build_observe_decision",
-            "build_private_note_action",
-            "build_public_message_action",
-            "build_missing_proposal_failure",
-            "__end__",
-        ]
-    ]:
+    ) -> Command[Literal["__end__"]]:
         """Checks the proposed action before any queueing."""
 
         proposal = state.get("agent_proposal")
@@ -189,70 +180,29 @@ class WorkflowNodes:
                 goto=END_NODE,
             )
         return Command(
-            update={"post_model_policy_decision": decision},
-            goto=_final_decision_destination(state),
+            update={
+                "post_model_policy_decision": decision,
+                "workflow_decision": _final_workflow_decision(state),
+            },
+            goto=END_NODE,
         )
 
-    async def build_observe_decision(
-        self,
-        state: WorkflowState,
-    ) -> dict[str, object]:
-        """Records a proposal without creating an outbound action."""
 
-        proposal = state.get("agent_proposal")
-        if proposal is None:
-            return await self.build_missing_proposal_failure(state)
-        return {"workflow_decision": observe_decision(proposal)}
-
-    async def build_private_note_action(
-        self,
-        state: WorkflowState,
-    ) -> dict[str, object]:
-        """Queues an internal note for a human agent."""
-
-        proposal = state.get("agent_proposal")
-        if proposal is None:
-            return await self.build_missing_proposal_failure(state)
-        return {"workflow_decision": private_note_decision(proposal)}
-
-    async def build_public_message_action(
-        self,
-        state: WorkflowState,
-    ) -> dict[str, object]:
-        """Queues a customer-visible reply for delivery."""
-
-        proposal = state.get("agent_proposal")
-        if proposal is None:
-            return await self.build_missing_proposal_failure(state)
-        return {"workflow_decision": public_message_decision(proposal)}
-
-    async def build_missing_proposal_failure(
-        self,
-        state: WorkflowState,
-    ) -> dict[str, object]:
-        """Fails defensively if no model proposal exists."""
-
-        return {"workflow_decision": missing_model_proposal_decision()}
-
-
-def _final_decision_destination(
+def _final_workflow_decision(
     state: WorkflowState,
-) -> Literal[
-    "build_observe_decision",
-    "build_private_note_action",
-    "build_public_message_action",
-    "build_missing_proposal_failure",
-]:
-    """Choose the final observe, private-note, or public-reply builder."""
+) -> WorkflowDecision:
+    """Build the final observe, private-note, or public-reply decision."""
 
     proposal = state.get("agent_proposal")
     if state["automation_mode"] is AutomationMode.observe:
-        return "build_observe_decision"
+        if proposal is None:
+            return missing_model_proposal_decision()
+        return observe_decision(proposal)
     if proposal is None:
-        return "build_missing_proposal_failure"
+        return missing_model_proposal_decision()
     if (
         state["automation_mode"] is AutomationMode.assist
         or proposal.action_kind is not AgentActionKind.public_message
     ):
-        return "build_private_note_action"
-    return "build_public_message_action"
+        return private_note_decision(proposal)
+    return public_message_decision(proposal)

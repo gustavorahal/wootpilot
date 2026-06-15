@@ -74,10 +74,6 @@ def sync_node_descriptions_for_diagram(
         "policy_gate": nodes.policy_gate,
         "generate_proposal": nodes.generate_proposal,
         "validate_outbound_action": nodes.validate_outbound_action,
-        "build_observe_decision": nodes.build_observe_decision,
-        "build_private_note_action": nodes.build_private_note_action,
-        "build_public_message_action": nodes.build_public_message_action,
-        "build_missing_proposal_failure": nodes.build_missing_proposal_failure,
     }.items():
         description = getdoc(node)
         if description is None:

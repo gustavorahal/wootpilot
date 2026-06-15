@@ -37,10 +37,6 @@ triage_message
 policy_gate
 generate_proposal
 validate_outbound_action
-build_observe_decision
-build_private_note_action
-build_public_message_action
-build_missing_proposal_failure
 ```
 
 Decision-making nodes return LangGraph `Command` values when they need to both

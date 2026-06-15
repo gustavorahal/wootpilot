@@ -14,14 +14,20 @@ helpers.
 
 from __future__ import annotations
 
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import START, StateGraph
 
 from wootpilot.domain.ports import ModelProposalPort
 from wootpilot.time import Clock, IdGenerator
 from wootpilot.workflow.nodes import WorkflowNodes
-from wootpilot.workflow.state import WorkflowState
+from wootpilot.workflow.state import (
+    WorkflowInputState,
+    WorkflowOutputState,
+    WorkflowState,
+)
 
 __all__ = [
+    "WorkflowInputState",
+    "WorkflowOutputState",
     "WorkflowState",
     "build_graph",
 ]
@@ -47,24 +53,17 @@ def build_graph(
         ids=ids or IdGenerator(),
     )
 
-    graph = StateGraph(WorkflowState)
+    graph = StateGraph(
+        WorkflowState,
+        input_schema=WorkflowInputState,
+        output_schema=WorkflowOutputState,
+    )
     graph.add_node("should_invoke", nodes.should_invoke)
     graph.add_node("triage_message", nodes.triage_message)
     graph.add_node("policy_gate", nodes.policy_gate)
     graph.add_node("generate_proposal", nodes.generate_proposal)
     graph.add_node("validate_outbound_action", nodes.validate_outbound_action)
-    graph.add_node("build_observe_decision", nodes.build_observe_decision)
-    graph.add_node("build_private_note_action", nodes.build_private_note_action)
-    graph.add_node("build_public_message_action", nodes.build_public_message_action)
-    graph.add_node(
-        "build_missing_proposal_failure",
-        nodes.build_missing_proposal_failure,
-    )
 
     graph.add_edge(START, "should_invoke")
     graph.add_edge("triage_message", "policy_gate")
-    graph.add_edge("build_observe_decision", END)
-    graph.add_edge("build_private_note_action", END)
-    graph.add_edge("build_public_message_action", END)
-    graph.add_edge("build_missing_proposal_failure", END)
     return graph.compile(checkpointer=checkpointer)
